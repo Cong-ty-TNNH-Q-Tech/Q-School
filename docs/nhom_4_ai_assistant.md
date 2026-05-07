@@ -49,3 +49,4 @@
 * **Tiền điều kiện:** Đăng nhập với vai trò Giáo viên.
 * **Điều kiện sau:** Giáo viên có kế hoạch để tổ chức hoạt động.
 * **Điểm mở rộng:** Không có.
+.
