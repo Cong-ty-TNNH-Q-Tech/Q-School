@@ -18,6 +18,26 @@
 * **Điều kiện sau:** Học sinh hiểu được cách giải quyết vấn đề của bài học.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor HS as Học sinh
+    participant HT as Hệ thống
+    participant AI as AI Tutor
+
+    HS->>HT: 1. Gửi bài toán/Câu hỏi
+    HT->>AI: Kiểm tra nội dung (Safety check)
+    AI-->>HT: Hợp lệ. Xác định Scaffolding steps
+    HS->>HT: 2. Bấm yêu cầu giải đáp
+    HT->>AI: 3. Xin gợi ý đầu tiên
+    AI-->>HT: 4. Trả về câu hỏi gợi mở (Không đưa đáp án)
+    HT-->>HS: 5. Hiển thị gợi ý
+    HS->>HT: 6. Nhập câu trả lời cho gợi ý
+    HT->>AI: 7. Đánh giá đúng/sai
+    AI-->>HT: 8. Phản hồi và chuyển bước tiếp theo
+    HT-->>HS: Hoàn thành tới đáp án cuối
+```
+
 ## 2. UC-FS-002: Hỗ trợ ôn tập học tập (Study Bot)
 * **Tình huống:** Sắp tới kỳ thi, học sinh cần hệ thống lại toàn bộ kiến thức một chương học.
 * **Mô tả ngắn:** Trợ lý ảo giúp học sinh lên lịch trình ôn thi, tóm tắt chương học và tạo flashcard ôn tập.
@@ -33,6 +53,24 @@
 * **Tiền điều kiện:** Đăng nhập với vai trò Học sinh.
 * **Điều kiện sau:** Học sinh có công cụ để học thuộc lòng kiến thức.
 * **Điểm mở rộng:** Không có.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor HS as Học sinh
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    HS->>HT: 1. Tải lên tài liệu hoặc nhập chủ đề thi
+    HT->>AI: 2. Phân tích chia nhỏ kiến thức
+    HS->>HT: 3. Yêu cầu tạo hỗ trợ ôn tập
+    HT->>AI: 4. Giao nhiệm vụ tạo Lộ trình & Flashcard
+    AI-->>HT: 5. Trả về cấu trúc Flashcard
+    HT-->>HS: 6. Hiển thị giao diện học Flashcard
+    HS->>HT: 7. Bấm lật thẻ xem đáp án
+    HT-->>HS: Hiển thị mặt sau của thẻ
+    HT->>HT: 8. Ghi nhận tiến độ hoàn thành
+```
 
 ## 3. UC-FS-003: Chat với nhân vật lịch sử/văn học (Character Chatbot)
 * **Tình huống:** Học sinh cần làm bài thu hoạch môn Lịch sử hoặc Văn học và muốn tìm hiểu góc nhìn của nhân vật.
@@ -50,6 +88,23 @@
 * **Điều kiện sau:** Học sinh hiểu rõ hơn về nhân vật.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor HS as Học sinh
+    participant HT as Hệ thống
+    participant AI as AI Persona
+
+    HS->>HT: 1. Chọn/Nhập tên nhân vật lịch sử
+    HT->>AI: 2. Gán System Prompt (Tính cách nhân vật)
+    HS->>HT: 3. Đặt câu hỏi giao tiếp
+    HT->>AI: 4. Truyền dữ liệu hội thoại
+    AI-->>HT: 5. Sinh câu trả lời nhập vai (Ngôi thứ nhất)
+    HT-->>HS: 6. Hiển thị tin nhắn của Nhân vật
+    HS->>HT: 7. Chat tiếp
+    HT->>AI: Giữ Context và tính cách
+```
+
 ## 4. UC-FS-005: Tạo nội dung sáng tạo (Content Creator)
 * **Tình huống:** Học sinh cần viết kịch bản cho vở kịch của lớp hoặc lập dàn ý bài thuyết trình.
 * **Mô tả ngắn:** Hỗ trợ học sinh phác thảo ý tưởng, dàn ý cho các bài viết sáng tạo như thơ, kịch bản, bài văn biểu cảm.
@@ -66,10 +121,28 @@
 * **Điều kiện sau:** Học sinh có khung sườn để tự làm bài.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor HS as Học sinh
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    HS->>HT: 1. Nhập Thể loại và Chủ đề bài viết
+    HT->>AI: 2. Phân tích cấu trúc tác phẩm
+    HS->>HT: 3. Yêu cầu tạo dàn ý
+    HT->>AI: 4. Yêu cầu sinh khung bài (Tránh sinh full bài)
+    AI-->>HT: 5. Trả về Dàn ý (Mở/Thân/Kết)
+    HT-->>HS: 6. Hiển thị dàn ý gợi ý
+    HS->>HT: 7. Viết bài và nhờ chỉnh sửa bản nháp
+    HT->>AI: 8. Đọc và góp ý cải thiện
+    AI-->>HS: Phản hồi góp ý
+```
+
 ## 5. UC-FS-006: Hỗ trợ nghiên cứu (Research Assistant)
 * **Tình huống:** Học sinh làm tiểu luận và cần tìm các số liệu, sự kiện lịch sử đáng tin cậy.
 * **Mô tả ngắn:** Giúp học sinh tìm kiếm số liệu, sự kiện có thật để phục vụ cho các bài tiểu luận, báo cáo.
-* **Kết quả dự kiến:** Các thông tin được tổng hợp, trích dẫn rõ ràng, hỗ trợ việc nghiên cứu.
+* **Kết quả dự kiến:** Các thông tương được tổng hợp, trích dẫn rõ ràng, hỗ trợ việc nghiên cứu.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
@@ -81,6 +154,25 @@
 * **Tiền điều kiện:** Đăng nhập vai trò Học sinh.
 * **Điều kiện sau:** Học sinh thu thập đủ dữ liệu làm bài.
 * **Điểm mở rộng:** Không có.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor HS as Học sinh
+    participant HT as Hệ thống
+    participant DB as Học thuật DB
+    participant AI as AI Engine
+
+    HS->>HT: 1. Nhập từ khóa/Câu hỏi nghiên cứu
+    HT->>DB: 2. Tra cứu cơ sở dữ liệu/Web search
+    HS->>HT: 3. Yêu cầu tổng hợp
+    DB-->>AI: Trả dữ liệu thô
+    HT->>AI: 4. Lọc thông tin, Fact-check & trích nguồn
+    AI-->>HT: 5. Trả về đoạn tóm tắt + Nguồn
+    HT-->>HS: 6. Hiển thị dữ liệu nghiên cứu
+    HS->>HT: 7. Yêu cầu lưu kết quả
+    HT-->>HS: 8. Xuất file danh mục tham khảo
+```
 
 ## 6. UC-FS-007: Tự kiểm tra kiến thức (Quiz Me!)
 * **Tình huống:** Học sinh học xong bài và muốn tự test xem mình đã nhớ bài chưa trước khi gấp sách.
@@ -98,6 +190,23 @@
 * **Điều kiện sau:** Nắm được mức độ hiểu bài của bản thân.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor HS as Học sinh
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    HS->>HT: 1. Dán nội dung & chọn "Bắt đầu Quiz"
+    HT->>AI: 2. Yêu cầu tạo 5-10 câu hỏi ngẫu nhiên
+    AI-->>HT: 3. Trả về list câu hỏi
+    HT-->>HS: 4. Hiển thị UI làm bài
+    HS->>HT: 5. Chọn đáp án từng câu
+    HT->>HT: 6. Check đúng/sai lập tức
+    HS->>HT: 7. Nộp toàn bộ bài (Submit)
+    HT-->>HS: 8. Hiển thị Bảng điểm & Giải thích lỗi sai
+```
+
 ## 7. UC-FS-008: Tóm tắt văn bản (Text Summarizer)
 * **Tình huống:** Học sinh phải đọc một bài báo khoa học dài 10 trang và muốn nắm ý chính trước.
 * **Mô tả ngắn:** Rút gọn các bài báo khoa học hoặc tài liệu học tập dài thành các luận điểm chính dễ nhớ.
@@ -114,6 +223,23 @@
 * **Điều kiện sau:** Học sinh đọc xong nội dung cốt lõi nhanh chóng.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor HS as Học sinh
+    participant HT as Hệ thống
+    participant AI as NLP Engine
+
+    HS->>HT: 1. Tải tệp văn bản dài lên
+    HT->>HT: 2. Quét lỗi mã hóa file
+    HS->>HT: 3. Chọn độ dài tóm tắt
+    HT->>AI: 4. Yêu cầu NLP trích xuất ý chính
+    AI-->>HT: 5. Sinh bản tóm tắt Bullet points
+    HT-->>HS: 6. Hiển thị đoạn tóm tắt
+    HS->>HT: 7. Sao chép kết quả
+    HT->>HT: 8. Lưu lịch sử tóm tắt
+```
+
 ## 8. UC-FS-009: Dịch thuật ngữ liệu (Text Translator)
 * **Tình huống:** Học sinh cần đọc tài liệu tham khảo bằng tiếng Anh nhưng gặp nhiều từ vựng chuyên ngành khó.
 * **Mô tả ngắn:** Dịch ngữ liệu học tập từ ngôn ngữ này sang ngôn ngữ khác, ưu tiên giữ nguyên ngữ cảnh chuyên ngành học thuật.
@@ -129,3 +255,20 @@
 * **Tiền điều kiện:** Đăng nhập vai trò Học sinh.
 * **Điều kiện sau:** Học sinh hiểu được tài liệu ngoại ngữ.
 * **Điểm mở rộng:** Không có.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor HS as Học sinh
+    participant HT as Hệ thống
+    participant AI as AI Translator
+
+    HS->>HT: 1. Dán văn bản & chọn Ngôn ngữ đích
+    HT->>AI: 2. Nhận diện bối cảnh chuyên ngành
+    HS->>HT: 3. Nhấn nút "Dịch"
+    HT->>AI: 4. Yêu cầu dịch mượt mà
+    AI-->>HT: 5. Trả về kết quả song ngữ
+    HT-->>HS: 6. Hiển thị UI song song 2 ngôn ngữ
+    HS->>HT: 7. Bôi đen từ khó để tra nghĩa
+    HT-->>HS: 8. Hiển thị Popup giải thích nghĩa từ
+```

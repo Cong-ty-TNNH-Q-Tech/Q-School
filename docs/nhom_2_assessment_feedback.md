@@ -18,6 +18,22 @@
 * **Điều kiện sau:** Có bảng Rubric chuẩn để công bố cho học sinh.
 * **Điểm mở rộng:** Dùng làm đầu vào cho UC-FT-008 (Writing Feedback).
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Nhập mô tả bài tập & thang điểm
+    HT->>AI: 2. Phân tích yêu cầu và định hình tiêu chí
+    GV->>HT: 3. Yêu cầu tạo Rubric
+    AI-->>HT: 4. Sinh ma trận Rubric chi tiết
+    HT-->>GV: 5. Hiển thị bảng ma trận
+    GV->>HT: 6. Tùy chỉnh (nếu có) và lưu
+    HT-->>GV: 7. Cập nhật và xuất tệp bảng (PDF/Word)
+```
+
 ## 2. UC-FT-008: Chấm và phản hồi bài viết (Writing Feedback)
 * **Tình huống:** Giáo viên thu hàng chục bài luận của học sinh và cần đưa ra nhận xét chi tiết để học sinh cải thiện lỗi sai.
 * **Mô tả ngắn:** Use-case này cho phép Giáo viên tải lên bài viết của học sinh để hệ thống AI phân tích lỗi và đưa ra nhận xét chi tiết.
@@ -33,6 +49,22 @@
 * **Tiền điều kiện:** Người dùng đã đăng nhập vào hệ thống.
 * **Điều kiện sau:** Bản nhận xét được tạo ra để giáo viên gửi trực tiếp cho học sinh.
 * **Điểm mở rộng:** Liên kết đến Use-case "Tạo thang điểm đánh giá (Rubric Generator)" nếu người dùng chưa có tiêu chí.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Tải lên bài viết của học sinh
+    HT->>HT: 2. Kiểm tra & đọc nội dung tệp
+    GV->>HT: 3. Chọn tiêu chí chấm (Rubric)
+    HT->>AI: 4. Gửi bài viết + tiêu chí để đánh giá
+    GV->>HT: 5. Bấm yêu cầu tạo nhận xét
+    AI-->>HT: 6. Trả kết quả phân tích lỗi & gợi ý
+    HT-->>GV: 7. Hiển thị bản nhận xét chi tiết
+```
 
 ## 3. UC-FT-009: Tạo nhận xét sổ liên lạc (Report Card Comments)
 * **Tình huống:** Cuối học kỳ, giáo viên chủ nhiệm phải viết nhận xét cá nhân hóa cho từng học sinh gửi về gia đình.
@@ -50,6 +82,23 @@
 * **Điều kiện sau:** Hoàn thành nhận xét cho học sinh.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Nhập thông tin học sinh (Tên, điểm, ưu/khuyết điểm)
+    HT->>HT: 2. Kiểm tra dữ liệu đầu vào
+    GV->>HT: 3. Yêu cầu tạo nhận xét
+    HT->>AI: 4. Sinh đoạn văn nhận xét
+    AI-->>HT: 5. Trả về đoạn văn bản nhận xét
+    HT-->>GV: 6. Hiển thị văn bản cho giáo viên
+    GV->>HT: 7. Sao chép hoặc lưu lại
+    HT->>HT: 8. Lưu vào lịch sử thao tác
+```
+
 ## 4. UC-FT-010: Tạo kế hoạch giáo dục cá nhân (IEP Generator)
 * **Tình huống:** Giáo viên tiếp nhận học sinh có nhu cầu giáo dục đặc biệt và cần lên lộ trình học tập riêng.
 * **Mô tả ngắn:** Phác thảo Kế hoạch Giáo dục Cá nhân (IEP) cho học sinh cần hỗ trợ đặc biệt.
@@ -65,3 +114,20 @@
 * **Tiền điều kiện:** Người dùng đăng nhập với vai trò Giáo viên.
 * **Điều kiện sau:** Có bản phác thảo IEP để họp với phụ huynh và Ban giám hiệu.
 * **Điểm mở rộng:** Không có.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Nhập tình trạng và mục tiêu học sinh
+    HT->>AI: 2. Đối chiếu khung năng lực GD đặc biệt
+    GV->>HT: 3. Yêu cầu tạo IEP
+    HT->>AI: 4. Yêu cầu phác thảo kế hoạch IEP
+    AI-->>HT: 5. Trả về bản nháp IEP
+    HT-->>GV: 6. Hiển thị bản kế hoạch cho giáo viên
+    GV->>HT: 7. Hiệu đính và lưu/xuất file
+    HT-->>GV: 8. Áp dụng biểu mẫu chuẩn và tải xuống
+```

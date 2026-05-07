@@ -19,6 +19,23 @@
 * **Điều kiện sau:** Phiếu bài tập được tạo thành công và sẵn sàng in ấn hoặc giao cho học sinh.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Chọn công cụ & nhập dữ liệu (chủ đề, độ tuổi, độ khó)
+    HT->>HT: 2. Kiểm tra thông tin đầu vào
+    GV->>HT: 3. Xác nhận tạo bài tập
+    HT->>AI: 4. Yêu cầu sinh danh sách câu hỏi
+    AI-->>HT: 5. Trả về kết quả câu hỏi
+    HT-->>GV: 6. Hiển thị danh sách câu hỏi & định dạng phiếu
+    GV->>HT: 7. Chọn lưu hoặc tải xuống
+    HT-->>GV: 8. Xuất file và lưu hồ sơ cá nhân
+```
+
 ## 2. UC-FT-004: Tạo nội dung học thuật (Academic Content Generator)
 * **Tình huống:** Giáo viên cần tài liệu đọc thêm, văn bản mẫu hoặc tóm tắt lý thuyết để bổ sung vào giáo trình.
 * **Mô tả ngắn:** Giáo viên sử dụng công cụ để tạo các đoạn văn bản, tài liệu đọc thêm hoặc lý thuyết chuyên sâu phù hợp với trình độ học sinh.
@@ -34,6 +51,23 @@
 * **Tiền điều kiện:** Người dùng đăng nhập với vai trò Giáo viên.
 * **Điều kiện sau:** Có văn bản học thuật hoàn chỉnh để đưa vào giáo án.
 * **Điểm mở rộng:** Không có.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Nhập chủ đề, từ khóa, cấp độ
+    HT->>HT: 2. Kiểm tra tính hợp lệ
+    GV->>HT: 3. Yêu cầu tạo văn bản
+    HT->>AI: 4. Gửi yêu cầu sinh nội dung học thuật
+    AI-->>HT: 5. Trả về văn bản kết quả
+    HT-->>GV: 6. Hiển thị văn bản cho người dùng
+    GV->>HT: 7. Chỉnh sửa (nếu có) và yêu cầu lưu
+    HT-->>GV: 8. Lưu vào CSDL và xuất tệp
+```
 
 ## 3. UC-FT-005: Tạo bài kiểm tra trắc nghiệm (Multiple Choice Quiz)
 * **Tình huống:** Giáo viên muốn tổ chức kiểm tra bài cũ đầu giờ (15 phút) hoặc bài thi giữa kỳ môn học.
@@ -51,6 +85,23 @@
 * **Điều kiện sau:** Có tệp Quiz sẵn sàng để học sinh làm bài.
 * **Điểm mở rộng:** Tích hợp trực tiếp lên các nền tảng như Kahoot, Quizizz.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Cung cấp ngữ liệu/chủ đề và số lượng câu hỏi
+    HT->>AI: 2. Phân tích ngữ liệu
+    GV->>HT: 3. Bấm "Tạo Quiz"
+    HT->>AI: 4. Yêu cầu sinh bộ câu hỏi trắc nghiệm
+    AI-->>HT: 5. Trả về câu hỏi & đáp án (đánh dấu câu đúng)
+    HT-->>GV: 6. Hiển thị bộ Quiz
+    GV->>HT: 7. Yêu cầu xuất file
+    HT-->>GV: 8. Định dạng file (Word/CSV) và tải xuống
+```
+
 ## 4. UC-FT-006: Tạo danh sách từ vựng (Vocabulary List Generator)
 * **Tình huống:** Giáo viên ngoại ngữ hoặc môn chuyên ngành cần cung cấp các từ vựng cốt lõi trước khi học sinh đọc một đoạn văn bản khó.
 * **Mô tả ngắn:** Hệ thống trích xuất và định nghĩa các từ vựng quan trọng từ một văn bản để học sinh chuẩn bị trước khi đọc hiểu.
@@ -66,3 +117,19 @@
 * **Tiền điều kiện:** Người dùng đăng nhập với vai trò Giáo viên.
 * **Điều kiện sau:** Giáo viên có danh sách từ vựng chuẩn bị cho bài giảng.
 * **Điểm mở rộng:** Không có.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Nhập văn bản mục tiêu & cấp độ CEFR
+    HT->>AI: 2. Quét và lọc từ vựng theo cấp độ
+    GV->>HT: 3. Yêu cầu tạo danh sách
+    AI-->>HT: 4. Sinh bảng từ vựng (Phiên âm, Nghĩa, Ví dụ)
+    HT-->>GV: 5. Hiển thị bảng từ vựng
+    GV->>HT: 6. Yêu cầu tải danh sách
+    HT-->>GV: 7. Xuất file định dạng Excel/PDF
+```

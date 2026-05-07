@@ -18,6 +18,23 @@
 * **Điều kiện sau:** Có nội dung email sẵn sàng để gửi.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Người dùng
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Chọn đối tượng & nhập mục đích email
+    HT->>AI: 2. Phân tích đối tượng (chọn tone giọng)
+    GV->>HT: 3. Bấm "Tạo Email"
+    HT->>AI: 4. Yêu cầu sinh nội dung email
+    AI-->>HT: 5. Trả về nội dung (Tiêu đề + Thân bài)
+    HT-->>GV: 6. Hiển thị kết quả cho người dùng
+    GV->>HT: 7. Sao chép kết quả
+    HT->>HT: 8. Lưu vào thư mục "Email nháp"
+```
+
 ## 2. UC-FT-012: Điều chỉnh văn phong tài liệu (Text Rewriter)
 * **Tình huống:** Giáo viên có một tài liệu chuyên ngành quá phức tạp và muốn viết lại cho học sinh tiểu học dễ hiểu hơn.
 * **Mô tả ngắn:** Điều chỉnh lại văn phong, độ khó hoặc tóm tắt một đoạn văn bản có sẵn để phù hợp với đối tượng người đọc.
@@ -33,6 +50,22 @@
 * **Tiền điều kiện:** Người dùng đã đăng nhập.
 * **Điều kiện sau:** Có đoạn văn bản mới đúng mục đích.
 * **Điểm mở rộng:** Không có.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Người dùng
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Dán văn bản gốc & chọn tiêu chí chỉnh sửa
+    HT->>HT: 2. Ghi nhận dữ liệu
+    GV->>HT: 3. Yêu cầu xử lý (Rewrite)
+    HT->>AI: 4. Yêu cầu viết lại văn bản theo tiêu chí
+    AI-->>HT: 5. Trả về văn bản mới
+    HT-->>GV: 6. Hiển thị bản so sánh (Cũ - Mới)
+    GV->>HT: 7. Sao chép và xác nhận lưu
+```
 
 ## 3. UC-FT-013: Tìm kiếm giải pháp can thiệp hành vi (Behavior Intervention)
 * **Tình huống:** Học sinh liên tục mất tập trung hoặc gây gổ trong lớp, giáo viên không biết nên xử lý thế nào cho khéo léo.
@@ -50,6 +83,23 @@
 * **Điều kiện sau:** Cung cấp được giải pháp thực tiễn để giáo viên áp dụng.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Chọn tính năng Can thiệp hành vi
+    HT-->>GV: 2. Hiển thị form mô tả
+    GV->>HT: 3. Nhập mô tả hành vi & ngữ cảnh
+    HT->>AI: 4. Phân tích từ khóa tâm lý học đường
+    GV->>HT: 5. Nhấn nút phân tích
+    HT->>AI: 6. Yêu cầu xuất danh sách giải pháp
+    AI-->>HT: 7. Trả về các bước can thiệp
+    HT-->>GV: 8. Hiển thị danh sách chiến lược cụ thể
+```
+
 ## 4. UC-FT-014: Tạo câu hỏi từ video YouTube (YouTube Video Questions)
 * **Tình huống:** Giáo viên cho học sinh xem một video tài liệu trên YouTube và muốn kiểm tra xem học sinh có nắm được thông tin không.
 * **Mô tả ngắn:** Trích xuất tự động các câu hỏi kiểm tra từ nội dung của một đường link YouTube giáo dục.
@@ -65,3 +115,22 @@
 * **Tiền điều kiện:** Đăng nhập với vai trò Giáo viên.
 * **Điều kiện sau:** Bộ câu hỏi sẵn sàng cho hoạt động trong lớp.
 * **Điểm mở rộng:** Không có.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant YT as YouTube API
+    participant AI as AI Engine
+
+    GV->>HT: 1. Dán link YouTube & nhập số câu hỏi
+    HT->>YT: 2. Yêu cầu tải Transcript/Subtitles
+    YT-->>HT: Trả về nội dung Transcript
+    GV->>HT: 3. Yêu cầu tạo câu hỏi
+    HT->>AI: 4. Gửi Transcript để AI lọc ý chính
+    AI-->>HT: 5. Sinh câu hỏi kèm Timestamp
+    HT-->>GV: 6. Hiển thị danh sách câu hỏi
+    GV->>HT: 7. Chọn xuất file
+    HT-->>GV: 8. Xuất file đính kèm link video
+```

@@ -18,6 +18,22 @@
 * **Điều kiện sau:** Câu hỏi được giải đáp và lưu vào lịch sử trò chuyện.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống UI
+    participant AI as AI Engine (Raina)
+
+    GV->>HT: 1. Mở khung chat AI
+    HT-->>GV: 2. Tải lịch sử & hiển thị lời chào
+    GV->>HT: 3. Nhập câu hỏi nghiệp vụ
+    HT->>AI: 4. Phân tích ngữ nghĩa & Context
+    GV->>HT: 5. Nhấn "Gửi"
+    AI-->>HT: 6. Sinh phản hồi tức thời (<2s)
+    HT-->>GV: 7. Hiển thị tin nhắn trả lời
+```
+
 ## 2. UC-FT-016: Hướng dẫn phương pháp giảng dạy (AI Instructional Coach)
 * **Tình huống:** Giáo viên mới ra trường cần lời khuyên về cách quản lý lớp học hoặc áp dụng phương pháp dạy học mới (ví dụ: Flipped Classroom).
 * **Mô tả ngắn:** Cung cấp tư vấn chuyên sâu về phương pháp sư phạm, cách quản lý lớp học và xử lý tình huống sư phạm giả định.
@@ -34,6 +50,24 @@
 * **Điều kiện sau:** Người dùng nắm được phương pháp để áp dụng vào thực tế.
 * **Điểm mở rộng:** Không có.
 
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Expert Coach
+
+    GV->>HT: 1. Nhập vấn đề phương pháp dạy học
+    HT->>AI: 2. Nhận diện từ khóa chuyên ngành
+    GV->>HT: 3. Yêu cầu tư vấn
+    AI-->>HT: 4. Sinh quy trình hướng dẫn Step-by-step
+    HT-->>GV: 5. Hiển thị tư vấn
+    GV->>HT: 6. Gửi câu hỏi làm rõ thêm (Follow-up)
+    HT->>AI: Truyền Context hội thoại
+    AI-->>HT: 7. Phản hồi chuyên sâu
+    HT-->>GV: Hiển thị câu trả lời
+```
+
 ## 3. UC-FT-017: Tạo ý tưởng sáng tạo (Idea Generator)
 * **Tình huống:** Giáo viên "bí" ý tưởng tổ chức trò chơi warm-up đầu giờ hoặc hoạt động ngoại khóa dịp lễ.
 * **Mô tả ngắn:** Gợi ý các ý tưởng cho hoạt động ngoại khóa, trò chơi khởi động (warm-up) hoặc trang trí lớp học.
@@ -49,4 +83,20 @@
 * **Tiền điều kiện:** Đăng nhập với vai trò Giáo viên.
 * **Điều kiện sau:** Giáo viên có kế hoạch để tổ chức hoạt động.
 * **Điểm mở rộng:** Không có.
-.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: 1. Nhập bối cảnh sự kiện, thời gian, lứa tuổi
+    HT->>HT: 2. Xử lý các ràng buộc
+    GV->>HT: 3. Nhấn nút "Tìm ý tưởng"
+    HT->>AI: 4. Yêu cầu gợi ý hoạt động
+    AI-->>HT: 5. Trả về danh sách ý tưởng (Bullet points)
+    HT-->>GV: 6. Hiển thị danh sách cho người dùng
+    GV->>HT: 7. Đánh dấu lưu ý tưởng mong muốn
+    HT->>HT: 8. Cập nhật vào DB cá nhân
+```
