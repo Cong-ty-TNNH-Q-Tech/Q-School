@@ -25,13 +25,13 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Nhập mô tả bài tập & thang điểm
-    HT->>AI: 2. Phân tích yêu cầu và định hình tiêu chí
-    GV->>HT: 3. Yêu cầu tạo Rubric
-    AI-->>HT: 4. Sinh ma trận Rubric chi tiết
-    HT-->>GV: 5. Hiển thị bảng ma trận
-    GV->>HT: 6. Tùy chỉnh (nếu có) và lưu
-    HT-->>GV: 7. Cập nhật và xuất tệp bảng (PDF/Word)
+    GV->>HT: Nhập mô tả bài tập & thang điểm
+    HT->>AI: Phân tích yêu cầu và định hình tiêu chí
+    GV->>HT: Yêu cầu tạo Rubric
+    AI-->>HT: Sinh ma trận Rubric chi tiết
+    HT-->>GV: Hiển thị bảng ma trận
+    GV->>HT: Tùy chỉnh (nếu có) và lưu
+    HT-->>GV: Cập nhật và xuất tệp bảng (PDF/Word)
 ```
 
 ## 2. UC-FT-008: Chấm và phản hồi bài viết (Writing Feedback)
@@ -57,13 +57,13 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Tải lên bài viết của học sinh
-    HT->>HT: 2. Kiểm tra & đọc nội dung tệp
-    GV->>HT: 3. Chọn tiêu chí chấm (Rubric)
-    HT->>AI: 4. Gửi bài viết + tiêu chí để đánh giá
-    GV->>HT: 5. Bấm yêu cầu tạo nhận xét
-    AI-->>HT: 6. Trả kết quả phân tích lỗi & gợi ý
-    HT-->>GV: 7. Hiển thị bản nhận xét chi tiết
+    GV->>HT: Tải lên bài viết của học sinh
+    HT->>HT: Kiểm tra & đọc nội dung tệp
+    GV->>HT: Chọn tiêu chí chấm (Rubric)
+    HT->>AI: Gửi bài viết + tiêu chí để đánh giá
+    GV->>HT: Bấm yêu cầu tạo nhận xét
+    AI-->>HT: Trả kết quả phân tích lỗi & gợi ý
+    HT-->>GV: Hiển thị bản nhận xét chi tiết
 ```
 
 ## 3. UC-FT-009: Tạo nhận xét sổ liên lạc (Report Card Comments)
@@ -89,14 +89,14 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Nhập thông tin học sinh (Tên, điểm, ưu/khuyết điểm)
-    HT->>HT: 2. Kiểm tra dữ liệu đầu vào
-    GV->>HT: 3. Yêu cầu tạo nhận xét
-    HT->>AI: 4. Sinh đoạn văn nhận xét
-    AI-->>HT: 5. Trả về đoạn văn bản nhận xét
-    HT-->>GV: 6. Hiển thị văn bản cho giáo viên
-    GV->>HT: 7. Sao chép hoặc lưu lại
-    HT->>HT: 8. Lưu vào lịch sử thao tác
+    GV->>HT: Nhập thông tin học sinh (Tên, điểm, ưu/khuyết điểm)
+    HT->>HT: Kiểm tra dữ liệu đầu vào
+    GV->>HT: Yêu cầu tạo nhận xét
+    HT->>AI: Sinh đoạn văn nhận xét
+    AI-->>HT: Trả về đoạn văn bản nhận xét
+    HT-->>GV: Hiển thị văn bản cho giáo viên
+    GV->>HT: Sao chép hoặc lưu lại
+    HT->>HT: Lưu vào lịch sử thao tác
 ```
 
 ## 4. UC-FT-010: Tạo kế hoạch giáo dục cá nhân (IEP Generator)
@@ -122,12 +122,12 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Nhập tình trạng và mục tiêu học sinh
-    HT->>AI: 2. Đối chiếu khung năng lực GD đặc biệt
-    GV->>HT: 3. Yêu cầu tạo IEP
-    HT->>AI: 4. Yêu cầu phác thảo kế hoạch IEP
-    AI-->>HT: 5. Trả về bản nháp IEP
-    HT-->>GV: 6. Hiển thị bản kế hoạch cho giáo viên
-    GV->>HT: 7. Hiệu đính và lưu/xuất file
-    HT-->>GV: 8. Áp dụng biểu mẫu chuẩn và tải xuống
+    GV->>HT: Nhập tình trạng và mục tiêu học sinh
+    HT->>AI: Đối chiếu khung năng lực GD đặc biệt
+    GV->>HT: Yêu cầu tạo IEP
+    HT->>AI: Yêu cầu phác thảo kế hoạch IEP
+    AI-->>HT: Trả về bản nháp IEP
+    HT-->>GV: Hiển thị bản kế hoạch cho giáo viên
+    GV->>HT: Hiệu đính và lưu/xuất file
+    HT-->>GV: Áp dụng biểu mẫu chuẩn và tải xuống
 ```

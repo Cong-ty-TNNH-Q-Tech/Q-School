@@ -25,13 +25,13 @@ sequenceDiagram
     participant HT as Hệ thống UI
     participant AI as AI Engine (Raina)
 
-    GV->>HT: 1. Mở khung chat AI
-    HT-->>GV: 2. Tải lịch sử & hiển thị lời chào
-    GV->>HT: 3. Nhập câu hỏi nghiệp vụ
-    HT->>AI: 4. Phân tích ngữ nghĩa & Context
-    GV->>HT: 5. Nhấn "Gửi"
-    AI-->>HT: 6. Sinh phản hồi tức thời (<2s)
-    HT-->>GV: 7. Hiển thị tin nhắn trả lời
+    GV->>HT: Mở khung chat AI
+    HT-->>GV: Tải lịch sử & hiển thị lời chào
+    GV->>HT: Nhập câu hỏi nghiệp vụ
+    HT->>AI: Phân tích ngữ nghĩa & Context
+    GV->>HT: Nhấn "Gửi"
+    AI-->>HT: Sinh phản hồi tức thời (<2s)
+    HT-->>GV: Hiển thị tin nhắn trả lời
 ```
 
 ## 2. UC-FT-016: Hướng dẫn phương pháp giảng dạy (AI Instructional Coach)
@@ -57,14 +57,14 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Expert Coach
 
-    GV->>HT: 1. Nhập vấn đề phương pháp dạy học
-    HT->>AI: 2. Nhận diện từ khóa chuyên ngành
-    GV->>HT: 3. Yêu cầu tư vấn
-    AI-->>HT: 4. Sinh quy trình hướng dẫn Step-by-step
-    HT-->>GV: 5. Hiển thị tư vấn
-    GV->>HT: 6. Gửi câu hỏi làm rõ thêm (Follow-up)
+    GV->>HT: Nhập vấn đề phương pháp dạy học
+    HT->>AI: Nhận diện từ khóa chuyên ngành
+    GV->>HT: Yêu cầu tư vấn
+    AI-->>HT: Sinh quy trình hướng dẫn Step-by-step
+    HT-->>GV: Hiển thị tư vấn
+    GV->>HT: Gửi câu hỏi làm rõ thêm (Follow-up)
     HT->>AI: Truyền Context hội thoại
-    AI-->>HT: 7. Phản hồi chuyên sâu
+    AI-->>HT: Phản hồi chuyên sâu
     HT-->>GV: Hiển thị câu trả lời
 ```
 
@@ -91,12 +91,12 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Nhập bối cảnh sự kiện, thời gian, lứa tuổi
-    HT->>HT: 2. Xử lý các ràng buộc
-    GV->>HT: 3. Nhấn nút "Tìm ý tưởng"
-    HT->>AI: 4. Yêu cầu gợi ý hoạt động
-    AI-->>HT: 5. Trả về danh sách ý tưởng (Bullet points)
-    HT-->>GV: 6. Hiển thị danh sách cho người dùng
-    GV->>HT: 7. Đánh dấu lưu ý tưởng mong muốn
-    HT->>HT: 8. Cập nhật vào DB cá nhân
+    GV->>HT: Nhập bối cảnh sự kiện, thời gian, lứa tuổi
+    HT->>HT: Xử lý các ràng buộc
+    GV->>HT: Nhấn nút "Tìm ý tưởng"
+    HT->>AI: Yêu cầu gợi ý hoạt động
+    AI-->>HT: Trả về danh sách ý tưởng (Bullet points)
+    HT-->>GV: Hiển thị danh sách cho người dùng
+    GV->>HT: Đánh dấu lưu ý tưởng mong muốn
+    HT->>HT: Cập nhật vào DB cá nhân
 ```

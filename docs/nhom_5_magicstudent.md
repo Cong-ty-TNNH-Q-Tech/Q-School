@@ -25,16 +25,16 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Tutor
 
-    HS->>HT: 1. Gửi bài toán/Câu hỏi
+    HS->>HT: Gửi bài toán/Câu hỏi
     HT->>AI: Kiểm tra nội dung (Safety check)
     AI-->>HT: Hợp lệ. Xác định Scaffolding steps
-    HS->>HT: 2. Bấm yêu cầu giải đáp
-    HT->>AI: 3. Xin gợi ý đầu tiên
-    AI-->>HT: 4. Trả về câu hỏi gợi mở (Không đưa đáp án)
-    HT-->>HS: 5. Hiển thị gợi ý
-    HS->>HT: 6. Nhập câu trả lời cho gợi ý
-    HT->>AI: 7. Đánh giá đúng/sai
-    AI-->>HT: 8. Phản hồi và chuyển bước tiếp theo
+    HS->>HT: Bấm yêu cầu giải đáp
+    HT->>AI: Xin gợi ý đầu tiên
+    AI-->>HT: Trả về câu hỏi gợi mở (Không đưa đáp án)
+    HT-->>HS: Hiển thị gợi ý
+    HS->>HT: Nhập câu trả lời cho gợi ý
+    HT->>AI: Đánh giá đúng/sai
+    AI-->>HT: Phản hồi và chuyển bước tiếp theo
     HT-->>HS: Hoàn thành tới đáp án cuối
 ```
 
@@ -61,15 +61,15 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    HS->>HT: 1. Tải lên tài liệu hoặc nhập chủ đề thi
-    HT->>AI: 2. Phân tích chia nhỏ kiến thức
-    HS->>HT: 3. Yêu cầu tạo hỗ trợ ôn tập
-    HT->>AI: 4. Giao nhiệm vụ tạo Lộ trình & Flashcard
-    AI-->>HT: 5. Trả về cấu trúc Flashcard
-    HT-->>HS: 6. Hiển thị giao diện học Flashcard
-    HS->>HT: 7. Bấm lật thẻ xem đáp án
+    HS->>HT: Tải lên tài liệu hoặc nhập chủ đề thi
+    HT->>AI: Phân tích chia nhỏ kiến thức
+    HS->>HT: Yêu cầu tạo hỗ trợ ôn tập
+    HT->>AI: Giao nhiệm vụ tạo Lộ trình & Flashcard
+    AI-->>HT: Trả về cấu trúc Flashcard
+    HT-->>HS: Hiển thị giao diện học Flashcard
+    HS->>HT: Bấm lật thẻ xem đáp án
     HT-->>HS: Hiển thị mặt sau của thẻ
-    HT->>HT: 8. Ghi nhận tiến độ hoàn thành
+    HT->>HT: Ghi nhận tiến độ hoàn thành
 ```
 
 ## 3. UC-FS-003: Chat với nhân vật lịch sử/văn học (Character Chatbot)
@@ -95,13 +95,13 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Persona
 
-    HS->>HT: 1. Chọn/Nhập tên nhân vật lịch sử
-    HT->>AI: 2. Gán System Prompt (Tính cách nhân vật)
-    HS->>HT: 3. Đặt câu hỏi giao tiếp
-    HT->>AI: 4. Truyền dữ liệu hội thoại
-    AI-->>HT: 5. Sinh câu trả lời nhập vai (Ngôi thứ nhất)
-    HT-->>HS: 6. Hiển thị tin nhắn của Nhân vật
-    HS->>HT: 7. Chat tiếp
+    HS->>HT: Chọn/Nhập tên nhân vật lịch sử
+    HT->>AI: Gán System Prompt (Tính cách nhân vật)
+    HS->>HT: Đặt câu hỏi giao tiếp
+    HT->>AI: Truyền dữ liệu hội thoại
+    AI-->>HT: Sinh câu trả lời nhập vai (Ngôi thứ nhất)
+    HT-->>HS: Hiển thị tin nhắn của Nhân vật
+    HS->>HT: Chat tiếp
     HT->>AI: Giữ Context và tính cách
 ```
 
@@ -128,14 +128,14 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    HS->>HT: 1. Nhập Thể loại và Chủ đề bài viết
-    HT->>AI: 2. Phân tích cấu trúc tác phẩm
-    HS->>HT: 3. Yêu cầu tạo dàn ý
-    HT->>AI: 4. Yêu cầu sinh khung bài (Tránh sinh full bài)
-    AI-->>HT: 5. Trả về Dàn ý (Mở/Thân/Kết)
-    HT-->>HS: 6. Hiển thị dàn ý gợi ý
-    HS->>HT: 7. Viết bài và nhờ chỉnh sửa bản nháp
-    HT->>AI: 8. Đọc và góp ý cải thiện
+    HS->>HT: Nhập Thể loại và Chủ đề bài viết
+    HT->>AI: Phân tích cấu trúc tác phẩm
+    HS->>HT: Yêu cầu tạo dàn ý
+    HT->>AI: Yêu cầu sinh khung bài (Tránh sinh full bài)
+    AI-->>HT: Trả về Dàn ý (Mở/Thân/Kết)
+    HT-->>HS: Hiển thị dàn ý gợi ý
+    HS->>HT: Viết bài và nhờ chỉnh sửa bản nháp
+    HT->>AI: Đọc và góp ý cải thiện
     AI-->>HS: Phản hồi góp ý
 ```
 
@@ -163,15 +163,15 @@ sequenceDiagram
     participant DB as Học thuật DB
     participant AI as AI Engine
 
-    HS->>HT: 1. Nhập từ khóa/Câu hỏi nghiên cứu
-    HT->>DB: 2. Tra cứu cơ sở dữ liệu/Web search
-    HS->>HT: 3. Yêu cầu tổng hợp
+    HS->>HT: Nhập từ khóa/Câu hỏi nghiên cứu
+    HT->>DB: Tra cứu cơ sở dữ liệu/Web search
+    HS->>HT: Yêu cầu tổng hợp
     DB-->>AI: Trả dữ liệu thô
-    HT->>AI: 4. Lọc thông tin, Fact-check & trích nguồn
-    AI-->>HT: 5. Trả về đoạn tóm tắt + Nguồn
-    HT-->>HS: 6. Hiển thị dữ liệu nghiên cứu
-    HS->>HT: 7. Yêu cầu lưu kết quả
-    HT-->>HS: 8. Xuất file danh mục tham khảo
+    HT->>AI: Lọc thông tin, Fact-check & trích nguồn
+    AI-->>HT: Trả về đoạn tóm tắt + Nguồn
+    HT-->>HS: Hiển thị dữ liệu nghiên cứu
+    HS->>HT: Yêu cầu lưu kết quả
+    HT-->>HS: Xuất file danh mục tham khảo
 ```
 
 ## 6. UC-FS-007: Tự kiểm tra kiến thức (Quiz Me!)
@@ -197,14 +197,14 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    HS->>HT: 1. Dán nội dung & chọn "Bắt đầu Quiz"
-    HT->>AI: 2. Yêu cầu tạo 5-10 câu hỏi ngẫu nhiên
-    AI-->>HT: 3. Trả về list câu hỏi
-    HT-->>HS: 4. Hiển thị UI làm bài
-    HS->>HT: 5. Chọn đáp án từng câu
-    HT->>HT: 6. Check đúng/sai lập tức
-    HS->>HT: 7. Nộp toàn bộ bài (Submit)
-    HT-->>HS: 8. Hiển thị Bảng điểm & Giải thích lỗi sai
+    HS->>HT: Dán nội dung & chọn "Bắt đầu Quiz"
+    HT->>AI: Yêu cầu tạo 5-10 câu hỏi ngẫu nhiên
+    AI-->>HT: Trả về list câu hỏi
+    HT-->>HS: Hiển thị UI làm bài
+    HS->>HT: Chọn đáp án từng câu
+    HT->>HT: Check đúng/sai lập tức
+    HS->>HT: Nộp toàn bộ bài (Submit)
+    HT-->>HS: Hiển thị Bảng điểm & Giải thích lỗi sai
 ```
 
 ## 7. UC-FS-008: Tóm tắt văn bản (Text Summarizer)
@@ -230,14 +230,14 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as NLP Engine
 
-    HS->>HT: 1. Tải tệp văn bản dài lên
-    HT->>HT: 2. Quét lỗi mã hóa file
-    HS->>HT: 3. Chọn độ dài tóm tắt
-    HT->>AI: 4. Yêu cầu NLP trích xuất ý chính
-    AI-->>HT: 5. Sinh bản tóm tắt Bullet points
-    HT-->>HS: 6. Hiển thị đoạn tóm tắt
-    HS->>HT: 7. Sao chép kết quả
-    HT->>HT: 8. Lưu lịch sử tóm tắt
+    HS->>HT: Tải tệp văn bản dài lên
+    HT->>HT: Quét lỗi mã hóa file
+    HS->>HT: Chọn độ dài tóm tắt
+    HT->>AI: Yêu cầu NLP trích xuất ý chính
+    AI-->>HT: Sinh bản tóm tắt Bullet points
+    HT-->>HS: Hiển thị đoạn tóm tắt
+    HS->>HT: Sao chép kết quả
+    HT->>HT: Lưu lịch sử tóm tắt
 ```
 
 ## 8. UC-FS-009: Dịch thuật ngữ liệu (Text Translator)
@@ -263,12 +263,12 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Translator
 
-    HS->>HT: 1. Dán văn bản & chọn Ngôn ngữ đích
-    HT->>AI: 2. Nhận diện bối cảnh chuyên ngành
-    HS->>HT: 3. Nhấn nút "Dịch"
-    HT->>AI: 4. Yêu cầu dịch mượt mà
-    AI-->>HT: 5. Trả về kết quả song ngữ
-    HT-->>HS: 6. Hiển thị UI song song 2 ngôn ngữ
-    HS->>HT: 7. Bôi đen từ khó để tra nghĩa
-    HT-->>HS: 8. Hiển thị Popup giải thích nghĩa từ
+    HS->>HT: Dán văn bản & chọn Ngôn ngữ đích
+    HT->>AI: Nhận diện bối cảnh chuyên ngành
+    HS->>HT: Nhấn nút "Dịch"
+    HT->>AI: Yêu cầu dịch mượt mà
+    AI-->>HT: Trả về kết quả song ngữ
+    HT-->>HS: Hiển thị UI song song 2 ngôn ngữ
+    HS->>HT: Bôi đen từ khó để tra nghĩa
+    HT-->>HS: Hiển thị Popup giải thích nghĩa từ
 ```

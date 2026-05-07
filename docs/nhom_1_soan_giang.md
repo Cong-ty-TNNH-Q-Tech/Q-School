@@ -26,14 +26,14 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Chọn công cụ & nhập dữ liệu (chủ đề, độ tuổi, độ khó)
-    HT->>HT: 2. Kiểm tra thông tin đầu vào
-    GV->>HT: 3. Xác nhận tạo bài tập
-    HT->>AI: 4. Yêu cầu sinh danh sách câu hỏi
-    AI-->>HT: 5. Trả về kết quả câu hỏi
-    HT-->>GV: 6. Hiển thị danh sách câu hỏi & định dạng phiếu
-    GV->>HT: 7. Chọn lưu hoặc tải xuống
-    HT-->>GV: 8. Xuất file và lưu hồ sơ cá nhân
+    GV->>HT: Chọn công cụ & nhập dữ liệu (chủ đề, độ tuổi, độ khó)
+    GV->>HT: Xác nhận tạo bài tập
+    HT->>HT: Kiểm tra thông tin đầu vào
+    HT->>AI: Yêu cầu sinh danh sách câu hỏi
+    AI-->>HT: Trả về kết quả câu hỏi
+    HT-->>GV: Hiển thị danh sách câu hỏi & định dạng phiếu
+    GV->>HT: Chọn lưu hoặc tải xuống
+    HT-->>GV: Xuất file và lưu hồ sơ cá nhân
 ```
 
 ## 2. UC-FT-004: Tạo nội dung học thuật (Academic Content Generator)
@@ -59,14 +59,14 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Nhập chủ đề, từ khóa, cấp độ
-    HT->>HT: 2. Kiểm tra tính hợp lệ
-    GV->>HT: 3. Yêu cầu tạo văn bản
-    HT->>AI: 4. Gửi yêu cầu sinh nội dung học thuật
-    AI-->>HT: 5. Trả về văn bản kết quả
-    HT-->>GV: 6. Hiển thị văn bản cho người dùng
-    GV->>HT: 7. Chỉnh sửa (nếu có) và yêu cầu lưu
-    HT-->>GV: 8. Lưu vào CSDL và xuất tệp
+    GV->>HT: Nhập chủ đề, từ khóa, cấp độ
+    HT->>HT: Kiểm tra tính hợp lệ
+    GV->>HT: Yêu cầu tạo văn bản
+    HT->>AI: Gửi yêu cầu sinh nội dung học thuật
+    AI-->>HT: Trả về văn bản kết quả
+    HT-->>GV: Hiển thị văn bản cho người dùng
+    GV->>HT: Chỉnh sửa (nếu có) và yêu cầu lưu
+    HT-->>GV: Lưu vào CSDL và xuất tệp
 ```
 
 ## 3. UC-FT-005: Tạo bài kiểm tra trắc nghiệm (Multiple Choice Quiz)
@@ -92,14 +92,13 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Cung cấp ngữ liệu/chủ đề và số lượng câu hỏi
-    HT->>AI: 2. Phân tích ngữ liệu
-    GV->>HT: 3. Bấm "Tạo Quiz"
-    HT->>AI: 4. Yêu cầu sinh bộ câu hỏi trắc nghiệm
-    AI-->>HT: 5. Trả về câu hỏi & đáp án (đánh dấu câu đúng)
-    HT-->>GV: 6. Hiển thị bộ Quiz
-    GV->>HT: 7. Yêu cầu xuất file
-    HT-->>GV: 8. Định dạng file (Word/CSV) và tải xuống
+    GV->>HT: Cung cấp ngữ liệu/chủ đề và số lượng câu hỏi
+    GV->>HT: Bấm "Tạo Quiz"
+    HT->>AI: Phân tích ngữ liệu & Sinh bộ câu hỏi trắc nghiệm
+    AI-->>HT: Trả về câu hỏi & đáp án (đánh dấu câu đúng)
+    HT-->>GV: Hiển thị bộ Quiz
+    GV->>HT: Yêu cầu xuất file
+    HT-->>GV: Định dạng file (Word/CSV) và tải xuống
 ```
 
 ## 4. UC-FT-006: Tạo danh sách từ vựng (Vocabulary List Generator)
@@ -125,11 +124,11 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Nhập văn bản mục tiêu & cấp độ CEFR
-    HT->>AI: 2. Quét và lọc từ vựng theo cấp độ
-    GV->>HT: 3. Yêu cầu tạo danh sách
-    AI-->>HT: 4. Sinh bảng từ vựng (Phiên âm, Nghĩa, Ví dụ)
-    HT-->>GV: 5. Hiển thị bảng từ vựng
-    GV->>HT: 6. Yêu cầu tải danh sách
-    HT-->>GV: 7. Xuất file định dạng Excel/PDF
+    GV->>HT: Nhập văn bản mục tiêu & cấp độ CEFR
+    HT->>AI: Quét và lọc từ vựng theo cấp độ
+    GV->>HT: Yêu cầu tạo danh sách
+    AI-->>HT: Sinh bảng từ vựng (Phiên âm, Nghĩa, Ví dụ)
+    HT-->>GV: Hiển thị bảng từ vựng
+    GV->>HT: Yêu cầu tải danh sách
+    HT-->>GV: Xuất file định dạng Excel/PDF
 ```

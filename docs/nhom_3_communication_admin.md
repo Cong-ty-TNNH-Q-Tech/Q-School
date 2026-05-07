@@ -25,14 +25,14 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Chọn đối tượng & nhập mục đích email
-    HT->>AI: 2. Phân tích đối tượng (chọn tone giọng)
-    GV->>HT: 3. Bấm "Tạo Email"
-    HT->>AI: 4. Yêu cầu sinh nội dung email
-    AI-->>HT: 5. Trả về nội dung (Tiêu đề + Thân bài)
-    HT-->>GV: 6. Hiển thị kết quả cho người dùng
-    GV->>HT: 7. Sao chép kết quả
-    HT->>HT: 8. Lưu vào thư mục "Email nháp"
+    GV->>HT: Chọn đối tượng & nhập mục đích email
+    HT->>AI: Phân tích đối tượng (chọn tone giọng)
+    GV->>HT: Bấm "Tạo Email"
+    HT->>AI: Yêu cầu sinh nội dung email
+    AI-->>HT: Trả về nội dung (Tiêu đề + Thân bài)
+    HT-->>GV: Hiển thị kết quả cho người dùng
+    GV->>HT: Sao chép kết quả
+    HT->>HT: Lưu vào thư mục "Email nháp"
 ```
 
 ## 2. UC-FT-012: Điều chỉnh văn phong tài liệu (Text Rewriter)
@@ -58,13 +58,13 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Dán văn bản gốc & chọn tiêu chí chỉnh sửa
-    HT->>HT: 2. Ghi nhận dữ liệu
-    GV->>HT: 3. Yêu cầu xử lý (Rewrite)
-    HT->>AI: 4. Yêu cầu viết lại văn bản theo tiêu chí
-    AI-->>HT: 5. Trả về văn bản mới
-    HT-->>GV: 6. Hiển thị bản so sánh (Cũ - Mới)
-    GV->>HT: 7. Sao chép và xác nhận lưu
+    GV->>HT: Dán văn bản gốc & chọn tiêu chí chỉnh sửa
+    HT->>HT: Ghi nhận dữ liệu
+    GV->>HT: Yêu cầu xử lý (Rewrite)
+    HT->>AI: Yêu cầu viết lại văn bản theo tiêu chí
+    AI-->>HT: Trả về văn bản mới
+    HT-->>GV: Hiển thị bản so sánh (Cũ - Mới)
+    GV->>HT: Sao chép và xác nhận lưu
 ```
 
 ## 3. UC-FT-013: Tìm kiếm giải pháp can thiệp hành vi (Behavior Intervention)
@@ -90,14 +90,13 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: 1. Chọn tính năng Can thiệp hành vi
-    HT-->>GV: 2. Hiển thị form mô tả
-    GV->>HT: 3. Nhập mô tả hành vi & ngữ cảnh
-    HT->>AI: 4. Phân tích từ khóa tâm lý học đường
-    GV->>HT: 5. Nhấn nút phân tích
-    HT->>AI: 6. Yêu cầu xuất danh sách giải pháp
-    AI-->>HT: 7. Trả về các bước can thiệp
-    HT-->>GV: 8. Hiển thị danh sách chiến lược cụ thể
+    GV->>HT: Chọn tính năng Can thiệp hành vi
+    HT-->>GV: Hiển thị form mô tả
+    GV->>HT: Nhập mô tả hành vi & ngữ cảnh
+    GV->>HT: Nhấn nút phân tích
+    HT->>AI: Phân tích từ khóa & yêu cầu giải pháp
+    AI-->>HT: Trả về các bước can thiệp
+    HT-->>GV: Hiển thị danh sách chiến lược cụ thể
 ```
 
 ## 4. UC-FT-014: Tạo câu hỏi từ video YouTube (YouTube Video Questions)
@@ -124,13 +123,13 @@ sequenceDiagram
     participant YT as YouTube API
     participant AI as AI Engine
 
-    GV->>HT: 1. Dán link YouTube & nhập số câu hỏi
-    HT->>YT: 2. Yêu cầu tải Transcript/Subtitles
+    GV->>HT: Dán link YouTube & nhập số câu hỏi
+    GV->>HT: Yêu cầu tạo câu hỏi
+    HT->>YT: Yêu cầu tải Transcript/Subtitles
     YT-->>HT: Trả về nội dung Transcript
-    GV->>HT: 3. Yêu cầu tạo câu hỏi
-    HT->>AI: 4. Gửi Transcript để AI lọc ý chính
-    AI-->>HT: 5. Sinh câu hỏi kèm Timestamp
-    HT-->>GV: 6. Hiển thị danh sách câu hỏi
-    GV->>HT: 7. Chọn xuất file
-    HT-->>GV: 8. Xuất file đính kèm link video
+    HT->>AI: Gửi Transcript để AI lọc ý chính & sinh câu hỏi
+    AI-->>HT: Sinh câu hỏi kèm Timestamp
+    HT-->>GV: Hiển thị danh sách câu hỏi
+    GV->>HT: Chọn xuất file
+    HT-->>GV: Xuất file đính kèm link video
 ```

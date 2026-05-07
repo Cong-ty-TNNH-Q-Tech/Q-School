@@ -15,7 +15,7 @@ flowchart LR
         subgraph G1 ["Nhóm 1: Soạn giảng & Tạo nội dung"]
             UC3(["UC-FT-003: Tạo bài tập thực hành"])
             UC4(["UC-FT-004: Tạo nội dung học thuật"])
-            UC5(["UC-FT-005: Tạo kiểm tra trắc nghiệm"])
+            UC5(["UC-FT-005: Tạo bài kiểm tra trắc nghiệm"])
             UC6(["UC-FT-006: Tạo danh sách từ vựng"])
         end
 
@@ -43,7 +43,7 @@ flowchart LR
             UC18(["UC-FS-001: Học kèm 1-1 (AI Tutor)"])
             UC19(["UC-FS-002: Ôn tập (Study Bot)"])
             UC20(["UC-FS-003: Chat với nhân vật ảo"])
-            UC21(["UC-FS-005: Sáng tạo nội dung"])
+            UC21(["UC-FS-005: Tạo nội dung sáng tạo"])
             UC22(["UC-FS-006: Hỗ trợ nghiên cứu"])
             UC23(["UC-FS-007: Tự kiểm tra (Quiz Me!)"])
             UC24(["UC-FS-008: Tóm tắt văn bản"])
