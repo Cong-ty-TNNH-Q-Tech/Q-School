@@ -12,6 +12,10 @@ flowchart LR
     %% System Boundary
     subgraph QSchool ["Hệ thống Q-School AI"]
         
+        subgraph G0 ["Nhóm 0: Hệ thống cốt lõi"]
+            UC1(["UC-SYS-001: Xem hồ sơ cá nhân"])
+        end
+
         subgraph G1 ["Nhóm 1: Soạn giảng & Tạo nội dung"]
             UC3(["UC-FT-003: Tạo bài tập thực hành"])
             UC4(["UC-FT-004: Tạo nội dung học thuật"])
@@ -52,11 +56,14 @@ flowchart LR
     end
 
     %% Relationships
+    Teacher --> G0
     Teacher --> G1
     Teacher --> G2
     Teacher --> G3
     Teacher --> G4
+    Admin --> G0
     Admin --> G3
+    Student --> G0
     Student --> G5
 
     style Teacher fill:#f9f,stroke:#333,stroke-width:2px
