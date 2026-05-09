@@ -50,6 +50,32 @@ components:
           description: Số giây cần chờ trước khi thử lại
           example: 60
           
+    PaymentRequiredError:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: "Payment required. Please upgrade your subscription plan."
+        error_code:
+          type: integer
+          example: 4020
+          
+    PaymentRequiredError:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: "Payment required. Please upgrade your subscription plan."
+        error_code:
+          type: integer
+          example: 4020
+          
     PaginationMeta:
       type: object
       properties:
@@ -847,6 +873,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TooManyRequestsError'
+        '402':
+          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequiredError'
     get:
       summary: Lấy lịch sử tin nhắn của một phiên Chat AI
       tags: [AI Workspace]
@@ -888,3 +920,105 @@ paths:
                           format: date-time
                   meta:
                     $ref: '#/components/schemas/PaginationMeta'
+
+  # ==========================================
+  # GROUP 5: BILLING & SUBSCRIPTIONS
+  # ==========================================
+
+  /billing/plans:
+    get:
+      summary: Lấy danh sách các gói cước (SaaS Tiers)
+      tags: [Billing]
+      security: []
+      responses:
+        '200':
+          description: Danh sách gói cước
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                          example: Pro
+                        price:
+                          type: integer
+                          example: 99000
+                        billing_cycle:
+                          type: string
+                          example: monthly
+                        features:
+                          type: object
+
+  /billing/checkout:
+    post:
+      summary: Khởi tạo luồng thanh toán (Lấy link thanh toán)
+      tags: [Billing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan_id, provider]
+              properties:
+                plan_id:
+                  type: string
+                  format: uuid
+                provider:
+                  type: string
+                  enum: [stripe, vnpay, momo]
+      responses:
+        '200':
+          description: Link checkout thanh toán
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      checkout_url:
+                        type: string
+                        format: uri
+                      transaction_id:
+                        type: string
+                        format: uuid
+
+  /webhooks/payments:
+    post:
+      summary: Endpoint Webhook nhận IPN từ cổng thanh toán (Không yêu cầu Bearer token)
+      tags: [Billing]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Xác nhận đã nhận Webhook
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success

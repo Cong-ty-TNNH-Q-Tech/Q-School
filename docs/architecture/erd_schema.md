@@ -234,6 +234,40 @@ erDiagram
     }
 
     %% ==========================================
+    %% GROUP 4: BILLING & SUBSCRIPTIONS
+    %% ==========================================
+    PLANS {
+        uuid id PK
+        string name "Basic, Pro, Enterprise"
+        string billing_cycle "monthly, yearly"
+        int price
+        jsonb features "Giới hạn tính năng (VD: max_chat=5)"
+        boolean is_active
+    }
+
+    USER_SUBSCRIPTIONS {
+        uuid id PK
+        uuid user_id FK
+        uuid plan_id FK
+        string status "active, past_due, canceled"
+        timestamp current_period_start
+        timestamp current_period_end
+        timestamp canceled_at
+    }
+
+    PAYMENT_TRANSACTIONS {
+        uuid id PK
+        uuid user_id FK
+        uuid subscription_id FK
+        int amount
+        string currency
+        string provider "stripe, vnpay"
+        string provider_transaction_id
+        string status "pending, success, failed"
+        timestamp created_at
+    }
+
+    %% ==========================================
     %% RELATIONSHIPS
     %% ==========================================
     
@@ -281,6 +315,12 @@ erDiagram
     DOCUMENTS ||--o{ DOCUMENT_CHUNKS : "divided into"
     
     USERS ||--o{ AI_TASKS : "triggers"
+
+    %% Billing Flow
+    PLANS ||--o{ USER_SUBSCRIPTIONS : "has"
+    USERS ||--o{ USER_SUBSCRIPTIONS : "subscribes"
+    USER_SUBSCRIPTIONS ||--o{ PAYMENT_TRANSACTIONS : "generates"
+    USERS ||--o{ PAYMENT_TRANSACTIONS : "pays"
 ```
 
 ## 2. Diễn giải Thiết kế Nâng cao (Enterprise Level Design Notes)
