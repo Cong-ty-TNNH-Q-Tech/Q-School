@@ -698,7 +698,7 @@ paths:
                         format: date-time
 
   # ==========================================
-  # GROUP 4: AI WORKSPACE & RAG (WebSockets included)
+  # GROUP 4: AI WORKSPACE & RAG (SSE included)
   # ==========================================
   /generated-assets:
     post:

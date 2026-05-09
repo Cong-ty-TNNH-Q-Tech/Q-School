@@ -339,3 +339,8 @@ erDiagram
 
 ### 2.4. Tính năng "Động hóa" AI Persona
 - Bảng **`AI_PROMPTS`** được thiết kế để giải thoát Developer khỏi việc phải hardcode System Prompts vào Backend. Nếu Quản trị viên muốn thay đổi giọng điệu của trợ lý Raina hoặc thêm một Nhân vật Lịch sử mới, họ chỉ cần cấu hình ngay trên Web Admin, dữ liệu sẽ tự động được Frontend lấy xuống và truyền vào LLM.
+
+### 2.5. Mô hình SaaS Billing (Thanh toán & Gói cước)
+- Hệ thống hỗ trợ thương mại hóa thông qua nhóm bảng **BILLING & SUBSCRIPTIONS**.
+- Học sinh/Giáo viên (`USERS`) có thể đăng ký (`USER_SUBSCRIPTIONS`) các gói cước (`PLANS`).
+- Khi tích hợp cổng thanh toán (Stripe/VNPay), hệ thống sẽ lưu vết giao dịch tại bảng `PAYMENT_TRANSACTIONS` qua cơ chế Webhook. Dựa vào trạng thái gói cước (active/past_due), hệ thống sẽ tự động giới hạn tài nguyên tính toán AI (sinh lỗi HTTP 402 nếu hết hạn).
