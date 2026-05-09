@@ -1,0 +1,333 @@
+openapi: 3.0.3
+info:
+  title: Q-School AI API
+  description: API documentation for Q-School AI LMS. Built for Frontend mocking and Integration.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local Development Server
+  - url: https://api.qschool.vn/api/v1
+    description: Production Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [teacher, student, admin]
+        is_active:
+          type: boolean
+          
+    ProfileResponse:
+      type: object
+      properties:
+        full_name:
+          type: string
+        avatar_url:
+          type: string
+        school_name:
+          type: string
+        points:
+          type: integer
+          
+    LessonResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        subject:
+          type: string
+        content:
+          type: object
+          description: JSONB AI generated content
+          
+    QuizAttemptRequest:
+      type: object
+      required:
+        - student_answers
+      properties:
+        student_answers:
+          type: array
+          items:
+            type: object
+            properties:
+              question_id:
+                type: string
+                format: uuid
+              selected_answer_id:
+                type: string
+                format: uuid
+                
+    ChatMessageRequest:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+          
+    ChatMessageResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sender_type:
+          type: string
+          enum: [user, ai]
+        content:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      summary: Login to get JWT Token
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: bearer
+
+  /users/me:
+    get:
+      summary: Get Current User Profile
+      tags:
+        - Users
+      responses:
+        '200':
+          description: User profile data
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/UserResponse'
+                  - type: object
+                    properties:
+                      profile:
+                        $ref: '#/components/schemas/ProfileResponse'
+
+  /lessons/generate:
+    post:
+      summary: Generate AI Lesson Plan (Async)
+      tags:
+        - Teacher EdTech
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt, subject, grade_level]
+              properties:
+                prompt:
+                  type: string
+                subject:
+                  type: string
+                grade_level:
+                  type: string
+      responses:
+        '202':
+          description: Accepted for processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  task_id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    example: processing
+
+  /classes/{class_id}/assignments:
+    get:
+      summary: Get assignments for a class
+      tags:
+        - Classes
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of assignments (Lessons/Quizzes)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    resource_type:
+                      type: string
+                      enum: [lesson, quiz]
+                    resource_id:
+                      type: string
+                      format: uuid
+                    due_date:
+                      type: string
+                      format: date-time
+
+  /quizzes/{quiz_id}/attempts:
+    post:
+      summary: Submit a quiz attempt (Student)
+      tags:
+        - Student Tracking
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizAttemptRequest'
+      responses:
+        '200':
+          description: Quiz graded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  score:
+                    type: number
+                  feedback:
+                    type: string
+
+  /documents/upload:
+    post:
+      summary: Upload a PDF document for RAG
+      tags:
+        - AI Workspace
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Document uploaded and processing started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  document_id:
+                    type: string
+                    format: uuid
+
+  /chat/sessions:
+    post:
+      summary: Create a new chat session
+      tags:
+        - AI Workspace
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                document_id:
+                  type: string
+                  format: uuid
+                  description: Optional context for RAG
+      responses:
+        '201':
+          description: Chat session created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_id:
+                    type: string
+                    format: uuid
+
+  /chat/sessions/{session_id}/messages:
+    post:
+      summary: Send a message to AI Tutor
+      tags:
+        - AI Workspace
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatMessageRequest'
+      responses:
+        '200':
+          description: AI response (Note, in reality this might be Streamed via WebSocket)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatMessageResponse'
