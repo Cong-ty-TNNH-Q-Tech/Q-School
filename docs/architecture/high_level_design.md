@@ -59,18 +59,18 @@ flowchart TD
     Gateway{"API Gateway\n(Nginx)"}
 
     %% Backend Monolith (Hexagonal)
-    subgraph FastAPI_Backend [Backend: FastAPI (Hexagonal Architecture)]
+    subgraph FastAPI_Backend ["Backend: FastAPI (Hexagonal Architecture)"]
         direction TB
-        subgraph Primary [Driving Adapters]
+        subgraph Primary ["Driving Adapters"]
             REST[("REST API (Routers)")]
             WS[("WebSocket Handlers")]
         end
         
-        subgraph Core [Core Domain & Use Cases]
+        subgraph Core ["Core Domain & Use Cases"]
             Logic[("Business Logic\n(Auth, Lessons, Quiz, AI Flows)")]
         end
         
-        subgraph Secondary [Driven Adapters]
+        subgraph Secondary ["Driven Adapters"]
             DB_Adapter[("SQLAlchemy Repository")]
             LLM_Adapter[("vLLM API Client")]
             S3_Adapter[("MinIO Client")]
@@ -83,7 +83,7 @@ flowchart TD
     end
 
     %% Async Worker
-    subgraph Async_Worker [Background Worker]
+    subgraph Async_Worker ["Background Worker"]
         CeleryWorker[("Celery Worker")]
     end
 
@@ -92,7 +92,7 @@ flowchart TD
     vLLM_Server[("🧠 Inference Server\n(vLLM - Self-hosted)")]
 
     %% Databases
-    subgraph DataLayer [Data Storage Layer]
+    subgraph DataLayer ["Data Storage Layer"]
         Postgres[(🗄️ PostgreSQL)]
         RedisCache[(⚡ Redis Cache)]
         S3[(☁️ Object Storage)]
