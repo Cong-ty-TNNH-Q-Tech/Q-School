@@ -32,9 +32,11 @@ qschool-backend/
 │   ├── core/                   # Cấu hình lõi (Settings, Security, Exception Handlers)
 │   ├── domain/                 # CORE LOGIC (Không phụ thuộc vào Database hay Framework)
 │   │   ├── models/             # Business Entities (Ví dụ: User, Lesson, Quiz)
-│   │   ├── ports/              # Interfaces (Abstract Base Classes) định nghĩa giao thức
 │   │   └── exceptions.py       # Custom Domain Exceptions
 │   ├── application/            # USE CASES (Orchestration logic)
+│   │   ├── ports/              # INBOUND & OUTBOUND PORTS (Interfaces / Abstract Base Classes)
+│   │   │   ├── inbound/        # Interfaces cho Use Cases (Để Router gọi vào)
+│   │   │   └── outbound/       # Interfaces cho Database/LLM (Để Use Case gọi ra)
 │   │   └── use_cases/          # Thực thi logic từ Use-Case docs (VD: generate_lesson_plan)
 │   ├── adapters/               # DRIVEN ADAPTERS (Giao tiếp với bên ngoài)
 │   │   ├── database/           # SQLAlchemy Repositories, Migrations (Alembic)
