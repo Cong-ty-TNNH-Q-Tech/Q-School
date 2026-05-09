@@ -429,7 +429,7 @@ paths:
                         type: string
                         format: uuid
 
-  /lessons/generate:
+  /lesson-generation-tasks:
     post:
       summary: AI Sinh Giáo Án (Async Queue)
       tags: [EdTech Core]
@@ -600,7 +600,7 @@ paths:
   # ==========================================
   # GROUP 4: AI WORKSPACE & RAG (WebSockets included)
   # ==========================================
-  /assets/generate:
+  /generated-assets:
     post:
       summary: Nhờ AI soạn Email / IEP / Nhận xét sổ liên lạc
       tags: [AI Workspace]
@@ -631,7 +631,7 @@ paths:
                         type: object
                         description: "Nội dung văn bản AI sinh ra"
 
-  /documents/upload:
+  /documents:
     post:
       summary: Tải file lên (PDF, Image) để làm RAG
       tags: [AI Workspace]
