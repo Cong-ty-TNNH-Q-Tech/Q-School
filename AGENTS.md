@@ -6,7 +6,7 @@ Tài liệu này cung cấp bộ quy chuẩn (Guidelines) bắt buộc dành cho
 **Q-School AI** là một nền tảng Công nghệ Giáo dục (EdTech) kết hợp Trí tuệ Nhân tạo (AI-native) hoạt động theo mô hình **SaaS**. Dự án bao gồm các tính năng cốt lõi của một hệ thống LMS (Học sinh, Giáo viên, Bài tập, Flashcard) kết hợp với AI Workspace (Sinh giáo án tự động, Chat AI, RAG).
 
 - **Frontend:** React + Vite + TypeScript (Kiến trúc MVVM)
-- **Backend:** FastAPI (Python) + SQLAlchemy
+- **Backend:** FastAPI (Python) + SQLAlchemy (Kiến trúc Hexagonal)
 - **Kiến trúc lõi:** **Hexagonal Architecture** (Modular Monolith)
 - **Hạ tầng AI:** Máy chủ vLLM nội bộ (Self-hosted)
 - **Database:** PostgreSQL (với `pgvector` HNSW Index) + Redis
@@ -67,5 +67,24 @@ Dự án tuyệt đối tuân thủ mô hình **Hexagonal Architecture** (Ports 
 1. **Quy tắc đọc tài liệu:** Bất cứ khi nào tạo API mới, AI Agent phải cập nhật vào `docs/api/openapi.yaml` **TRƯỚC**, sau đó mới tiến hành viết code Backend/Frontend.
 2. **Quy tắc định dạng Git Commit:** `<type>(<scope>): <description>` (Ví dụ: `feat(ai-chat): implement SSE streaming for Qwen model`).
 3. **Mọi dữ liệu nhạy cảm (User Data):** Bắt buộc phải triển khai cơ chế **Soft Delete** (`deleted_at`). Không dùng lệnh `DELETE` thẳng vào CSDL.
+
+---
+
+## 8. Tiêu Chuẩn Viết Code (SOLID & Design Patterns)
+
+Tất cả AI Agents và lập trình viên phải nghiêm ngặt tuân thủ các nguyên tắc thiết kế để đảm bảo code sạch và dễ bảo trì:
+
+### Tuân thủ 5 Nguyên tắc SOLID
+- **S (Single Responsibility):** Một Class/Function chỉ đảm nhiệm duy nhất một chức năng. Ví dụ: Tách biệt `UserService` (xử lý logic user) và `EmailService` (xử lý gửi mail). Trong React, tách logic state ra Custom Hook, Component chỉ để render UI.
+- **O (Open/Closed):** Dễ dàng mở rộng nhưng KHÔNG SỬA code cũ. Ví dụ: Khi thêm cổng thanh toán mới, hãy tạo một Class mới (VD: `MomoProvider`) kế thừa từ Interface `PaymentProvider`, tuyệt đối không chèn thêm lệnh `if/else` vào code cũ.
+- **L (Liskov Substitution):** Các class con phải thay thế được class cha mà không làm sập chương trình.
+- **I (Interface Segregation):** Tránh tạo ra các Interface khổng lồ. Hãy chia nhỏ thành các Interface chuyên biệt (Ví dụ: `IReader`, `IWriter` thay vì `IDatabase`).
+- **D (Dependency Inversion):** Module cấp cao không phụ thuộc module cấp thấp, cả 2 phụ thuộc Interface/Abstraction. **BẮT BUỘC** dùng cơ chế Dependency Injection của FastAPI (`Depends`) để inject Repository vào Use Case.
+
+### Các Design Patterns Khuyến nghị
+- **Repository Pattern:** Bắt buộc dùng ở tầng Backend Data Layer để giao tiếp với PostgreSQL. Giúp tách biệt hoàn toàn Logic nghiệp vụ khỏi ORM (SQLAlchemy).
+- **Strategy Pattern:** Sử dụng để chuyển đổi linh hoạt các thuật toán hoặc quy tắc (Ví dụ: Chuyển đổi giữa cấu hình giá của `FreePlanStrategy` và `ProPlanStrategy`, hoặc giữa `StripePayment` và `VNPayPayment`).
+- **Factory Pattern:** Sử dụng để khởi tạo các Adapter phức tạp (Ví dụ: Khởi tạo Client gọi đến vLLM hay OpenAI tùy theo cấu hình môi trường).
+- **Observer Pattern:** Ứng dụng trong việc xử lý Event-driven (Ví dụ: Nạp tiền thành công thì phát Event để Background Task tự động kích hoạt tính năng VIP).
 
 *Phiên bản tài liệu: 1.0.0 (Áp dụng từ Giai đoạn Implementation)*
