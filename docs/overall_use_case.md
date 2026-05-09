@@ -13,7 +13,10 @@ flowchart LR
     subgraph QSchool ["Hệ thống Q-School AI"]
         
         subgraph G0 ["Nhóm 0: Hệ thống cốt lõi"]
-            UC1(["UC-SYS-001: Xem hồ sơ cá nhân"])
+            UC1(["UC-SYS-001: Đăng ký"])
+            UC2(["UC-SYS-002: Đăng nhập"])
+            UC3(["UC-SYS-003: Quên mật khẩu"])
+            UC4(["UC-SYS-004: Xem hồ sơ cá nhân"])
         end
 
         subgraph G1 ["Nhóm 1: Soạn giảng & Tạo nội dung"]
