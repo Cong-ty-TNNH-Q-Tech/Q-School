@@ -8,8 +8,6 @@ servers:
     description: Local Development Server
   - url: https://api.qschool.vn/api/v1
     description: Production Server
-  - url: ws://localhost:8000/api/v1
-    description: WebSocket Server (For Streaming/Real-time)
 
 components:
   securitySchemes:
@@ -697,18 +695,13 @@ paths:
                         type: string
                         format: uuid
 
-  # ----------------------------------------
-  # WEBSOCKET DOCUMENTATION (Fake Endpoint for docs)
-  # ----------------------------------------
-  /ws/chat/{session_id}:
-    get:
-      summary: "🔌 KẾT NỐI WEBSOCKET: Stream tin nhắn AI thời gian thực"
+  /chat/sessions/{session_id}/messages:
+    post:
+      summary: Send a message to AI Tutor (Stream SSE)
       description: |
-        Đây KHÔNG PHẢI là HTTP endpoint. Endpoint này dùng để thiết lập kết nối WebSocket (ws://).
-        1. Client kết nối truyền Session ID.
-        2. Client gửi JSON payload: `{"action": "send_message", "content": "hello"}`
-        3. Server sẽ Stream từng token trả về: `{"chunk": "Xin", "is_final": false}`
-      tags: [AI Workspace (Real-time)]
+        Endpoint này nhận tin nhắn của User và trả về luồng dữ liệu (Stream) từng chữ của AI sử dụng chuẩn Server-Sent Events (SSE). 
+        Frontend đọc luồng này bằng `fetch()` hoặc `EventSource` để hiển thị chữ kiểu gõ phím.
+      tags: [AI Workspace]
       parameters:
         - name: session_id
           in: path
@@ -716,6 +709,21 @@ paths:
           schema:
             type: string
             format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
       responses:
-        '101':
-          description: Switching Protocols (WebSocket Established)
+        '200':
+          description: Event Stream (SSE) trả về từng chunk (mảnh văn bản)
+          content:
+            text/event-stream:
+              schema:
+                type: object
+                description: 'Dữ liệu từng sự kiện SSE. Ví dụ: `data: {"chunk": "Xin", "is_final": false}`'
