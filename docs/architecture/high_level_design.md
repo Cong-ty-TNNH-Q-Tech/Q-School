@@ -23,7 +23,7 @@ Do Q-School là một hệ thống EdTech có tích hợp Trí tuệ nhân tạo
 Backend được xây dựng bằng **FastAPI (Python)**. Toàn bộ logic được chia theo mô hình Hexagonal (Ports & Adapters):
 - **Driving Adapters (Primary):**
   - Các Restful API Endpoints (FastAPI Routers) tiếp nhận request HTTP.
-  - WebSockets để trả kết quả AI theo thời gian thực (streaming/real-time).
+  - Server-Sent Events (SSE) để trả kết quả AI theo thời gian thực (streaming).
 - **Core Domain & Use Cases:**
   - Chứa toàn bộ logic nghiệp vụ thuần túy (Các file Use Case Nhóm 0 đến Nhóm 5).
   - Định nghĩa các Ports (Interfaces) để giao tiếp với bên ngoài.
@@ -63,7 +63,7 @@ flowchart TD
         direction TB
         subgraph Primary ["Driving Adapters"]
             REST[("REST API (Routers)")]
-            WS[("WebSocket Handlers")]
+            SSE[("SSE Handlers (HTTP Streaming)")]
         end
         
         subgraph Core ["Core Domain & Use Cases"]
@@ -78,7 +78,7 @@ flowchart TD
         end
         
         %% Internal Data Flow
-        REST & WS --> Logic
+        REST & SSE --> Logic
         Logic --> DB_Adapter & LLM_Adapter & S3_Adapter & Queue_Adapter
     end
 
@@ -99,8 +99,8 @@ flowchart TD
     end
 
     %% Connections
-    ClientWeb -->|HTTP / WS| Gateway
-    Gateway --> REST & WS
+    ClientWeb -->|HTTP / SSE| Gateway
+    Gateway --> REST & SSE
 
     DB_Adapter --> Postgres
     S3_Adapter --> S3
@@ -133,4 +133,4 @@ flowchart TD
 4. **Celery Worker** lấy thông điệp từ Queue.
 5. Worker gọi **vLLM Adapter** để gửi prompt tới **vLLM Server**.
 6. Sau khi vLLM Server sinh câu trả lời (Inference), Worker lưu lịch sử chat vào **PostgreSQL**.
-7. Thông qua Pub/Sub, **WebSocket Handler** nhận tín hiệu và bắn câu trả lời trực tiếp về giao diện React.
+7. Thông qua cơ chế **Server-Sent Events (SSE)**, FastAPI nhận kết quả và đẩy luồng chữ trực tiếp về giao diện React.

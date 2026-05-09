@@ -33,6 +33,23 @@ components:
           type: integer
           example: 4001
           
+    TooManyRequestsError:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: "Rate limit exceeded. Please try again later."
+        error_code:
+          type: integer
+          example: 4290
+        retry_after:
+          type: integer
+          description: Số giây cần chờ trước khi thử lại
+          example: 60
+          
     PaginationMeta:
       type: object
       properties:
@@ -196,6 +213,14 @@ components:
       schema:
         type: integer
         default: 20
+    CursorParam:
+      name: cursor
+      in: query
+      description: ID của phần tử cuối cùng để tải trang tiếp theo (tránh dùng page cho dữ liệu lớn)
+      required: false
+      schema:
+        type: string
+        format: uuid
 
 security:
   - bearerAuth: []
@@ -465,6 +490,12 @@ paths:
                   message:
                     type: string
                     example: "AI đang sinh giáo án, vui lòng chờ."
+        '429':
+          description: Quá tải hệ thống AI
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
 
   # ==========================================
   # GROUP 3: STUDENT TRACKING (Quizzes & Submissions)
@@ -673,6 +704,12 @@ paths:
                       output_content:
                         type: object
                         description: "Nội dung văn bản AI sinh ra"
+        '429':
+          description: Quá tải hệ thống AI
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
 
   /documents:
     post:
@@ -804,6 +841,12 @@ paths:
               schema:
                 type: object
                 description: 'Dữ liệu từng sự kiện SSE. Ví dụ: `data: {"chunk": "Xin", "is_final": false}`'
+        '429':
+          description: Quá tải Server GPU, Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
     get:
       summary: Lấy lịch sử tin nhắn của một phiên Chat AI
       tags: [AI Workspace]
@@ -814,7 +857,7 @@ paths:
           schema:
             type: string
             format: uuid
-        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/CursorParam'
         - $ref: '#/components/parameters/LimitParam'
       responses:
         '200':

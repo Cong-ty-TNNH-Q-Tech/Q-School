@@ -219,7 +219,7 @@ erDiagram
         uuid id PK
         uuid document_id FK
         text chunk_text
-        vector embedding_1536 "pgvector"
+        vector embedding_1536 "pgvector (Yêu cầu đánh Index HNSW)"
         int chunk_index
     }
 
