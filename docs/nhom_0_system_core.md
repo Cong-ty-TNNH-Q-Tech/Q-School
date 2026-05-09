@@ -10,8 +10,7 @@
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
   | Người dùng chọn "Đăng ký" và điền thông tin (Họ tên, Email, Mật khẩu, Role). | Hệ thống tiếp nhận và kiểm tra tính hợp lệ của dữ liệu định dạng. | - Tên, Email, Mật khẩu, Role* |
-  | Người dùng bấm "Xác nhận đăng ký". | Hệ thống kiểm tra Email trùng lặp trong cơ sở dữ liệu. | |
-  | | Hệ thống tạo tài khoản tạm và gửi mã xác thực (OTP/Link) qua Email. | - Mã xác thực |
+  | Người dùng bấm "Xác nhận đăng ký". | Hệ thống kiểm tra Email trùng lặp, tạo tài khoản tạm và gửi mã xác thực (OTP/Link) qua Email. | - Mã xác thực |
   | Người dùng nhập mã xác thực từ Email. | Hệ thống xác minh mã, kích hoạt tài khoản và thông báo thành công. | - Token/Trạng thái Active |
 * **Luồng ngoại lệ:** 
   - **Email đã tồn tại:** Hệ thống thông báo "Email này đã được đăng ký" và yêu cầu đăng nhập hoặc sử dụng email khác.
@@ -50,9 +49,7 @@ sequenceDiagram
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | Người dùng nhập Email và Mật khẩu, bấm "Đăng nhập". | Hệ thống tiếp nhận và mã hóa mật khẩu để so sánh. | - Email, Mật khẩu* |
-  | | Hệ thống đối chiếu với CSDL. | |
-  | | Hệ thống sinh Access Token, cấp quyền (Role) và chuyển hướng. | - Access Token<br>- Role |
+  | Người dùng nhập Email và Mật khẩu, bấm "Đăng nhập". | Hệ thống mã hóa mật khẩu, đối chiếu CSDL. Sau đó sinh Access Token, phân quyền và chuyển hướng. | - Email, Mật khẩu*<br>- Access Token<br>- Role |
 * **Luồng ngoại lệ:** 
   - **Sai thông tin:** Nếu sai Email hoặc Mật khẩu, hệ thống báo "Tên đăng nhập hoặc mật khẩu không chính xác".
   - **Tài khoản bị khóa:** Hệ thống thông báo "Tài khoản của bạn đã bị khóa, vui lòng liên hệ Admin".
@@ -69,7 +66,7 @@ sequenceDiagram
 
     ND->>HT: Nhập Email và Mật khẩu
     HT->>DB: Gửi yêu cầu xác thực
-    alt Thông tin hợp lệ
+    alt Thông hợp lệ
         DB-->>HT: Trả về dữ liệu User (Kèm Role)
         HT->>HT: Sinh Access Token (JWT)
         HT-->>ND: Đăng nhập thành công, chuyển hướng Dashboard
@@ -86,10 +83,9 @@ sequenceDiagram
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | Người dùng chọn "Quên mật khẩu" và nhập Email. | Hệ thống kiểm tra Email trong hệ thống. | - Email* |
-  | | Hệ thống sinh Reset Token và gửi qua Email Service. | - Reset Token |
-  | Người dùng check Email và bấm vào Link khôi phục. | Hệ thống hiển thị giao diện nhập mật khẩu mới. | |
-  | Người dùng nhập mật khẩu mới và xác nhận. | Hệ thống mã hóa, cập nhật vào DB và thông báo thành công. | - Mật khẩu mới* |
+  | Người dùng chọn "Quên mật khẩu" và nhập Email. | Hệ thống kiểm tra Email, sinh Reset Token và gửi link qua Email Service. | - Email*<br>- Reset Token |
+  | Người dùng truy cập Link từ Email. | Hệ thống xác thực Token và hiển thị giao diện nhập mật khẩu mới. | |
+  | Người dùng nhập mật khẩu mới và xác nhận. | Hệ thống mã hóa, cập nhật mật khẩu vào DB và thông báo thành công. | - Mật khẩu mới* |
 * **Luồng ngoại lệ:** 
   - **Email không tồn tại:** Để bảo mật, hệ thống vẫn hiển thị "Nếu email tồn tại, một link khôi phục đã được gửi" để chống dò rỉ tài khoản.
   - **Link hết hạn:** Nếu link quá 24h, hệ thống báo "Link khôi phục đã hết hạn".
@@ -125,8 +121,7 @@ sequenceDiagram
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | Người dùng yêu cầu xem hồ sơ cá nhân. | Hệ thống tải dữ liệu và hiển thị giao diện hồ sơ cá nhân. | - Thông tin hồ sơ |
-  | Người dùng xem các thông tin cá nhân. | Hệ thống hiển thị đầy đủ thông tin của người dùng. | |
+  | Người dùng yêu cầu xem hồ sơ cá nhân. | Hệ thống tải dữ liệu và hiển thị đầy đủ thông tin hồ sơ. | - Thông tin hồ sơ |
 * **Luồng ngoại lệ:** 
   - **Không có thông tin hồ sơ:** Nếu người dùng chưa hoàn thành việc nhập thông tin hồ sơ, hệ thống hiển thị thông báo "Thông tin hồ sơ chưa được cập nhật".
 * **Yêu cầu đặc biệt:** Không có.
