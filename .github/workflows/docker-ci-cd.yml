@@ -64,7 +64,7 @@ jobs:
             latest
 
       - name: Build and push Frontend
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v7.1.0
         with:
           context: ./frontend
           push: ${{ github.event_name == 'push' }}
@@ -103,7 +103,7 @@ jobs:
             latest
 
       - name: Build and push Backend
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v7.1.0
         with:
           context: ./backend
           push: ${{ github.event_name == 'push' }}
