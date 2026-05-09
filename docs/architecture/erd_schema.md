@@ -47,7 +47,7 @@ erDiagram
     }
 
     %% ==========================================
-    %% GROUP 2: EDTECH CORE (LESSONS, QUIZZES)
+    %% GROUP 2: EDTECH CORE & STUDENT TRACKING
     %% ==========================================
     LESSONS {
         uuid id PK
@@ -63,7 +63,7 @@ erDiagram
         uuid id PK
         uuid creator_id FK
         string title
-        text content_source "Văn bản/Video YouTube gốc"
+        text content_source "Văn bản/Video gốc"
         timestamp created_at
     }
 
@@ -82,9 +82,47 @@ erDiagram
         boolean is_correct
     }
 
-    FLASHCARD_SETS {
+    %% Bảng theo dõi điểm số Trắc nghiệm
+    QUIZ_ATTEMPTS {
         uuid id PK
         uuid student_id FK
+        uuid quiz_id FK
+        float score
+        timestamp started_at
+        timestamp completed_at
+    }
+
+    STUDENT_ANSWERS {
+        uuid id PK
+        uuid attempt_id FK
+        uuid question_id FK
+        uuid selected_answer_id FK
+        boolean is_correct
+    }
+
+    RUBRICS {
+        uuid id PK
+        uuid teacher_id FK
+        string title
+        jsonb criteria_matrix "Ma trận tiêu chí chấm điểm"
+        timestamp created_at
+    }
+
+    %% Bảng nộp bài Tự luận để AI chấm
+    ESSAY_SUBMISSIONS {
+        uuid id PK
+        uuid student_id FK
+        uuid teacher_id FK
+        uuid rubric_id FK
+        text content "Bài văn của học sinh"
+        jsonb ai_feedback "Nhận xét chi tiết của AI"
+        float score
+        timestamp created_at
+    }
+
+    FLASHCARD_SETS {
+        uuid id PK
+        uuid creator_id FK
         string title
         timestamp created_at
     }
@@ -94,16 +132,15 @@ erDiagram
         uuid set_id FK
         text front_text
         text back_text
-        int repetition_level "Mức độ Spaced Repetition"
-        timestamp next_review_at
     }
 
-    RUBRICS {
+    %% Bảng lưu tiến độ Spaced Repetition cá nhân hóa
+    FLASHCARD_REVIEWS {
         uuid id PK
-        uuid teacher_id FK
-        string title
-        jsonb criteria_matrix "Ma trận tiêu chí chấm điểm"
-        timestamp created_at
+        uuid student_id FK
+        uuid flashcard_id FK
+        int confidence_level "1-5"
+        timestamp next_review_at
     }
 
     %% ==========================================
@@ -122,6 +159,16 @@ erDiagram
         uuid session_id FK
         string sender_type "user, ai"
         text content
+        timestamp created_at
+    }
+
+    %% Bảng gom chung các AI Assets nhỏ để chống rác Database
+    GENERATED_ASSETS {
+        uuid id PK
+        uuid creator_id FK
+        string asset_type "email, iep, behavior_intervention, report_comment"
+        jsonb input_params "Tham số yêu cầu đầu vào"
+        jsonb output_content "Văn bản AI sinh ra"
         timestamp created_at
     }
 
@@ -163,20 +210,34 @@ erDiagram
     CLASSES ||--o{ CLASS_STUDENTS : "enrolls"
     USERS ||--o{ CLASS_STUDENTS : "joins (Student)"
     
-    %% EdTech Relationships
+    %% EdTech Relationships (Creation)
     USERS ||--o{ LESSONS : "creates"
     USERS ||--o{ QUIZZES : "creates"
     QUIZZES ||--o{ QUESTIONS : "contains"
     QUESTIONS ||--o{ ANSWERS : "has"
-    
-    USERS ||--o{ FLASHCARD_SETS : "owns"
+    USERS ||--o{ RUBRICS : "creates"
+    USERS ||--o{ FLASHCARD_SETS : "creates"
     FLASHCARD_SETS ||--o{ FLASHCARDS : "contains"
     
-    USERS ||--o{ RUBRICS : "creates"
+    %% Student Tracking Relationships
+    USERS ||--o{ QUIZ_ATTEMPTS : "takes (Student)"
+    QUIZZES ||--o{ QUIZ_ATTEMPTS : "has"
+    QUIZ_ATTEMPTS ||--o{ STUDENT_ANSWERS : "contains"
+    QUESTIONS ||--o{ STUDENT_ANSWERS : "references"
+    ANSWERS ||--o{ STUDENT_ANSWERS : "chooses"
+
+    USERS ||--o{ ESSAY_SUBMISSIONS : "submits (Student)"
+    USERS ||--o{ ESSAY_SUBMISSIONS : "reviews (Teacher)"
+    RUBRICS ||--o{ ESSAY_SUBMISSIONS : "graded by"
+
+    USERS ||--o{ FLASHCARD_REVIEWS : "studies (Student)"
+    FLASHCARDS ||--o{ FLASHCARD_REVIEWS : "is reviewed in"
     
     %% AI Workspace Relationships
     USERS ||--o{ CHAT_SESSIONS : "initiates"
     CHAT_SESSIONS ||--o{ CHAT_MESSAGES : "logs"
+    
+    USERS ||--o{ GENERATED_ASSETS : "generates"
     
     USERS ||--o{ DOCUMENTS : "uploads"
     DOCUMENTS ||--o{ DOCUMENT_CHUNKS : "divided into"
@@ -184,21 +245,23 @@ erDiagram
     USERS ||--o{ AI_TASKS : "triggers"
 ```
 
-## 2. Diễn giải Thiết kế (Design Notes)
+## 2. Diễn giải Thiết kế Cập nhật (Design Notes)
 
-### 2.1. Kiểu dữ liệu linh hoạt (JSONB)
-- Cột `content` trong bảng `LESSONS` và `criteria_matrix` trong bảng `RUBRICS` sử dụng kiểu dữ liệu `JSONB`. Do cấu trúc giáo án hoặc tiêu chí chấm điểm sinh ra bởi AI có thể không đồng nhất giữa các môn học, `JSONB` cho phép lưu trữ và truy vấn nhanh chóng mà không cần định nghĩa bảng (table) quá phức tạp.
-- Cột `result_payload` trong bảng `AI_TASKS` dùng `JSONB` để linh hoạt nhận bất kỳ dạng dữ liệu nào mà Celery Worker trả về từ vLLM (ví dụ: chuỗi text, JSON schema, array danh sách ý tưởng).
+### 2.1. Giải quyết Lỗ hổng Tracking Học Sinh
+- **`QUIZ_ATTEMPTS` & `STUDENT_ANSWERS`:** Cho phép giáo viên theo dõi điểm số, đồng thời học sinh xem lại lịch sử làm bài và giải thích đáp án sai.
+- **`ESSAY_SUBMISSIONS`:** Gắn kết vòng lặp: Học sinh nộp bài -> Giáo viên chọn Rubric -> AI chấm -> Trả `ai_feedback` về cho học sinh.
 
-### 2.2. Hỗ trợ RAG (Vector Database trên PostgreSQL)
-- Bảng `DOCUMENT_CHUNKS` sở hữu một cột rất đặc biệt: `embedding_1536`. Cột này được thiết kế dựa trên Extension **[pgvector](https://github.com/pgvector/pgvector)** của PostgreSQL.
-- Khi một file PDF (sách giáo khoa) được upload lên bảng `DOCUMENTS`, hệ thống sẽ băm nhỏ nó ra, mã hóa thành các chuỗi vector (1536 chiều, chuẩn phổ biến của các mô hình Embedding hiện nay) và lưu vào bảng này.
-- Khi Học sinh/Giáo viên đặt câu hỏi, AI sẽ dùng Vector Similarity Search để tìm ra các Chunk sát nghĩa nhất làm dữ liệu tham khảo (Retrieval-Augmented Generation).
+### 2.2. Gom nhóm Tài sản AI (Polymorphic-like Storage)
+- Bảng **`GENERATED_ASSETS`** là một "phễu" chứa toàn bộ các văn bản sinh ra từ các công cụ tiện ích (UC-FT-009 đến 013) như: Email, Kế hoạch IEP, Phương pháp can thiệp hành vi.
+- Bằng cách sử dụng cột `asset_type` (Phân loại) và `output_content` (Dạng JSONB), hệ thống tránh được tình trạng rác Database (Database Bloat) do phải tạo hàng chục bảng nhỏ lẻ.
 
-### 2.3. Khóa chính (Primary Key - UUID)
-- Toàn bộ các bảng trong hệ thống đều dùng `UUID` (Universally Unique Identifier) thay vì số nguyên tăng dần (Serial/Auto-increment). 
-- **Lý do:** Tăng cường bảo mật (tránh người dùng đoán được ID của tài nguyên khác qua đường dẫn, ví dụ: `/quizzes/123`), đồng thời giúp phân tán dữ liệu dễ dàng hơn nếu sau này phải scale cơ sở dữ liệu.
+### 2.3. Hỗ trợ Spaced Repetition (Lặp lại ngắt quãng)
+- Thuật toán ôn tập Flashcard (Ví dụ: Thuật toán SuperMemo) cần biết học sinh đánh giá độ khó của thẻ như thế nào (1-5 sao) để tính ngày ôn tập tiếp theo.
+- Bảng **`FLASHCARD_REVIEWS`** tách rời tiến độ của từng `student_id` với `flashcard_id` gốc, cho phép nhiều học sinh dùng chung một bộ Flashcard của trường mà không bị ghi đè tiến trình học tập lên nhau.
 
-### 2.4. Tính năng theo dõi tác vụ chạy ngầm (AI_TASKS)
-- Do Q-School áp dụng kiến trúc Modular Monolith kết hợp Background Worker, bảng `AI_TASKS` là cốt lõi để theo dõi trạng thái.
-- Web Client sẽ thường xuyên gọi API (Polling) hoặc nghe qua WebSocket thông qua `id` của bảng này để biết khi nào AI tạo xong giáo án hoặc chấm xong bài luận.
+### 2.4. Kiểu dữ liệu linh hoạt (JSONB) & Vector
+- Các cột `content`, `criteria_matrix`, `result_payload` tiếp tục dùng `JSONB`.
+- Bảng `DOCUMENT_CHUNKS` sử dụng kiểu dữ liệu `vector(1536)` từ **pgvector** để tìm kiếm ngữ nghĩa siêu tốc (Semantic Search) phục vụ RAG.
+
+### 2.5. Khóa chính (Primary Key - UUID)
+- Toàn bộ bảng dùng `UUID` làm ID. Ngăn chặn triệt để hành vi ID-Guessing (Ví dụ: Học sinh tự gõ URL `submissions/100` để xem bài của bạn khác).
