@@ -1,10 +1,10 @@
 # THIẾT KẾ CƠ SỞ DỮ LIỆU (ENTITY RELATIONSHIP DIAGRAM - ERD)
 
-Tài liệu này mô tả sơ đồ quan hệ thực thể (ERD) cho CSDL PostgreSQL của dự án Q-School AI. Cấu trúc được thiết kế để hỗ trợ lưu trữ dữ liệu dạng JSONB (của các cấu trúc linh hoạt như Rubric, Lesson Plan) và dữ liệu Vector (phục vụ RAG).
+Tài liệu này mô tả sơ đồ quan hệ thực thể (ERD) cho CSDL PostgreSQL của dự án Q-School AI. Cấu trúc được thiết kế chuẩn Enterprise LMS, hỗ trợ Soft Delete, lưu trữ linh hoạt JSONB và Vector Search cho AI (RAG).
 
 ## 1. Sơ đồ Quan hệ Thực thể (ERD)
 
-Dưới đây là sơ đồ chi tiết các bảng và mối quan hệ (Relationships) giữa chúng.
+Dưới đây là sơ đồ chi tiết các bảng và mối quan hệ (Relationships) giữa chúng. Các bảng cốt lõi đều được tích hợp cơ chế `deleted_at` để bảo vệ dữ liệu (Soft Deletes).
 
 ```mermaid
 erDiagram
@@ -19,6 +19,8 @@ erDiagram
         string role "teacher, student, admin"
         boolean is_active
         timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at "Soft Delete"
     }
 
     PROFILES {
@@ -27,7 +29,7 @@ erDiagram
         string avatar_url
         string school_name
         text bio
-        int points "Gamification points (Students)"
+        int points "Gamification points"
         timestamp updated_at
     }
 
@@ -38,6 +40,8 @@ erDiagram
         string grade_level
         string subject
         timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
     }
 
     CLASS_STUDENTS {
@@ -47,7 +51,7 @@ erDiagram
     }
 
     %% ==========================================
-    %% GROUP 2: EDTECH CORE & STUDENT TRACKING
+    %% GROUP 2: EDTECH CORE & ASSIGNMENTS
     %% ==========================================
     LESSONS {
         uuid id PK
@@ -57,13 +61,28 @@ erDiagram
         string grade_level
         jsonb content "Nội dung giáo án sinh bởi AI"
         timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
     }
 
     QUIZZES {
         uuid id PK
         uuid creator_id FK
         string title
-        text content_source "Văn bản/Video gốc"
+        text content_source "Văn bản gốc"
+        timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
+    }
+
+    %% Bảng Giao bài: Kết nối Bài học/Bài thi với Lớp học (Giải quyết lỗi Floating Content)
+    CLASS_ASSIGNMENTS {
+        uuid id PK
+        uuid class_id FK
+        string resource_type "lesson, quiz"
+        uuid resource_id "ID của Lesson hoặc Quiz"
+        timestamp unlock_date "Thời gian mở bài"
+        timestamp due_date "Hạn chót"
         timestamp created_at
     }
 
@@ -71,7 +90,8 @@ erDiagram
         uuid id PK
         uuid quiz_id FK
         text question_text
-        text explanation "Giải thích đáp án bởi AI"
+        string media_url "Ảnh/Video minh họa câu hỏi"
+        text explanation "Giải thích đáp án"
         int display_order
     }
 
@@ -79,10 +99,10 @@ erDiagram
         uuid id PK
         uuid question_id FK
         text answer_text
+        string media_url "Ảnh minh họa đáp án"
         boolean is_correct
     }
 
-    %% Bảng theo dõi điểm số Trắc nghiệm
     QUIZ_ATTEMPTS {
         uuid id PK
         uuid student_id FK
@@ -104,11 +124,12 @@ erDiagram
         uuid id PK
         uuid teacher_id FK
         string title
-        jsonb criteria_matrix "Ma trận tiêu chí chấm điểm"
+        jsonb criteria_matrix "Ma trận tiêu chí"
         timestamp created_at
+        timestamp updated_at
+        timestamp deleted_at
     }
 
-    %% Bảng nộp bài Tự luận để AI chấm
     ESSAY_SUBMISSIONS {
         uuid id PK
         uuid student_id FK
@@ -125,6 +146,7 @@ erDiagram
         uuid creator_id FK
         string title
         timestamp created_at
+        timestamp deleted_at
     }
 
     FLASHCARDS {
@@ -132,9 +154,9 @@ erDiagram
         uuid set_id FK
         text front_text
         text back_text
+        string media_url "Ảnh minh họa"
     }
 
-    %% Bảng lưu tiến độ Spaced Repetition cá nhân hóa
     FLASHCARD_REVIEWS {
         uuid id PK
         uuid student_id FK
@@ -146,11 +168,21 @@ erDiagram
     %% ==========================================
     %% GROUP 3: AI WORKSPACE & STORAGE
     %% ==========================================
+    %% Bảng quản lý System Prompts động
+    AI_PROMPTS {
+        uuid id PK
+        string persona_name "Tên nhân vật AI (Ví dụ: Raina, Tutor)"
+        text system_prompt_template "Mẫu chỉ thị hệ thống"
+        string version "v1.0"
+        timestamp updated_at
+    }
+
     CHAT_SESSIONS {
         uuid id PK
         uuid user_id FK
+        uuid document_id FK "Context RAG (Chat với PDF)"
         string title
-        string ai_persona "Raina, Tutor, Historical Figure"
+        string ai_persona "Tham chiếu tới AI_PROMPTS"
         timestamp created_at
     }
 
@@ -162,13 +194,12 @@ erDiagram
         timestamp created_at
     }
 
-    %% Bảng gom chung các AI Assets nhỏ để chống rác Database
     GENERATED_ASSETS {
         uuid id PK
         uuid creator_id FK
         string asset_type "email, iep, behavior_intervention, report_comment"
-        jsonb input_params "Tham số yêu cầu đầu vào"
-        jsonb output_content "Văn bản AI sinh ra"
+        jsonb input_params
+        jsonb output_content
         timestamp created_at
     }
 
@@ -178,24 +209,26 @@ erDiagram
         string filename
         string file_type "pdf, docx, image"
         string s3_url
+        boolean is_public "Chia sẻ dùng chung toàn trường"
         string status "pending, parsing, ready, error"
         timestamp created_at
+        timestamp deleted_at
     }
 
     DOCUMENT_CHUNKS {
         uuid id PK
         uuid document_id FK
         text chunk_text
-        vector embedding_1536 "pgvector: AI Embeddings"
+        vector embedding_1536 "pgvector"
         int chunk_index
     }
 
     AI_TASKS {
         uuid id PK
         uuid user_id FK
-        string task_type "generate_lesson, grade_essay, summarize"
+        string task_type
         string status "pending, processing, completed, failed"
-        jsonb result_payload "Dữ liệu trả về từ vLLM"
+        jsonb result_payload
         timestamp created_at
         timestamp completed_at
     }
@@ -210,16 +243,20 @@ erDiagram
     CLASSES ||--o{ CLASS_STUDENTS : "enrolls"
     USERS ||--o{ CLASS_STUDENTS : "joins (Student)"
     
-    %% EdTech Relationships (Creation)
+    %% EdTech Relationships
     USERS ||--o{ LESSONS : "creates"
     USERS ||--o{ QUIZZES : "creates"
+    
+    %% Assigment Flow
+    CLASSES ||--o{ CLASS_ASSIGNMENTS : "receives"
+    
     QUIZZES ||--o{ QUESTIONS : "contains"
     QUESTIONS ||--o{ ANSWERS : "has"
     USERS ||--o{ RUBRICS : "creates"
     USERS ||--o{ FLASHCARD_SETS : "creates"
     FLASHCARD_SETS ||--o{ FLASHCARDS : "contains"
     
-    %% Student Tracking Relationships
+    %% Student Tracking
     USERS ||--o{ QUIZ_ATTEMPTS : "takes (Student)"
     QUIZZES ||--o{ QUIZ_ATTEMPTS : "has"
     QUIZ_ATTEMPTS ||--o{ STUDENT_ANSWERS : "contains"
@@ -233,8 +270,9 @@ erDiagram
     USERS ||--o{ FLASHCARD_REVIEWS : "studies (Student)"
     FLASHCARDS ||--o{ FLASHCARD_REVIEWS : "is reviewed in"
     
-    %% AI Workspace Relationships
+    %% AI Workspace
     USERS ||--o{ CHAT_SESSIONS : "initiates"
+    DOCUMENTS ||--o{ CHAT_SESSIONS : "provides context for"
     CHAT_SESSIONS ||--o{ CHAT_MESSAGES : "logs"
     
     USERS ||--o{ GENERATED_ASSETS : "generates"
@@ -245,23 +283,19 @@ erDiagram
     USERS ||--o{ AI_TASKS : "triggers"
 ```
 
-## 2. Diễn giải Thiết kế Cập nhật (Design Notes)
+## 2. Diễn giải Thiết kế Nâng cao (Enterprise Level Design Notes)
 
-### 2.1. Giải quyết Lỗ hổng Tracking Học Sinh
-- **`QUIZ_ATTEMPTS` & `STUDENT_ANSWERS`:** Cho phép giáo viên theo dõi điểm số, đồng thời học sinh xem lại lịch sử làm bài và giải thích đáp án sai.
-- **`ESSAY_SUBMISSIONS`:** Gắn kết vòng lặp: Học sinh nộp bài -> Giáo viên chọn Rubric -> AI chấm -> Trả `ai_feedback` về cho học sinh.
+### 2.1. Quản trị Phân phối Nội dung (CLASS_ASSIGNMENTS)
+- Đây là "Trái tim" của hệ thống LMS. Mọi tài nguyên (Lesson, Quiz) khi sinh ra bởi giáo viên đều là "Nội dung số" (Digital Assets).
+- Để học sinh thấy được tài nguyên, Giáo viên bắt buộc phải tạo một bản ghi vào bảng `CLASS_ASSIGNMENTS` để kết nối `class_id` với `resource_id`. Bảng này có cột `due_date` để quản lý hạn chót làm bài, rất phù hợp với môi trường giáo dục chuyên nghiệp.
 
-### 2.2. Gom nhóm Tài sản AI (Polymorphic-like Storage)
-- Bảng **`GENERATED_ASSETS`** là một "phễu" chứa toàn bộ các văn bản sinh ra từ các công cụ tiện ích (UC-FT-009 đến 013) như: Email, Kế hoạch IEP, Phương pháp can thiệp hành vi.
-- Bằng cách sử dụng cột `asset_type` (Phân loại) và `output_content` (Dạng JSONB), hệ thống tránh được tình trạng rác Database (Database Bloat) do phải tạo hàng chục bảng nhỏ lẻ.
+### 2.2. Cơ chế Soft Delete và Audit Trails
+- Trong giáo dục, tuyệt đối không được xóa cứng (Hard Delete) dữ liệu trong Database. Vì nếu giáo viên lỡ tay xóa một Lớp học, thì bài thi của học sinh lớp đó phải được bảo toàn.
+- Toàn bộ các bảng cốt lõi (USERS, CLASSES, LESSONS, QUIZZES, RUBRICS) đều được trang bị cột `deleted_at`. Backend FastAPI sẽ tự động lọc bỏ các Record có `deleted_at != NULL` khỏi kết quả trả về, đảm bảo an toàn dữ liệu 100%.
 
-### 2.3. Hỗ trợ Spaced Repetition (Lặp lại ngắt quãng)
-- Thuật toán ôn tập Flashcard (Ví dụ: Thuật toán SuperMemo) cần biết học sinh đánh giá độ khó của thẻ như thế nào (1-5 sao) để tính ngày ôn tập tiếp theo.
-- Bảng **`FLASHCARD_REVIEWS`** tách rời tiến độ của từng `student_id` với `flashcard_id` gốc, cho phép nhiều học sinh dùng chung một bộ Flashcard của trường mà không bị ghi đè tiến trình học tập lên nhau.
+### 2.3. Hỗ trợ Đa phương tiện và AI Context
+- **Câu hỏi Đa phương tiện:** Bảng `QUESTIONS`, `ANSWERS` và `FLASHCARDS` đã được gắn cột `media_url`, sẵn sàng cho các câu hỏi hình ảnh môn Sinh Học hoặc nghe Audio môn Tiếng Anh.
+- **RAG Context Session:** Bảng `CHAT_SESSIONS` được móc nối (Foreign Key) với `DOCUMENTS`. Điều này cho phép học sinh kích hoạt chế độ "Trò chuyện với file PDF", AI sẽ lấy toàn bộ lịch sử hội thoại + Vector Text của file đó để phản hồi.
 
-### 2.4. Kiểu dữ liệu linh hoạt (JSONB) & Vector
-- Các cột `content`, `criteria_matrix`, `result_payload` tiếp tục dùng `JSONB`.
-- Bảng `DOCUMENT_CHUNKS` sử dụng kiểu dữ liệu `vector(1536)` từ **pgvector** để tìm kiếm ngữ nghĩa siêu tốc (Semantic Search) phục vụ RAG.
-
-### 2.5. Khóa chính (Primary Key - UUID)
-- Toàn bộ bảng dùng `UUID` làm ID. Ngăn chặn triệt để hành vi ID-Guessing (Ví dụ: Học sinh tự gõ URL `submissions/100` để xem bài của bạn khác).
+### 2.4. Tính năng "Động hóa" AI Persona
+- Bảng **`AI_PROMPTS`** được thiết kế để giải thoát Developer khỏi việc phải hardcode System Prompts vào Backend. Nếu Quản trị viên muốn thay đổi giọng điệu của trợ lý Raina hoặc thêm một Nhân vật Lịch sử mới, họ chỉ cần cấu hình ngay trên Web Admin, dữ liệu sẽ tự động được Frontend lấy xuống và truyền vào LLM.
