@@ -595,6 +595,51 @@ paths:
                         front_text:
                           type: string
 
+  /flashcards/{flashcard_id}/reviews:
+    post:
+      summary: Lưu kết quả ôn tập thẻ bài (Spaced Repetition)
+      tags: [Student Tracking]
+      parameters:
+        - name: flashcard_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confidence_level]
+              properties:
+                confidence_level:
+                  type: integer
+                  description: "Mức độ tự tin: 1 (Quên sạch) đến 5 (Rất thuộc)"
+                  minimum: 1
+                  maximum: 5
+      responses:
+        '201':
+          description: Đã lưu kết quả ôn tập
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      review_id:
+                        type: string
+                        format: uuid
+                      next_review_at:
+                        type: string
+                        format: date-time
+
   # ==========================================
   # GROUP 4: AI WORKSPACE & RAG (WebSockets included)
   # ==========================================
@@ -663,6 +708,38 @@ paths:
                       document_id:
                         type: string
                         format: uuid
+    get:
+      summary: Lấy danh sách tài liệu RAG đã tải lên
+      tags: [AI Workspace]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        filename:
+                          type: string
+                        status:
+                          type: string
+                          enum: [pending, parsing, ready, error]
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
 
   /chat/sessions:
     post:
@@ -727,3 +804,44 @@ paths:
               schema:
                 type: object
                 description: 'Dữ liệu từng sự kiện SSE. Ví dụ: `data: {"chunk": "Xin", "is_final": false}`'
+    get:
+      summary: Lấy lịch sử tin nhắn của một phiên Chat AI
+      tags: [AI Workspace]
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Lịch sử hội thoại
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        sender_type:
+                          type: string
+                          enum: [user, ai]
+                        content:
+                          type: string
+                        created_at:
+                          type: string
+                          format: date-time
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
