@@ -38,7 +38,7 @@ jobs:
         working-directory: backend
         run: |
           if [ -d "tests" ]; then
-            pytest tests/ --cov=app --cov-report=xml
+            pytest tests/ --cov=app --cov-report=xml --cov-fail-under=90
           else
             echo "No tests directory found. Skipping tests."
           fi
