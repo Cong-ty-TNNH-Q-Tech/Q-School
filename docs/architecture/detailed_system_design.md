@@ -45,7 +45,7 @@ qschool-backend/
 │   │   └── message_queue/      # Cấu hình đẩy Job vào Celery
 │   └── entrypoints/            # DRIVING ADAPTERS (Nơi nhận Request)
 │       ├── api_v1/             # FastAPI REST Routers (Controllers)
-│       ├── websockets/         # WebSocket handlers
+│       ├── sse/                # Server-Sent Events (SSE) handlers
 │       └── celery_worker/      # Code chạy nền của Worker
 ├── tests/                      # Unit Tests, Integration Tests
 ├── requirements.txt            # Package dependencies
@@ -75,6 +75,10 @@ Database PostgreSQL được chia thành 3 cụm nghiệp vụ chính. (Bản ER
    - `generated_assets`: Gom nhóm tất cả văn bản do AI sinh ra (Email, IEP, Nhận xét) để chống rác Database.
    - `documents`, `document_chunks`: Lưu siêu dữ liệu file và Vector Embeddings (pgvector) cho RAG.
    - `ai_tasks`: Bảng giám sát tiến trình Celery (Pending, Completed).
+5. **Nhóm Thương mại & Thanh toán (SaaS Billing):**
+   - `plans`: Cấu hình các gói cước (Free, Pro, Enterprise) và giới hạn tính năng.
+   - `user_subscriptions`: Trạng thái gói cước hiện tại của Học sinh/Giáo viên.
+   - `payment_transactions`: Lịch sử giao dịch thanh toán qua Webhook (Stripe/VNPay).
 
 ---
 
@@ -91,11 +95,11 @@ Database PostgreSQL được chia thành 3 cụm nghiệp vụ chính. (Bản ER
     "error_code": 0       // Mã lỗi nội bộ (nếu error)
   }
   ```
-- **Pagination:** Sử dụng Cursor-based hoặc Offset/Limit cho các list dài (Danh sách câu hỏi, Lịch sử trò chuyện).
+- **Pagination:** Bắt buộc sử dụng **Cursor-based Pagination** cho các list dữ liệu lớn và liên tục thay đổi (như Lịch sử trò chuyện, Feed). Hạn chế tối đa dùng Offset/Limit để tránh suy giảm hiệu năng cơ sở dữ liệu.
 
-### 4.2. Giao tiếp WebSocket (Real-time)
-- Được sử dụng cho các chức năng **AI Chatbot (UC-FT-015)** và nhận kết quả từ Background Worker.
-- **Cơ chế Streaming:** Giống ChatGPT, thay vì đợi vLLM sinh xong cả câu trả lời dài mới hiển thị, Celery Worker sẽ stream từng luồng Text (Token) qua WebSocket trả về Frontend (React) để tạo hiệu ứng gõ chữ thời gian thực (typing effect).
+### 4.2. Giao tiếp HTTP Streaming (Server-Sent Events - SSE)
+- Được sử dụng cho các chức năng **AI Chatbot (UC-FT-015)** và nhận kết quả AI.
+- **Cơ chế Streaming:** Giống ChatGPT, thay vì đợi vLLM sinh xong cả câu trả lời, Backend sử dụng **SSE** (`StreamingResponse` của FastAPI) để stream từng luồng Text (Token) về Frontend (React) theo chiều từ Server -> Client, tạo hiệu ứng gõ chữ thời gian thực. **Tuyệt đối không dùng WebSockets** để đảm bảo tính ổn định qua Load Balancer.
 
 ---
 
@@ -109,7 +113,7 @@ Database PostgreSQL được chia thành 3 cụm nghiệp vụ chính. (Bản ER
 1. **Producer:** API FastAPI nhận file và prompt, lưu DB trạng thái `Processing`. Bắn `task_id` vào Redis Queue.
 2. **Broker:** Redis giữ `task_id` và phân phối.
 3. **Consumer:** Celery Worker lấy task ra, làm sạch Data, gọi API sang vLLM, chờ kết quả.
-4. Xử lý xong, Worker update DB thành `Completed`, bắn lệnh qua WebSocket báo cho Client cập nhật màn hình.
+4. Xử lý xong, Worker update DB thành `Completed`, và thông qua Pub/Sub hoặc SSE để Client nhận biết tiến trình hoàn tất.
 
 ### 5.3. RAG Pipeline (Retrieval-Augmented Generation) - Tùy chọn
 Dành cho chức năng "Tổng hợp kiến thức sách giáo khoa".
@@ -125,9 +129,11 @@ Dành cho chức năng "Tổng hợp kiến thức sách giáo khoa".
   - Mật khẩu lưu trữ phải mã hóa bằng chuẩn `Bcrypt`.
 - **Authorization (Phân quyền - RBAC):** 
   - Các Router trong FastAPI được gắn Dependency Injection để kiểm tra Role. User `Student` không được phép truy cập vào các API có tiền tố `/api/v1/teacher/...`
-- **Rate Limiting & Anti-Spam:** 
+- **Rate Limiting, Anti-Spam & SaaS Billing:** 
   - Đặt ngưỡng Rate Limit trên API Gateway (Nginx) để chống DDoS.
-  - Đặt giới hạn ở tầng Application (Redis) cho các API gọi AI (VD: "Học sinh chỉ được hỏi AI Tutor 50 câu / ngày"). Chống lạm dụng tài nguyên GPU server.
+  - **Mô hình SaaS:** API AI kiểm tra quyền lợi theo gói cước (`user_subscriptions`). 
+    - Nếu sử dụng quá tần suất: Trả về lỗi `429 Too Many Requests`.
+    - Nếu hết lượt/hết hạn gói VIP: Trả về lỗi `402 Payment Required` yêu cầu nâng cấp gói cước.
 
 ---
 
