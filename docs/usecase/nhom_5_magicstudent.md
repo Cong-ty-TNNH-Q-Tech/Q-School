@@ -1,22 +1,23 @@
-# NHÓM 5: MAGICSTUDENT (CÔNG CỤ DÀNH CHO HỌC SINH)
+# NHÓM 5: MAGICSTUDENT (TÍNH NĂNG DÀNH CHO HỌC SINH)
 
-**Actor (Người dùng):** Học sinh (Student)
+**Actor (Người dùng):** Học sinh
 
-## 1. UC-FS-001: Học kèm 1-1 với Gia sư AI (AI Tutor - Raina)
-* **Tình huống:** Học sinh gặp bài toán khó khi làm bài tập ở nhà và không có ai hướng dẫn.
-* **Mô tả ngắn:** Use-case này cho phép Học sinh hỏi bài Gia sư AI. Hệ thống cung cấp các gợi ý từng bước (scaffolding) để học sinh tự tìm ra đáp án thay vì đưa ra kết quả trực tiếp.
-* **Kết quả dự kiến:** AI gợi ý từng bước giải quyết vấn đề (không đưa ngay đáp án) để học sinh tự hiểu bài (Mức an toàn: Cao).
+## 1. UC-FS-001: Học kèm 1-1 với Gia sư AI (AI Tutor)
+* **Tình huống:** Học sinh gặp bài toán khó ở nhà, không có giáo viên bên cạnh để hỏi. Cần một người hướng dẫn cách làm.
+* **Mô tả ngắn:** Học sinh chụp ảnh hoặc nhập đề bài, AI Tutor sẽ đóng vai gia sư. **Đặc biệt:** AI không bao giờ đưa ra đáp án cuối cùng ngay lập tức, mà dùng phương pháp "Scaffolding" (giàn giáo) - đặt câu hỏi gợi mở để học sinh tự suy nghĩ và giải quyết từng bước.
+* **Kết quả dự kiến:** Học sinh hiểu được bản chất vấn đề và tự tìm ra đáp án.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng (Học sinh) nhập bài toán/câu hỏi cần giải đáp. | 2. Hệ thống nhận diện bài toán và xác định hướng dẫn giải. | - Đề bài* |
-  | 3. Người dùng yêu cầu giải đáp. | 4. Hệ thống đặt câu hỏi gợi mở hoặc đưa ra bước giải thích đầu tiên. | - Lời gợi ý |
-  | 5. Người dùng nhập câu trả lời cho bước gợi ý. | 6. Hệ thống xác nhận đúng/sai và điều hướng đến bước tiếp theo cho đến khi ra kết quả cuối. | - Tương tác của học sinh |
-* **Luồng ngoại lệ:** Phát hiện câu hỏi vi phạm: Nếu học sinh hỏi các nội dung nguy hiểm, bạo lực, hệ thống từ chối trả lời và cảnh báo (Mức an toàn: Cao).
-* **Yêu cầu đặc biệt:** Tránh cung cấp đáp án ngay lập tức. Tính năng này được cài đặt mức độ kiểm duyệt an toàn (Safety Level) ở mức Cao.
-* **Tiền điều kiện:** Học sinh có tài khoản và đã đăng nhập vào phân hệ MagicStudent.
-* **Điều kiện sau:** Học sinh hiểu được cách giải quyết vấn đề của bài học.
-* **Điểm mở rộng:** Không có.
+  | Người dùng gửi đề bài (text/ảnh) và yêu cầu giải đáp. | Hệ thống gửi thông tin cho AI Tutor. AI phân tích, xác định các bước giải (Scaffolding steps) và trả về câu hỏi gợi mở đầu tiên. | - Đề bài* |
+  | Người dùng nhập câu trả lời cho gợi ý đó. | AI Tutor đánh giá đúng/sai, phản hồi khích lệ và chuyển sang câu hỏi dẫn dắt tiếp theo cho đến khi ra kết quả. | - Tương tác của học sinh |
+* **Luồng ngoại lệ:** 
+  - **Học sinh liên tục trả lời sai/tỏ ra thất vọng:** AI Tutor chuyển đổi tông giọng sang dỗ dành, giảm độ khó của gợi ý hoặc chia nhỏ bài toán thêm nữa.
+  - **Câu hỏi vi phạm nội dung (VD: Cách chế tạo chất nổ):** Hệ thống chặn ngay lập tức.
+* **Yêu cầu đặc biệt:** Áp dụng nghiêm ngặt Safety Filter (Bộ lọc an toàn học đường).
+* **Tiền điều kiện:** Học sinh đăng nhập tài khoản.
+* **Điều kiện sau:** Hệ thống ghi nhận điểm tích cực cho học sinh.
+* **Điểm mở rộng:** Báo cáo tổng hợp tiến độ học tập cho Giáo viên chủ nhiệm.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
@@ -25,68 +26,58 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Tutor
 
-    HS->>HT: Gửi bài toán/Câu hỏi
+    HS->>HT: Gửi bài toán/Câu hỏi và yêu cầu giải đáp
     HT->>AI: Kiểm tra nội dung (Safety check)
     AI-->>HT: Hợp lệ. Xác định Scaffolding steps
-    HS->>HT: Bấm yêu cầu giải đáp
-    HT->>AI: Xin gợi ý đầu tiên
+    HT->>AI: Xin gợi ý dẫn dắt đầu tiên
     AI-->>HT: Trả về câu hỏi gợi mở (Không đưa đáp án)
     HT-->>HS: Hiển thị gợi ý
     HS->>HT: Nhập câu trả lời cho gợi ý
-    HT->>AI: Đánh giá đúng/sai
-    AI-->>HT: Phản hồi và chuyển bước tiếp theo
+    HT->>AI: Đánh giá câu trả lời đúng/sai
+    AI-->>HT: Phản hồi và điều hướng bước tiếp theo
     HT-->>HS: Hoàn thành tới đáp án cuối
 ```
 
 ## 2. UC-FS-002: Hỗ trợ ôn tập học tập (Study Bot)
-* **Tình huống:** Sắp tới kỳ thi, học sinh cần hệ thống lại toàn bộ kiến thức một chương học.
-* **Mô tả ngắn:** Trợ lý ảo giúp học sinh lên lịch trình ôn thi, tóm tắt chương học và tạo flashcard ôn tập.
-* **Kết quả dự kiến:** Lộ trình ôn tập và các thẻ ghi nhớ (flashcards) được tạo tự động.
+* **Tình huống:** Sắp đến kỳ thi cuối kỳ, học sinh bối rối trước một cuốn sách dày cộp, không biết bắt đầu ôn tập từ đâu.
+* **Mô tả ngắn:** Hệ thống chuyển hóa tài liệu thô thành Lộ trình học tập (Study Plan) và bộ Thẻ ghi nhớ (Flashcard) tự động.
+* **Kết quả dự kiến:** Lịch trình ôn thi chia theo ngày và bộ thẻ Flashcard tương tác.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng cung cấp tài liệu bài học hoặc chủ đề cần ôn thi. | 2. Hệ thống phân tích dung lượng kiến thức và phân chia logic. | - Tài liệu/Chủ đề* |
-  | 3. Người dùng yêu cầu hỗ trợ ôn tập. | 4. Hệ thống đề xuất lộ trình và tạo bộ thẻ ghi nhớ (Flashcard) tự động. | - Lộ trình & Flashcard |
-  | 5. Người dùng tương tác học với Flashcard. | 6. Hệ thống lật thẻ đáp án và ghi nhận tiến độ học của người dùng. | - Thao tác lật thẻ |
+  | Người dùng tải lên tài liệu/chủ đề và yêu cầu tạo hỗ trợ ôn tập. | AI phân tích dung lượng kiến thức, tạo Lộ trình học tập & cấu trúc Flashcard. | - Tài liệu/Chủ đề* |
+  | Người dùng thao tác lật thẻ Flashcard (xem đáp án). | Hệ thống hiển thị mặt sau của thẻ và ghi nhận tiến độ hoàn thành bài ôn tập. | - Thao tác lật thẻ |
 * **Luồng ngoại lệ:** Không có.
-* **Yêu cầu đặc biệt:** Đảm bảo độ chính xác của kiến thức chuyên môn (High Safety Level).
-* **Tiền điều kiện:** Đăng nhập với vai trò Học sinh.
-* **Điều kiện sau:** Học sinh có công cụ để học thuộc lòng kiến thức.
-* **Điểm mở rộng:** Không có.
+* **Yêu cầu đặc biệt:** Sử dụng thuật toán lặp lại ngắt quãng (Spaced Repetition) để hiển thị thẻ flashcard.
+* **Tiền điều kiện:** Học sinh đăng nhập tài khoản.
+* **Điều kiện sau:** Có lộ trình ôn tập cá nhân hóa.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
 sequenceDiagram
     actor HS as Học sinh
     participant HT as Hệ thống
-    participant AI as AI Engine
+    participant AI as AI Tutor
 
-    HS->>HT: Tải lên tài liệu hoặc nhập chủ đề thi
-    HT->>AI: Phân tích chia nhỏ kiến thức
-    HS->>HT: Yêu cầu tạo hỗ trợ ôn tập
-    HT->>AI: Giao nhiệm vụ tạo Lộ trình & Flashcard
+    HS->>HT: Tải lên tài liệu và yêu cầu tạo ôn tập
+    HT->>AI: Phân tích chia nhỏ kiến thức, tạo Lộ trình & Flashcard
     AI-->>HT: Trả về cấu trúc Flashcard
     HT-->>HS: Hiển thị giao diện học Flashcard
     HS->>HT: Bấm lật thẻ xem đáp án
-    HT-->>HS: Hiển thị mặt sau của thẻ
-    HT->>HT: Ghi nhận tiến độ hoàn thành
+    HT-->>HS: Hiển thị mặt sau của thẻ và ghi nhận tiến độ
 ```
 
 ## 3. UC-FS-003: Chat với nhân vật lịch sử/văn học (Character Chatbot)
-* **Tình huống:** Học sinh cần làm bài thu hoạch môn Lịch sử hoặc Văn học và muốn tìm hiểu góc nhìn của nhân vật.
-* **Mô tả ngắn:** Học sinh tương tác dưới dạng nhập vai (Role-play) với một nhân vật ảo (Albert Einstein, Thạch Sanh...) để tìm hiểu kiến thức sinh động.
-* **Kết quả dự kiến:** Cuộc trò chuyện nhập vai (role-play) với một nhân vật lịch sử/văn học (Mức an toàn: Trung bình, cần giám sát nội dung nhập vai).
+* **Tình huống:** Môn Lịch sử nhàm chán với những con số. Học sinh muốn "nói chuyện" trực tiếp với Vua Quang Trung để tìm hiểu trận Ngọc Hồi - Đống Đa.
+* **Mô tả ngắn:** AI nhập vai (Roleplay) thành các nhân vật nổi tiếng. Trả lời câu hỏi bằng ngôi thứ nhất ("Ta", "Tôi") với tính cách, giọng điệu và kiến thức chuẩn lịch sử.
+* **Kết quả dự kiến:** Đoạn hội thoại sinh động, truyền cảm hứng học tập.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng chọn nhân vật từ danh sách hoặc nhập tên nhân vật. | 2. Hệ thống tải "System Prompt" (tính cách, kiến thức) của nhân vật tương ứng. | - Tên nhân vật* |
-  | 3. Người dùng đặt câu hỏi trò chuyện. | 4. Hệ thống (AI) đóng vai nhân vật, dùng ngôi thứ nhất để trả lời câu hỏi đúng bối cảnh lịch sử/văn học. | - Câu hỏi của học sinh |
-  | 5. Người dùng tiếp tục trò chuyện. | 6. Hệ thống duy trì tính cách nhân vật xuyên suốt phiên chat. | - Phản hồi nhập vai |
-* **Luồng ngoại lệ:** Nhập nhân vật không phù hợp/vi phạm chuẩn mực: Hệ thống từ chối khởi tạo nhân vật.
-* **Yêu cầu đặc biệt:** Giọng văn phải phản ánh đúng thời đại và tính cách nhân vật (Medium Safety Level: Cần giám sát tránh AI hư cấu sai lệch lịch sử).
-* **Tiền điều kiện:** Đăng nhập vai trò Học sinh.
-* **Điều kiện sau:** Học sinh hiểu rõ hơn về nhân vật.
-* **Điểm mở rộng:** Không có.
+  | Người dùng chọn/nhập tên nhân vật lịch sử và gửi câu hỏi trò chuyện. | AI kích hoạt System Prompt của nhân vật, nhận dữ liệu và sinh câu trả lời nhập vai (Ngôi thứ nhất). | - Tên nhân vật*<br>- Câu hỏi của học sinh |
+  | Người dùng tiếp tục trò chuyện. | Hệ thống duy trì Context và tính cách nhân vật xuyên suốt phiên chat. | - Phản hồi nhập vai |
+* **Luồng ngoại lệ:** Học sinh hỏi sai bối cảnh lịch sử (VD: Hỏi vua Quang Trung về iPhone): Nhân vật sẽ từ chối một cách khéo léo và điều hướng về thời đại của mình.
+* **Yêu cầu đặc biệt:** Thông tin lịch sử/văn học phải được fact-check (kiểm chứng) nghiêm ngặt để tránh sai lệch kiến thức.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
@@ -95,65 +86,52 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Persona
 
-    HS->>HT: Chọn/Nhập tên nhân vật lịch sử
-    HT->>AI: Gán System Prompt (Tính cách nhân vật)
-    HS->>HT: Đặt câu hỏi giao tiếp
-    HT->>AI: Truyền dữ liệu hội thoại
+    HS->>HT: Chọn nhân vật & đặt câu hỏi giao tiếp
+    HT->>AI: Gán System Prompt (Tính cách) & Truyền câu hỏi
     AI-->>HT: Sinh câu trả lời nhập vai (Ngôi thứ nhất)
     HT-->>HS: Hiển thị tin nhắn của Nhân vật
     HS->>HT: Chat tiếp
-    HT->>AI: Giữ Context và tính cách
+    HT->>AI: Giữ Context hội thoại và tính cách
 ```
 
 ## 4. UC-FS-005: Tạo nội dung sáng tạo (Content Creator)
-* **Tình huống:** Học sinh cần viết kịch bản cho vở kịch của lớp hoặc lập dàn ý bài thuyết trình.
-* **Mô tả ngắn:** Hỗ trợ học sinh phác thảo ý tưởng, dàn ý cho các bài viết sáng tạo như thơ, kịch bản, bài văn biểu cảm.
-* **Kết quả dự kiến:** Dàn ý chi tiết hoặc bản nháp nội dung sáng tạo.
+* **Tình huống:** Làm bài tập làm văn nhưng học sinh không biết bắt đầu từ đâu.
+* **Mô tả ngắn:** Cung cấp các dàn ý gợi ý, cách mở bài hay hoặc giúp học sinh trau chuốt lại câu văn bị lủng củng. **Lưu ý:** Chặn chức năng viết hộ (Do my homework) toàn bộ bài văn.
+* **Kết quả dự kiến:** Dàn ý chi tiết hoặc một đoạn văn được sửa lỗi ngữ pháp.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng nhập thể loại (Thơ/Kịch...) và chủ đề mong muốn. | 2. Hệ thống phân tích cấu trúc của thể loại văn học tương ứng. | - Thể loại*<br>- Chủ đề* |
-  | 3. Người dùng yêu cầu tạo dàn ý. | 4. Hệ thống đưa ra cấu trúc bài viết (Mở, Thân, Kết) và các ý tưởng gợi ý (Không viết hộ toàn bài). | - Dàn ý/Gợi ý |
-  | 5. Người dùng phát triển bài viết từ dàn ý. | 6. Hệ thống có thể góp ý chỉnh sửa trên bài viết của học sinh. | - Bản nháp của học sinh |
-* **Luồng ngoại lệ:** Không có.
-* **Yêu cầu đặc biệt:** Không viết thay học sinh 100% để chống gian lận học thuật (High Safety Level).
-* **Tiền điều kiện:** Đăng nhập vai trò Học sinh.
-* **Điều kiện sau:** Học sinh có khung sườn để tự làm bài.
-* **Điểm mở rộng:** Không có.
+  | Người dùng nhập thể loại, chủ đề và yêu cầu tạo dàn ý. | AI phân tích cấu trúc tác phẩm và sinh ra khung dàn bài (Mở/Thân/Kết) mang tính gợi ý. | - Thể loại*<br>- Chủ đề* |
+  | Người dùng viết bài dựa trên dàn ý và nhờ AI chỉnh sửa bản nháp. | AI đọc bản nháp, phát hiện lỗi và phản hồi góp ý cải thiện câu văn. | - Bản nháp của học sinh |
+* **Luồng ngoại lệ:** Học sinh yêu cầu "Viết cho em một bài văn hoàn chỉnh": AI từ chối và đề nghị hướng dẫn lập dàn ý trước.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
 sequenceDiagram
     actor HS as Học sinh
     participant HT as Hệ thống
-    participant AI as AI Engine
+    participant AI as AI Tutor
 
-    HS->>HT: Nhập Thể loại và Chủ đề bài viết
-    HT->>AI: Phân tích cấu trúc tác phẩm
-    HS->>HT: Yêu cầu tạo dàn ý
-    HT->>AI: Yêu cầu sinh khung bài (Tránh sinh full bài)
-    AI-->>HT: Trả về Dàn ý (Mở/Thân/Kết)
-    HT-->>HS: Hiển thị dàn ý gợi ý
-    HS->>HT: Viết bài và nhờ chỉnh sửa bản nháp
-    HT->>AI: Đọc và góp ý cải thiện
-    AI-->>HS: Phản hồi góp ý
+    HS->>HT: Nhập Thể loại, Chủ đề và yêu cầu tạo dàn ý
+    HT->>AI: Phân tích & sinh khung bài (Tránh viết hộ)
+    AI-->>HT: Trả về Dàn ý gợi ý
+    HT-->>HS: Hiển thị dàn ý cho học sinh
+    HS->>HT: Gửi bản nháp bài tự viết để xin góp ý
+    HT->>AI: Đọc và góp ý cải thiện ngữ pháp/câu từ
+    AI-->>HT: Phản hồi góp ý
+    HT-->>HS: Hiển thị nhận xét chỉnh sửa
 ```
 
 ## 5. UC-FS-006: Hỗ trợ nghiên cứu (Research Assistant)
-* **Tình huống:** Học sinh làm tiểu luận và cần tìm các số liệu, sự kiện lịch sử đáng tin cậy.
-* **Mô tả ngắn:** Giúp học sinh tìm kiếm số liệu, sự kiện có thật để phục vụ cho các bài tiểu luận, báo cáo.
-* **Kết quả dự kiến:** Các thông tương được tổng hợp, trích dẫn rõ ràng, hỗ trợ việc nghiên cứu.
+* **Tình huống:** Học sinh cần làm một bài thuyết trình nhóm môn Sinh học nhưng tìm kiếm Google ra quá nhiều thông tin rác.
+* **Mô tả ngắn:** Công cụ tìm kiếm học thuật được AI tổng hợp lại, tóm tắt ý chính và đặc biệt là luôn trích dẫn nguồn uy tín.
+* **Kết quả dự kiến:** Đoạn tóm tắt thông tin khoa học kèm link tham khảo.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng nhập câu hỏi nghiên cứu hoặc từ khóa khoa học. | 2. Hệ thống tra cứu cơ sở dữ liệu học thuật. | - Từ khóa nghiên cứu* |
-  | 3. Người dùng yêu cầu tổng hợp thông tin. | 4. Hệ thống trả về các đoạn thông tin đã tổng hợp kèm theo trích dẫn/nguồn đáng tin cậy. | - Thông tin & Nguồn |
-  | 5. Người dùng lưu thông tin. | 6. Hệ thống xuất file dạng danh mục tài liệu tham khảo. | - Tệp kết quả |
-* **Luồng ngoại lệ:** Yêu cầu thông tin quá mới hoặc không có nguồn xác thực: Hệ thống thông báo không thể cung cấp dữ liệu chính xác.
-* **Yêu cầu đặc biệt:** Thông tin đưa ra bắt buộc phải có fact-check, không hallucination (High Safety Level).
-* **Tiền điều kiện:** Đăng nhập vai trò Học sinh.
-* **Điều kiện sau:** Học sinh thu thập đủ dữ liệu làm bài.
-* **Điểm mở rộng:** Không có.
+  | Người dùng nhập từ khóa nghiên cứu và yêu cầu tổng hợp thông tin. | Hệ thống tra cứu cơ sở dữ liệu học thuật, AI lọc thông tin, fact-check và sinh đoạn tóm tắt kèm trích nguồn. | - Từ khóa nghiên cứu* |
+  | Người dùng yêu cầu lưu/xuất kết quả. | Hệ thống tạo và xuất file định dạng danh mục tài liệu tham khảo. | - Tệp kết quả |
+* **Luồng ngoại lệ:** Thông tin không tồn tại hoặc gây tranh cãi khoa học: AI ghi chú rõ "Vấn đề này chưa có kết luận thống nhất" và đưa ra nhiều luồng quan điểm.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
@@ -161,12 +139,11 @@ sequenceDiagram
     actor HS as Học sinh
     participant HT as Hệ thống
     participant DB as Học thuật DB
-    participant AI as AI Engine
+    participant AI as AI Tutor
 
-    HS->>HT: Nhập từ khóa/Câu hỏi nghiên cứu
+    HS->>HT: Nhập từ khóa nghiên cứu & yêu cầu tổng hợp
     HT->>DB: Tra cứu cơ sở dữ liệu/Web search
-    HS->>HT: Yêu cầu tổng hợp
-    DB-->>AI: Trả dữ liệu thô
+    DB-->>HT: Trả dữ liệu thô
     HT->>AI: Lọc thông tin, Fact-check & trích nguồn
     AI-->>HT: Trả về đoạn tóm tắt + Nguồn
     HT-->>HS: Hiển thị dữ liệu nghiên cứu
@@ -175,53 +152,41 @@ sequenceDiagram
 ```
 
 ## 6. UC-FS-007: Tự kiểm tra kiến thức (Quiz Me!)
-* **Tình huống:** Học sinh học xong bài và muốn tự test xem mình đã nhớ bài chưa trước khi gấp sách.
-* **Mô tả ngắn:** Học sinh tự tạo các bài test nhỏ để kiểm tra xem mình đã hiểu bài trên lớp chưa.
-* **Kết quả dự kiến:** Các câu hỏi trắc nghiệm ngẫu nhiên để đánh giá năng lực bản thân.
+* **Tình huống:** Đọc xong một chương sách Lịch sử, học sinh muốn tự đánh giá xem mình nhớ được bao nhiêu % kiến thức.
+* **Mô tả ngắn:** Học sinh dán văn bản bài học, hệ thống ngay lập tức tạo ra bộ câu hỏi ngắn (Mini Quiz) dạng Gamification (trò chơi hóa) để tự kiểm tra.
+* **Kết quả dự kiến:** Bộ câu hỏi trắc nghiệm tương tác lập tức.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng dán nội dung bài học và chọn "Bắt đầu Quiz". | 2. Hệ thống sinh ngay lập tức 5-10 câu hỏi ngẫu nhiên dạng trắc nghiệm hoặc điền khuyết. | - Nội dung bài* |
-  | 3. Người dùng chọn đáp án cho từng câu. | 4. Hệ thống đối chiếu kết quả và báo đúng/sai lập tức sau mỗi câu. | - Lựa chọn của người dùng |
-  | 5. Người dùng nộp bài (Submit). | 6. Hệ thống hiển thị điểm tổng và giải thích chi tiết các câu sai. | - Bảng điểm, Giải thích |
-* **Luồng ngoại lệ:** Không có.
-* **Yêu cầu đặc biệt:** Giải thích phải dễ hiểu, giúp học sinh nhận ra lỗi sai (High Safety Level).
-* **Tiền điều kiện:** Đăng nhập vai trò Học sinh.
-* **Điều kiện sau:** Nắm được mức độ hiểu bài của bản thân.
-* **Điểm mở rộng:** Không có.
+  | Người dùng dán nội dung bài học và nhấn "Bắt đầu Quiz". | AI phân tích nội dung và sinh lập tức bộ câu hỏi trắc nghiệm ngẫu nhiên, hiển thị UI làm bài. | - Nội dung bài* |
+  | Người dùng chọn đáp án và nộp toàn bộ bài (Submit). | Hệ thống kiểm tra kết quả đúng/sai, chấm điểm và hiển thị giải thích chi tiết cho các câu sai. | - Bảng điểm, Giải thích |
+* **Yêu cầu đặc biệt:** Tốc độ tạo quiz phải cực nhanh (<5s) để giữ mạch cảm xúc của học sinh.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
 sequenceDiagram
     actor HS as Học sinh
     participant HT as Hệ thống
-    participant AI as AI Engine
+    participant AI as AI Tutor
 
     HS->>HT: Dán nội dung & chọn "Bắt đầu Quiz"
-    HT->>AI: Yêu cầu tạo 5-10 câu hỏi ngẫu nhiên
+    HT->>AI: Yêu cầu tạo câu hỏi ngẫu nhiên
     AI-->>HT: Trả về list câu hỏi
     HT-->>HS: Hiển thị UI làm bài
-    HS->>HT: Chọn đáp án từng câu
-    HT->>HT: Check đúng/sai lập tức
-    HS->>HT: Nộp toàn bộ bài (Submit)
+    HS->>HT: Hoàn thành bài & nộp toàn bộ (Submit)
+    HT->>HT: Chấm điểm và đối chiếu kết quả
     HT-->>HS: Hiển thị Bảng điểm & Giải thích lỗi sai
 ```
 
 ## 7. UC-FS-008: Tóm tắt văn bản (Text Summarizer)
-* **Tình huống:** Học sinh phải đọc một bài báo khoa học dài 10 trang và muốn nắm ý chính trước.
-* **Mô tả ngắn:** Rút gọn các bài báo khoa học hoặc tài liệu học tập dài thành các luận điểm chính dễ nhớ.
-* **Kết quả dự kiến:** Bản tóm tắt ngắn gọn chứa các luận điểm cốt lõi của bài viết.
+* **Tình huống:** Có bài báo khoa học quá dài bằng tiếng Anh, học sinh cần nắm ý chính nhanh gọn.
+* **Mô tả ngắn:** Ứng dụng NLP (Xử lý ngôn ngữ tự nhiên) để nén văn bản dài thành các đoạn Bullet points ngắn gọn, dễ hiểu.
+* **Kết quả dự kiến:** Văn bản tóm tắt giữ lại 100% ý nghĩa cốt lõi.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng dán văn bản dài (hoặc upload tệp). | 2. Hệ thống xử lý NLP để nhận diện các câu chủ đề và loại bỏ ý phụ. | - Văn bản gốc/Tệp* |
-  | 3. Người dùng chọn độ dài tóm tắt mong muốn (Ngắn/Vừa). | 4. Hệ thống trả về đoạn tóm tắt gạch đầu dòng rõ ràng. | - Mức độ tóm tắt*<br>- Bản tóm tắt |
-  | 5. Người dùng copy kết quả. | 6. Hệ thống lưu lịch sử. | - Dữ liệu copy |
-* **Luồng ngoại lệ:** Tệp tải lên bị lỗi mã hóa chữ (font error): Hệ thống báo lỗi và yêu cầu dùng văn bản dạng text thô.
-* **Yêu cầu đặc biệt:** Không làm thay đổi bản chất sự thật của văn bản gốc (High Safety Level).
-* **Tiền điều kiện:** Đăng nhập vai trò Học sinh.
-* **Điều kiện sau:** Học sinh đọc xong nội dung cốt lõi nhanh chóng.
-* **Điểm mở rộng:** Không có.
+  | Người dùng tải tệp văn bản lên, chọn độ dài và yêu cầu tóm tắt. | Hệ thống kiểm tra tệp, AI (NLP) trích xuất ý chính và sinh bản tóm tắt dạng Bullet points. | - Văn bản gốc/Tệp*<br>- Mức độ tóm tắt* |
+  | Người dùng sao chép kết quả tóm tắt. | Hệ thống ghi nhận lịch sử thao tác vào tài khoản người dùng. | - Dữ liệu copy |
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
@@ -230,9 +195,8 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as NLP Engine
 
-    HS->>HT: Tải tệp văn bản dài lên
-    HT->>HT: Quét lỗi mã hóa file
-    HS->>HT: Chọn độ dài tóm tắt
+    HS->>HT: Tải tệp văn bản, chọn độ dài & yêu cầu tóm tắt
+    HT->>HT: Quét và kiểm tra tệp
     HT->>AI: Yêu cầu NLP trích xuất ý chính
     AI-->>HT: Sinh bản tóm tắt Bullet points
     HT-->>HS: Hiển thị đoạn tóm tắt
@@ -241,20 +205,14 @@ sequenceDiagram
 ```
 
 ## 8. UC-FS-009: Dịch thuật ngữ liệu (Text Translator)
-* **Tình huống:** Học sinh cần đọc tài liệu tham khảo bằng tiếng Anh nhưng gặp nhiều từ vựng chuyên ngành khó.
-* **Mô tả ngắn:** Dịch ngữ liệu học tập từ ngôn ngữ này sang ngôn ngữ khác, ưu tiên giữ nguyên ngữ cảnh chuyên ngành học thuật.
-* **Kết quả dự kiến:** Bản dịch tiếng Việt chuẩn xác, giữ nguyên ngữ cảnh học thuật.
+* **Tình huống:** Đang học môn Khoa học tự nhiên bằng tiếng Anh nhưng có vài đoạn từ vựng chuyên ngành quá khó.
+* **Mô tả ngắn:** Công cụ dịch thuật tối ưu hóa cho ngữ cảnh học thuật. Không dịch thô như Google Translate mà giải nghĩa từ vựng theo đúng bài giảng.
+* **Kết quả dự kiến:** Giao diện song ngữ hiển thị rõ ràng, tích hợp từ điển popup.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng dán văn bản cần dịch và chọn Ngôn ngữ đích. | 2. Hệ thống nhận diện ngôn ngữ gốc và bối cảnh từ vựng. | - Đoạn văn gốc*<br>- Ngôn ngữ đích* |
-  | 3. Người dùng bấm "Dịch". | 4. Hệ thống trả về kết quả dịch thuật, hiển thị song song 2 ngôn ngữ để dễ đối chiếu. | - Bản dịch |
-  | 5. Người dùng bôi đen từ khó trong bản dịch. | 6. Hệ thống hiển thị popup giải nghĩa từ đó (nếu được yêu cầu). | - Thao tác tra từ |
-* **Luồng ngoại lệ:** Không có.
-* **Yêu cầu đặc biệt:** Chất lượng dịch thuật mượt mà, văn phong tự nhiên, đúng thuật ngữ (High Safety Level).
-* **Tiền điều kiện:** Đăng nhập vai trò Học sinh.
-* **Điều kiện sau:** Học sinh hiểu được tài liệu ngoại ngữ.
-* **Điểm mở rộng:** Không có.
+  | Người dùng dán văn bản gốc, chọn Ngôn ngữ đích và nhấn "Dịch". | AI nhận diện bối cảnh chuyên ngành, dịch thuật mượt mà và trả về kết quả hiển thị song song 2 ngôn ngữ. | - Đoạn văn gốc*<br>- Ngôn ngữ đích* |
+  | Người dùng bôi đen từ khó trong bản dịch để tra nghĩa. | Hệ thống hiển thị popup giải thích nghĩa chi tiết của từ đó. | - Thao tác tra từ |
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
@@ -263,10 +221,8 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Translator
 
-    HS->>HT: Dán văn bản & chọn Ngôn ngữ đích
-    HT->>AI: Nhận diện bối cảnh chuyên ngành
-    HS->>HT: Nhấn nút "Dịch"
-    HT->>AI: Yêu cầu dịch mượt mà
+    HS->>HT: Dán văn bản, chọn Ngôn ngữ đích & nhấn "Dịch"
+    HT->>AI: Nhận diện bối cảnh & tiến hành dịch thuật
     AI-->>HT: Trả về kết quả song ngữ
     HT-->>HS: Hiển thị UI song song 2 ngôn ngữ
     HS->>HT: Bôi đen từ khó để tra nghĩa

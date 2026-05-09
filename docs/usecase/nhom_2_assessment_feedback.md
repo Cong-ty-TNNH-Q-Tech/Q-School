@@ -1,85 +1,20 @@
-# NHÓM 2: ASSESSMENT & FEEDBACK (ĐÁNH GIÁ & PHẢN HỒI)
+# NHÓM 2: ĐÁNH GIÁ VÀ PHẢN HỒI (ASSESSMENT & FEEDBACK)
 
-**Actor (Người dùng):** Giáo viên (Teacher)
+**Actor (Người dùng):** Giáo viên
 
 ## 1. UC-FT-007: Tạo thang điểm đánh giá (Rubric Generator)
-* **Tình huống:** Giáo viên giao một bài tiểu luận hoặc dự án nhóm và cần công bố các tiêu chí chấm điểm minh bạch cho học sinh.
-* **Mô tả ngắn:** Tạo bảng tiêu chí chấm điểm (Rubric) chi tiết cho các bài tập dự án, thuyết trình hoặc tự luận.
-* **Kết quả dự kiến:** Bảng Rubric chi tiết phân chia theo từng tiêu chí (Nội dung, Trình bày, Sáng tạo...) và mức điểm.
+* **Tình huống:** Giáo viên giao một dự án làm việc nhóm hoặc bài tự luận và cần một thang điểm minh bạch để chấm điểm công bằng.
+* **Mô tả ngắn:** Dựa trên mô tả bài tập, hệ thống sinh ra bảng tiêu chí (Rubric) đánh giá chi tiết theo từng cấp độ hoàn thành.
+* **Kết quả dự kiến:** Bảng ma trận Rubric phân chia rõ ràng tiêu chí (Hàng) và mức độ xuất sắc (Cột).
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng nhập tên bài tập, mục tiêu học tập và thang điểm (VD: 1-4, 1-10). | 2. Hệ thống phân tích yêu cầu để lên các tiêu chí thành phần (Nội dung, Hình thức...). | - Mô tả bài tập*<br>- Thang điểm* |
-  | 3. Người dùng yêu cầu tạo Rubric. | 4. Hệ thống sinh ra bảng ma trận gồm các tiêu chí và mô tả chi tiết cho từng mức điểm. | - Ma trận Rubric |
-  | 5. Người dùng tùy chỉnh text và bấm lưu. | 6. Hệ thống cập nhật thay đổi và xuất tệp dạng bảng. | - Tệp Rubric (PDF/Word) |
-* **Luồng ngoại lệ:** Không có.
-* **Yêu cầu đặc biệt:** Lời văn mô tả tiêu chí ở mỗi mức điểm phải rõ ràng, có tính định lượng và dễ phân biệt.
+  | Người dùng nhập mô tả bài tập, thang điểm và yêu cầu tạo Rubric. | Hệ thống gửi yêu cầu cho AI phân tích và sinh ra bảng ma trận gồm các tiêu chí/mức điểm. | - Mô tả bài tập*<br>- Thang điểm* |
+  | Người dùng tùy chỉnh text và bấm lưu. | Hệ thống cập nhật thay đổi và xuất tệp dạng bảng. | - Tệp Rubric (PDF/Word) |
+* **Luồng ngoại lệ:** Mô tả bài tập quá chung chung: Hệ thống yêu cầu bổ sung mục tiêu cụ thể (VD: rèn kỹ năng gì).
+* **Yêu cầu đặc biệt:** Rubric phải có ngôn từ rõ ràng, phân biệt được ranh giới giữa các mức điểm.
 * **Tiền điều kiện:** Người dùng đăng nhập với vai trò Giáo viên.
-* **Điều kiện sau:** Có bảng Rubric chuẩn để công bố cho học sinh.
-* **Điểm mở rộng:** Dùng làm đầu vào cho UC-FT-008 (Writing Feedback).
-
-### Biểu đồ tuần tự (Sequence Diagram)
-```mermaid
-sequenceDiagram
-    actor GV as Giáo viên
-    participant HT as Hệ thống
-    participant AI as AI Engine
-
-    GV->>HT: Nhập mô tả bài tập & thang điểm
-    HT->>AI: Phân tích yêu cầu và định hình tiêu chí
-    GV->>HT: Yêu cầu tạo Rubric
-    AI-->>HT: Sinh ma trận Rubric chi tiết
-    HT-->>GV: Hiển thị bảng ma trận
-    GV->>HT: Tùy chỉnh (nếu có) và lưu
-    HT-->>GV: Cập nhật và xuất tệp bảng (PDF/Word)
-```
-
-## 2. UC-FT-008: Chấm và phản hồi bài viết (Writing Feedback)
-* **Tình huống:** Giáo viên thu hàng chục bài luận của học sinh và cần đưa ra nhận xét chi tiết để học sinh cải thiện lỗi sai.
-* **Mô tả ngắn:** Use-case này cho phép Giáo viên tải lên bài viết của học sinh để hệ thống AI phân tích lỗi và đưa ra nhận xét chi tiết.
-* **Kết quả dự kiến:** Bản nhận xét chỉ ra lỗi ngữ pháp, cấu trúc câu và gợi ý cách viết tốt hơn.
-* **Luồng cơ bản:**
-  | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
-  | :--- | :--- | :--- |
-  | 1. Người dùng tải văn bản/bài viết của học sinh lên. | 2. Hệ thống đọc và phân tích nội dung văn bản. | - Tệp văn bản* |
-  | 3. Người dùng chọn tiêu chí chấm điểm (Rubric). | 4. Hệ thống ghi nhận tiêu chí và bắt đầu đánh giá. | - Tiêu chí đánh giá |
-  | 5. Người dùng yêu cầu tạo nhận xét. | 6. Hệ thống trả về bảng đánh giá lỗi ngữ pháp, cấu trúc và gợi ý sửa. | - Kết quả phản hồi |
-* **Luồng ngoại lệ:** Tệp không hợp lệ: Nếu văn bản mờ, lỗi font hoặc quá dung lượng, hệ thống báo lỗi và yêu cầu tải lại.
-* **Yêu cầu đặc biệt:** Phản hồi phải mang tính xây dựng (constructive feedback), không dùng từ ngữ gây nản chí.
-* **Tiền điều kiện:** Người dùng đã đăng nhập vào hệ thống.
-* **Điều kiện sau:** Bản nhận xét được tạo ra để giáo viên gửi trực tiếp cho học sinh.
-* **Điểm mở rộng:** Liên kết đến Use-case "Tạo thang điểm đánh giá (Rubric Generator)" nếu người dùng chưa có tiêu chí.
-
-### Biểu đồ tuần tự (Sequence Diagram)
-```mermaid
-sequenceDiagram
-    actor GV as Giáo viên
-    participant HT as Hệ thống
-    participant AI as AI Engine
-
-    GV->>HT: Tải lên bài viết của học sinh
-    HT->>HT: Kiểm tra & đọc nội dung tệp
-    GV->>HT: Chọn tiêu chí chấm (Rubric)
-    HT->>AI: Gửi bài viết + tiêu chí để đánh giá
-    GV->>HT: Bấm yêu cầu tạo nhận xét
-    AI-->>HT: Trả kết quả phân tích lỗi & gợi ý
-    HT-->>GV: Hiển thị bản nhận xét chi tiết
-```
-
-## 3. UC-FT-009: Tạo nhận xét sổ liên lạc (Report Card Comments)
-* **Tình huống:** Cuối học kỳ, giáo viên chủ nhiệm phải viết nhận xét cá nhân hóa cho từng học sinh gửi về gia đình.
-* **Mô tả ngắn:** Tạo các đoạn nhận xét cá nhân hóa về năng lực và thái độ học tập của từng học sinh để gửi phụ huynh.
-* **Kết quả dự kiến:** Các đoạn nhận xét mang tính xây dựng, chuyên nghiệp dựa trên điểm số và thái độ học tập của học sinh.
-* **Luồng cơ bản:**
-  | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
-  | :--- | :--- | :--- |
-  | 1. Người dùng nhập thông tin: Tên học sinh, điểm mạnh, điểm yếu, điểm số. | 2. Hệ thống kiểm tra dữ liệu đầu vào. | - Tên, Giới tính*<br>- Đặc điểm học tập* |
-  | 3. Người dùng yêu cầu tạo nhận xét. | 4. Hệ thống sinh ra đoạn văn nhận xét mượt mà, chuyên nghiệp mang tính khích lệ. | - Văn bản nhận xét |
-  | 5. Người dùng copy hoặc lưu lại. | 6. Hệ thống lưu lịch sử thao tác. | - Lịch sử nhận xét |
-* **Luồng ngoại lệ:** Không có.
-* **Yêu cầu đặc biệt:** Văn phong lịch sự, quy tắc "bánh mì kẹp thịt" (Khen - Góp ý - Khích lệ).
-* **Tiền điều kiện:** Người dùng đăng nhập với vai trò Giáo viên.
-* **Điều kiện sau:** Hoàn thành nhận xét cho học sinh.
+* **Điều kiện sau:** Có file tiêu chí chấm điểm để gửi cho học sinh trước khi làm bài.
 * **Điểm mở rộng:** Không có.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
@@ -89,9 +24,67 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: Nhập thông tin học sinh (Tên, điểm, ưu/khuyết điểm)
+    GV->>HT: Nhập mô tả bài tập, thang điểm và yêu cầu tạo Rubric
+    HT->>AI: Phân tích yêu cầu và sinh ma trận Rubric chi tiết
+    AI-->>HT: Trả về kết quả Rubric
+    HT-->>GV: Hiển thị bảng ma trận
+    GV->>HT: Tùy chỉnh (nếu có) và lưu
+    HT-->>GV: Cập nhật và xuất tệp bảng (PDF/Word)
+```
+
+## 2. UC-FT-008: Chấm và phản hồi bài viết (Writing Feedback)
+* **Tình huống:** Sau bài kiểm tra viết luận tiếng Anh hoặc Ngữ Văn, giáo viên có hàng chục bài cần chấm và nhận xét chi tiết.
+* **Mô tả ngắn:** AI quét văn bản của học sinh, phát hiện lỗi ngữ pháp, cấu trúc câu và đưa ra lời khuyên sửa chữa mang tính xây dựng.
+* **Kết quả dự kiến:** Bài viết được highlight lỗi và kèm theo nhận xét tổng quan/chi tiết.
+* **Luồng cơ bản:**
+  | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
+  | :--- | :--- | :--- |
+  | Người dùng tải văn bản/bài viết của học sinh lên, chọn tiêu chí đánh giá (Rubric) và yêu cầu nhận xét. | Hệ thống đọc nội dung tệp, AI phân tích bài viết dựa trên Rubric và trả về bảng đánh giá lỗi kèm gợi ý sửa. | - Tệp văn bản*<br>- Tiêu chí đánh giá |
+  | Người dùng xuất hoặc copy bản nhận xét. | Hệ thống ghi nhận kết quả lưu vào lịch sử. | - Kết quả phản hồi |
+* **Luồng ngoại lệ:** Tệp tải lên mờ, không rõ chữ (nếu là ảnh): Hệ thống báo lỗi OCR không đọc được, yêu cầu nhập text trực tiếp.
+* **Yêu cầu đặc biệt:** Nhận xét cần tuân thủ nguyên tắc sư phạm "Sandwich feedback" (Khen ngợi - Chỉ ra lỗi - Khích lệ).
+* **Tiền điều kiện:** Người dùng đăng nhập với vai trò Giáo viên.
+* **Điều kiện sau:** Giáo viên có nhận xét sẵn sàng gửi cho học sinh.
+* **Điểm mở rộng:** Tự động quy đổi điểm dựa trên số lượng lỗi.
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: Tải lên bài viết, chọn tiêu chí (Rubric) và yêu cầu nhận xét
+    HT->>HT: Kiểm tra tệp
+    HT->>AI: Gửi bài viết + tiêu chí để đánh giá
+    AI-->>HT: Trả kết quả phân tích lỗi & gợi ý
+    HT-->>GV: Hiển thị bản nhận xét chi tiết
+```
+
+## 3. UC-FT-009: Tạo nhận xét sổ liên lạc (Report Card Comments)
+* **Tình huống:** Cuối học kỳ, giáo viên chủ nhiệm cần viết nhận xét cho 40 học sinh vào sổ liên lạc nhưng sợ lặp từ và khô khan.
+* **Mô tả ngắn:** Sinh đoạn văn nhận xét học bạ dựa trên từ khóa về điểm mạnh, điểm yếu và điểm số của từng cá nhân học sinh.
+* **Kết quả dự kiến:** Lời nhận xét súc tích, chuyên nghiệp, làm hài lòng phụ huynh và khích lệ học sinh.
+* **Luồng cơ bản:**
+  | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
+  | :--- | :--- | :--- |
+  | Người dùng nhập thông tin (Tên học sinh, điểm, ưu/khuyết điểm) và yêu cầu tạo nhận xét. | Hệ thống kiểm tra dữ liệu, AI sinh ra đoạn văn nhận xét chuyên nghiệp và khích lệ. | - Tên, Giới tính*<br>- Đặc điểm học tập* |
+  | Người dùng copy hoặc lưu lại. | Hệ thống lưu lịch sử thao tác vào thư mục cá nhân. | - Lịch sử nhận xét |
+* **Luồng ngoại lệ:** Nhập toàn điểm yếu tiêu cực: AI từ chối sinh ra lời lẽ gay gắt, gợi ý giáo viên đổi thành ngôn ngữ "cần cải thiện".
+* **Yêu cầu đặc biệt:** Văn phong trang trọng nhưng gần gũi, tuyệt đối không dùng ngôn từ miệt thị hay phân biệt đối xử.
+* **Tiền điều kiện:** Người dùng đăng nhập với vai trò Giáo viên.
+* **Điều kiện sau:** Có nhận xét để dán vào hệ thống Sổ liên lạc điện tử (SMAS, VnEdu).
+* **Điểm mở rộng:** Hỗ trợ nhập hàng loạt bằng tệp Excel (Batch processing).
+
+### Biểu đồ tuần tự (Sequence Diagram)
+```mermaid
+sequenceDiagram
+    actor GV as Giáo viên
+    participant HT as Hệ thống
+    participant AI as AI Engine
+
+    GV->>HT: Nhập thông tin học sinh (Tên, điểm, ưu/khuyết điểm) và yêu cầu tạo
     HT->>HT: Kiểm tra dữ liệu đầu vào
-    GV->>HT: Yêu cầu tạo nhận xét
     HT->>AI: Sinh đoạn văn nhận xét
     AI-->>HT: Trả về đoạn văn bản nhận xét
     HT-->>GV: Hiển thị văn bản cho giáo viên
@@ -100,19 +93,18 @@ sequenceDiagram
 ```
 
 ## 4. UC-FT-010: Tạo kế hoạch giáo dục cá nhân (IEP Generator)
-* **Tình huống:** Giáo viên tiếp nhận học sinh có nhu cầu giáo dục đặc biệt và cần lên lộ trình học tập riêng.
-* **Mô tả ngắn:** Phác thảo Kế hoạch Giáo dục Cá nhân (IEP) cho học sinh cần hỗ trợ đặc biệt.
-* **Kết quả dự kiến:** Bản phác thảo mục tiêu, phương pháp can thiệp và đánh giá dành riêng cho học sinh đó.
+* **Tình huống:** Đối với học sinh có nhu cầu đặc biệt (chậm tiếp thu, tăng động), giáo viên cần lên một Kế hoạch giáo dục cá nhân (IEP) trong suốt năm học.
+* **Mô tả ngắn:** Hỗ trợ giáo viên định hình các mục tiêu ngắn/dài hạn và phương pháp can thiệp cho từng cá nhân dựa trên hồ sơ hiện tại.
+* **Kết quả dự kiến:** Bản IEP chuẩn hóa với các chỉ số đo lường (SMART).
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng nhập tình trạng hiện tại của học sinh và các mục tiêu mong muốn. | 2. Hệ thống đối chiếu dữ liệu với các khung năng lực giáo dục đặc biệt. | - Tình trạng học sinh*<br>- Mục tiêu dự kiến* |
-  | 3. Người dùng bấm tạo IEP. | 4. Hệ thống sinh bản kế hoạch gồm: Mục tiêu ngắn/dài hạn, phương pháp hỗ trợ, cách đo lường. | - Bản nháp IEP |
-  | 5. Người dùng hiệu đính và xuất file. | 6. Hệ thống định dạng theo biểu mẫu chuẩn của trường học. | - Tệp hồ sơ IEP |
-* **Luồng ngoại lệ:** Không có.
-* **Yêu cầu đặc biệt:** Đảm bảo tính bảo mật và dùng từ ngữ chuyên môn tâm lý/giáo dục phù hợp.
+  | Người dùng nhập tình trạng, mục tiêu học sinh và bấm tạo IEP. | Hệ thống gửi thông tin cho AI để đối chiếu khung năng lực và phác thảo kế hoạch IEP. | - Tình trạng học sinh*<br>- Mục tiêu dự kiến* |
+  | Người dùng hiệu đính và xuất file. | Hệ thống định dạng theo biểu mẫu chuẩn của trường học và tải file xuống. | - Tệp hồ sơ IEP |
+* **Luồng ngoại lệ:** Mục tiêu đặt ra quá phi thực tế: Hệ thống nhắc nhở giáo viên chia nhỏ mục tiêu thành các giai đoạn nhỏ hơn.
+* **Yêu cầu đặc biệt:** Phải bảo mật dữ liệu y tế, tâm lý của học sinh tuyệt đối.
 * **Tiền điều kiện:** Người dùng đăng nhập với vai trò Giáo viên.
-* **Điều kiện sau:** Có bản phác thảo IEP để họp với phụ huynh và Ban giám hiệu.
+* **Điều kiện sau:** Có lộ trình can thiệp giáo dục cho học sinh.
 * **Điểm mở rộng:** Không có.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
@@ -122,10 +114,8 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Engine
 
-    GV->>HT: Nhập tình trạng và mục tiêu học sinh
-    HT->>AI: Đối chiếu khung năng lực GD đặc biệt
-    GV->>HT: Yêu cầu tạo IEP
-    HT->>AI: Yêu cầu phác thảo kế hoạch IEP
+    GV->>HT: Nhập tình trạng, mục tiêu học sinh và yêu cầu tạo IEP
+    HT->>AI: Đối chiếu khung năng lực GD và phác thảo kế hoạch IEP
     AI-->>HT: Trả về bản nháp IEP
     HT-->>GV: Hiển thị bản kế hoạch cho giáo viên
     GV->>HT: Hiệu đính và lưu/xuất file

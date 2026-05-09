@@ -1,53 +1,50 @@
-# NHÓM 4: AI ASSISTANT (TRỢ LÝ AI CHO GIÁO VIÊN)
+# NHÓM 4: TRỢ LÝ SƯ PHẠM ẢO (AI ASSISTANT)
 
-**Actor (Người dùng):** Giáo viên (Teacher)
+**Actor (Người dùng):** Giáo viên
 
 ## 1. UC-FT-015: Trao đổi với Trợ lý sư phạm (Raina AI Chatbot)
-* **Tình huống:** Giáo viên gặp thắc mắc nhanh trong quá trình soạn bài hoặc cần tra cứu gấp một kiến thức.
-* **Mô tả ngắn:** Use-case này cho phép Giáo viên giao tiếp trực tiếp qua khung chat với AI để giải đáp các câu hỏi nhanh về kiến thức hoặc nghiệp vụ sư phạm.
-* **Kết quả dự kiến:** Cuộc hội thoại hỏi-đáp trực tiếp giải quyết tức thời vấn đề.
+* **Tình huống:** Giáo viên có một thắc mắc nhỏ gọn, hoặc cần tham khảo ý kiến tức thì trong quá trình làm việc.
+* **Mô tả ngắn:** Giao diện Chatbot giống ChatGPT, nhưng đã được tinh chỉnh (Fine-tuned) với kiến thức sư phạm và giáo dục.
+* **Kết quả dự kiến:** Tin nhắn phản hồi nhanh chóng, đúng trọng tâm.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng mở khung chat với Raina. | 2. Hệ thống tải lịch sử trò chuyện và hiển thị lời chào. | - Lịch sử chat |
-  | 3. Người dùng nhập câu hỏi hoặc yêu cầu. | 4. Hệ thống tiếp nhận và phân tích ngữ nghĩa câu hỏi. | - Câu hỏi dạng văn bản* |
-  | 5. Người dùng gửi tin nhắn. | 6. Hệ thống phản hồi lại bằng câu trả lời tương tác. | - Nội dung phản hồi |
-* **Luồng ngoại lệ:** Lỗi kết nối: Hệ thống thông báo không thể phản hồi và yêu cầu thử lại sau.
-* **Yêu cầu đặc biệt:** Tốc độ phản hồi dưới 2 giây.
-* **Tiền điều kiện:** Người dùng đã đăng nhập vào hệ thống.
-* **Điều kiện sau:** Câu hỏi được giải đáp và lưu vào lịch sử trò chuyện.
-* **Điểm mở rộng:** Không có.
+  | Người dùng mở khung chat và nhập câu hỏi/yêu cầu, nhấn gửi. | Hệ thống hiển thị tin nhắn, gửi tới AI Raina phân tích ngữ nghĩa và sinh phản hồi tức thời. | - Câu hỏi dạng văn bản* |
+  | Người dùng đọc phản hồi và tiếp tục hội thoại. | AI Raina lưu trữ ngữ cảnh và tiếp tục trả lời các câu hỏi nối tiếp. | - Nội dung phản hồi |
+* **Luồng ngoại lệ:** Lỗi kết nối mạng: Hệ thống báo "Đang mất kết nối với máy chủ AI, vui lòng thử lại sau".
+* **Yêu cầu đặc biệt:** Phản hồi dưới 3 giây.
+* **Tiền điều kiện:** Người dùng đăng nhập.
+* **Điều kiện sau:** Trải nghiệm giải đáp thắc mắc thông suốt.
+* **Điểm mở rộng:** Tích hợp tính năng Voice-to-Text.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
 sequenceDiagram
     actor GV as Giáo viên
     participant HT as Hệ thống UI
-    participant AI as AI Engine (Raina)
+    participant AI as AI Raina
 
     GV->>HT: Mở khung chat AI
     HT-->>GV: Tải lịch sử & hiển thị lời chào
-    GV->>HT: Nhập câu hỏi nghiệp vụ
+    GV->>HT: Nhập câu hỏi nghiệp vụ và gửi
     HT->>AI: Phân tích ngữ nghĩa & Context
-    GV->>HT: Nhấn "Gửi"
-    AI-->>HT: Sinh phản hồi tức thời (<2s)
+    AI-->>HT: Sinh phản hồi tức thời (<3s)
     HT-->>GV: Hiển thị tin nhắn trả lời
 ```
 
 ## 2. UC-FT-016: Hướng dẫn phương pháp giảng dạy (AI Instructional Coach)
-* **Tình huống:** Giáo viên mới ra trường cần lời khuyên về cách quản lý lớp học hoặc áp dụng phương pháp dạy học mới (ví dụ: Flipped Classroom).
-* **Mô tả ngắn:** Cung cấp tư vấn chuyên sâu về phương pháp sư phạm, cách quản lý lớp học và xử lý tình huống sư phạm giả định.
-* **Kết quả dự kiến:** Các hướng dẫn từng bước, mang tính chuyên môn cao về kỹ năng sư phạm.
+* **Tình huống:** Giáo viên trẻ chưa có nhiều kinh nghiệm muốn tìm hiểu cách áp dụng phương pháp "Lớp học đảo ngược" (Flipped Classroom) vào môn Toán.
+* **Mô tả ngắn:** AI đóng vai trò người huấn luyện, hướng dẫn giáo viên các bước thực thi một phương pháp giáo dục hiện đại vào thực tiễn.
+* **Kết quả dự kiến:** Hướng dẫn thực hành Step-by-step.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng nhập vấn đề sư phạm đang gặp phải (VD: Cách áp dụng Flipped Classroom). | 2. Hệ thống phân tích từ khóa chuyên ngành sư phạm. | - Vấn đề/Câu hỏi* |
-  | 3. Người dùng yêu cầu tư vấn. | 4. Hệ thống đưa ra câu trả lời theo từng bước (Step-by-step) dựa trên lý thuyết giáo dục chuẩn. | - Nội dung tư vấn |
-  | 5. Người dùng chat tiếp để làm rõ. | 6. Hệ thống duy trì ngữ cảnh và trả lời sâu hơn. | - Lịch sử hội thoại |
-* **Luồng ngoại lệ:** Không có.
-* **Yêu cầu đặc biệt:** Câu trả lời dựa trên các cơ sở khoa học giáo dục thực chứng (evidence-based).
-* **Tiền điều kiện:** Đăng nhập với vai trò Giáo viên.
-* **Điều kiện sau:** Người dùng nắm được phương pháp để áp dụng vào thực tế.
+  | Người dùng nhập vấn đề sư phạm đang gặp phải và yêu cầu tư vấn. | Hệ thống gọi AI Expert Coach phân tích từ khóa chuyên ngành, sinh quy trình hướng dẫn step-by-step. | - Vấn đề/Câu hỏi* |
+  | Người dùng đọc và gửi câu hỏi làm rõ thêm (Follow-up). | Hệ thống duy trì ngữ cảnh, AI phản hồi chuyên sâu hơn. | - Lịch sử hội thoại |
+* **Luồng ngoại lệ:** Phương pháp không tồn tại hoặc tên bị sai: AI sẽ cố gắng hiểu ý định hoặc hỏi lại để xác nhận đúng phương pháp chuẩn.
+* **Yêu cầu đặc biệt:** Trích dẫn cơ sở lý thuyết (nếu có).
+* **Tiền điều kiện:** Người dùng đăng nhập.
+* **Điều kiện sau:** Giáo viên hiểu cách triển khai phương pháp.
 * **Điểm mở rộng:** Không có.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
@@ -57,10 +54,9 @@ sequenceDiagram
     participant HT as Hệ thống
     participant AI as AI Expert Coach
 
-    GV->>HT: Nhập vấn đề phương pháp dạy học
-    HT->>AI: Nhận diện từ khóa chuyên ngành
-    GV->>HT: Yêu cầu tư vấn
-    AI-->>HT: Sinh quy trình hướng dẫn Step-by-step
+    GV->>HT: Nhập vấn đề phương pháp dạy học & yêu cầu tư vấn
+    HT->>AI: Nhận diện từ khóa và sinh quy trình hướng dẫn Step-by-step
+    AI-->>HT: Trả về nội dung tư vấn
     HT-->>GV: Hiển thị tư vấn
     GV->>HT: Gửi câu hỏi làm rõ thêm (Follow-up)
     HT->>AI: Truyền Context hội thoại
@@ -69,31 +65,29 @@ sequenceDiagram
 ```
 
 ## 3. UC-FT-017: Tạo ý tưởng sáng tạo (Idea Generator)
-* **Tình huống:** Giáo viên "bí" ý tưởng tổ chức trò chơi warm-up đầu giờ hoặc hoạt động ngoại khóa dịp lễ.
-* **Mô tả ngắn:** Gợi ý các ý tưởng cho hoạt động ngoại khóa, trò chơi khởi động (warm-up) hoặc trang trí lớp học.
-* **Kết quả dự kiến:** Danh sách các ý tưởng mới lạ, độc đáo kèm theo cách thức tổ chức.
+* **Tình huống:** Cần tổ chức hoạt động sinh hoạt lớp ngày Quốc tế Phụ Nữ nhưng bí ý tưởng, cần các trò chơi mang tính gắn kết.
+* **Mô tả ngắn:** Công cụ sinh ý tưởng (Brainstorming) dựa trên các ràng buộc về thời gian, đối tượng và ngân sách.
+* **Kết quả dự kiến:** Danh sách các ý tưởng ngắn gọn, mang tính đột phá.
 * **Luồng cơ bản:**
   | Hành động của tác nhân | Phản ứng của hệ thống | Dữ liệu |
   | :--- | :--- | :--- |
-  | 1. Người dùng nhập bối cảnh (VD: Lễ Halloween lớp 1, thời gian 15 phút). | 2. Hệ thống đánh giá các ràng buộc về thời gian, lứa tuổi. | - Bối cảnh/Sự kiện*<br>- Yêu cầu cụ thể |
-  | 3. Người dùng bấm tìm ý tưởng. | 4. Hệ thống sinh ra danh sách (bullet points) các ý tưởng khả thi, kèm cách thực hiện. | - Danh sách ý tưởng |
-  | 5. Người dùng lưu ý tưởng thích hợp. | 6. Hệ thống cập nhật vào thư mục ý tưởng cá nhân. | - Dữ liệu đã lưu |
-* **Luồng ngoại lệ:** Không có.
-* **Yêu cầu đặc biệt:** Ưu tiên các ý tưởng dễ thực hiện, ít chi phí, an toàn cho học sinh.
-* **Tiền điều kiện:** Đăng nhập với vai trò Giáo viên.
-* **Điều kiện sau:** Giáo viên có kế hoạch để tổ chức hoạt động.
-* **Điểm mở rộng:** Không có.
+  | Người dùng nhập bối cảnh sự kiện, thời gian, lứa tuổi và nhấn "Tìm ý tưởng". | Hệ thống xử lý ràng buộc, yêu cầu AI gợi ý hoạt động và trả về danh sách các ý tưởng khả thi (bullet points). | - Bối cảnh/Sự kiện*<br>- Yêu cầu cụ thể |
+  | Người dùng đánh dấu lưu ý tưởng mong muốn. | Hệ thống cập nhật vào thư mục ý tưởng cá nhân của tài khoản. | - Dữ liệu đã lưu |
+* **Luồng ngoại lệ:** Ràng buộc quá vô lý (VD: Tổ chức lễ cắm trại trong 5 phút): AI sẽ phản hồi hài hước và yêu cầu chỉnh sửa lại thời gian khả thi.
+* **Yêu cầu đặc biệt:** Đề xuất tính mới lạ, tránh lối mòn cũ.
+* **Tiền điều kiện:** Người dùng đăng nhập.
+* **Điều kiện sau:** Có danh sách ý tưởng để thảo luận.
+* **Điểm mở rộng:** Cung cấp link mua vật dụng nếu có.
 
 ### Biểu đồ tuần tự (Sequence Diagram)
 ```mermaid
 sequenceDiagram
     actor GV as Giáo viên
     participant HT as Hệ thống
-    participant AI as AI Engine
+    participant AI as AI Raina
 
-    GV->>HT: Nhập bối cảnh sự kiện, thời gian, lứa tuổi
+    GV->>HT: Nhập bối cảnh, thời gian, tuổi & Nhấn "Tìm ý tưởng"
     HT->>HT: Xử lý các ràng buộc
-    GV->>HT: Nhấn nút "Tìm ý tưởng"
     HT->>AI: Yêu cầu gợi ý hoạt động
     AI-->>HT: Trả về danh sách ý tưởng (Bullet points)
     HT-->>GV: Hiển thị danh sách cho người dùng
