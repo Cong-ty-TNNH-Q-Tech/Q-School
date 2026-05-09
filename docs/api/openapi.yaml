@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: Q-School AI API
-  description: API documentation for Q-School AI LMS. Built for Frontend mocking and Integration.
-  version: 1.0.0
+  title: Q-School AI API (Enterprise Edition)
+  description: Robust API documentation for Q-School AI LMS. Fully compliant with Hexagonal Architecture standard responses.
+  version: 1.1.0
 servers:
   - url: http://localhost:8000/api/v1
     description: Local Development Server
@@ -17,6 +17,35 @@ components:
       bearerFormat: JWT
 
   schemas:
+    # ----------------------------------------
+    # BASE WRAPPERS (Standard Responses)
+    # ----------------------------------------
+    StandardError:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: "Invalid input parameters"
+        error_code:
+          type: integer
+          example: 4001
+          
+    PaginationMeta:
+      type: object
+      properties:
+        current_page:
+          type: integer
+        total_pages:
+          type: integer
+        total_items:
+          type: integer
+
+    # ----------------------------------------
+    # CORE DOMAIN SCHEMAS
+    # ----------------------------------------
     UserResponse:
       type: object
       properties:
@@ -44,30 +73,35 @@ components:
           type: string
         points:
           type: integer
-          
-    LessonResponse:
+
+    ClassAssignmentResponse:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        title:
+        resource_type:
           type: string
-        subject:
+          enum: [lesson, quiz]
+        resource_id:
           type: string
-        content:
-          type: object
-          description: JSONB AI generated content
-          
+          format: uuid
+        due_date:
+          type: string
+          format: date-time
+
+    # ----------------------------------------
+    # REQUEST PAYLOADS
+    # ----------------------------------------
     QuizAttemptRequest:
       type: object
-      required:
-        - student_answers
+      required: [student_answers]
       properties:
         student_answers:
           type: array
           items:
             type: object
+            required: [question_id, selected_answer_id]
             properties:
               question_id:
                 type: string
@@ -75,39 +109,61 @@ components:
               selected_answer_id:
                 type: string
                 format: uuid
-                
-    ChatMessageRequest:
+
+    EssaySubmissionRequest:
       type: object
-      required:
-        - content
+      required: [rubric_id, content]
       properties:
-        content:
-          type: string
-          
-    ChatMessageResponse:
-      type: object
-      properties:
-        id:
+        rubric_id:
           type: string
           format: uuid
-        sender_type:
-          type: string
-          enum: [user, ai]
         content:
           type: string
-        created_at:
+          description: "Bài làm tự luận của học sinh"
+
+    AssetGenerationRequest:
+      type: object
+      required: [asset_type, input_params]
+      properties:
+        asset_type:
           type: string
-          format: date-time
+          enum: [email, iep, behavior_intervention, report_comment]
+        input_params:
+          type: object
+          description: "Thông số đầu vào dạng JSON (VD: Tên học sinh, lỗi vi phạm)"
+
+  # ----------------------------------------
+  # COMMON PARAMETERS
+  # ----------------------------------------
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Tới trang số mấy
+      required: false
+      schema:
+        type: integer
+        default: 1
+    LimitParam:
+      name: limit
+      in: query
+      description: Số dòng trên 1 trang
+      required: false
+      schema:
+        type: integer
+        default: 20
 
 security:
   - bearerAuth: []
 
 paths:
+  # ==========================================
+  # GROUP 1: AUTH & USERS
+  # ==========================================
   /auth/login:
     post:
-      summary: Login to get JWT Token
-      tags:
-        - Authentication
+      summary: Đăng nhập cấp Token
+      tags: [Authentication]
       security: []
       requestBody:
         required: true
@@ -123,41 +179,127 @@ paths:
                   type: string
       responses:
         '200':
-          description: Successful login
+          description: OK
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  access_token:
+                  status:
                     type: string
-                  token_type:
-                    type: string
-                    example: bearer
-
-  /users/me:
-    get:
-      summary: Get Current User Profile
-      tags:
-        - Users
-      responses:
-        '200':
-          description: User profile data
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                      token_type:
+                        type: string
+        '401':
+          description: Sai mật khẩu
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: '#/components/schemas/UserResponse'
-                  - type: object
-                    properties:
-                      profile:
-                        $ref: '#/components/schemas/ProfileResponse'
+                $ref: '#/components/schemas/StandardError'
+
+  /users/me:
+    get:
+      summary: Lấy thông tin cá nhân
+      tags: [Users]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/UserResponse'
+                      - type: object
+                        properties:
+                          profile:
+                            $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  # ==========================================
+  # GROUP 2: EDTECH CORE (Teacher)
+  # ==========================================
+  /classes:
+    get:
+      summary: Lấy danh sách Lớp học (Có phân trang)
+      tags: [Classes]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /classes/{class_id}/assignments:
+    get:
+      summary: Lấy danh sách Bài tập của Lớp (Phân trang)
+      tags: [Classes]
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassAssignmentResponse'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
 
   /lessons/generate:
     post:
-      summary: Generate AI Lesson Plan (Async)
-      tags:
-        - Teacher EdTech
+      summary: AI Sinh Giáo Án (Async Queue)
+      tags: [EdTech Core]
       requestBody:
         required: true
         content:
@@ -174,59 +316,32 @@ paths:
                   type: string
       responses:
         '202':
-          description: Accepted for processing
+          description: Tác vụ đã được đưa vào Hàng đợi
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  task_id:
-                    type: string
-                    format: uuid
                   status:
                     type: string
-                    example: processing
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: string
+                        format: uuid
+                  message:
+                    type: string
+                    example: "AI đang sinh giáo án, vui lòng chờ."
 
-  /classes/{class_id}/assignments:
-    get:
-      summary: Get assignments for a class
-      tags:
-        - Classes
-      parameters:
-        - name: class_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: List of assignments (Lessons/Quizzes)
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      format: uuid
-                    resource_type:
-                      type: string
-                      enum: [lesson, quiz]
-                    resource_id:
-                      type: string
-                      format: uuid
-                    due_date:
-                      type: string
-                      format: date-time
-
+  # ==========================================
+  # GROUP 3: STUDENT TRACKING
+  # ==========================================
   /quizzes/{quiz_id}/attempts:
     post:
-      summary: Submit a quiz attempt (Student)
-      tags:
-        - Student Tracking
+      summary: Nộp bài thi Trắc nghiệm
+      tags: [Student Tracking]
       parameters:
         - name: quiz_id
           in: path
@@ -242,22 +357,126 @@ paths:
               $ref: '#/components/schemas/QuizAttemptRequest'
       responses:
         '200':
-          description: Quiz graded successfully
+          description: Chấm điểm thành công
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  score:
-                    type: number
-                  feedback:
+                  status:
                     type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      attempt_id:
+                        type: string
+                        format: uuid
+                      score:
+                        type: number
+
+  /essays/submissions:
+    post:
+      summary: Nộp bài Văn tự luận (AI Tự Động Chấm)
+      tags: [Student Tracking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EssaySubmissionRequest'
+      responses:
+        '200':
+          description: Nộp bài thành công (Có thể Async tùy cấu hình)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      submission_id:
+                        type: string
+                        format: uuid
+                      ai_feedback:
+                        type: object
+                        description: "Nhận xét chi tiết từ AI"
+
+  /flashcard-sets/{set_id}/reviews:
+    get:
+      summary: Lấy danh sách thẻ bài cần ôn tập hôm nay (Spaced Repetition)
+      tags: [Student Tracking]
+      parameters:
+        - name: set_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Danh sách thẻ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        flashcard_id:
+                          type: string
+                          format: uuid
+                        front_text:
+                          type: string
+
+  # ==========================================
+  # GROUP 4: AI WORKSPACE & RAG
+  # ==========================================
+  /assets/generate:
+    post:
+      summary: Nhờ AI soạn Email / IEP / Nhận xét sổ liên lạc
+      tags: [AI Workspace]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetGenerationRequest'
+      responses:
+        '200':
+          description: Đã sinh văn bản thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      asset_id:
+                        type: string
+                        format: uuid
+                      output_content:
+                        type: object
+                        description: "Nội dung văn bản AI sinh ra"
 
   /documents/upload:
     post:
-      summary: Upload a PDF document for RAG
-      tags:
-        - AI Workspace
+      summary: Tải file lên (PDF, Image) để làm RAG
+      tags: [AI Workspace]
       requestBody:
         content:
           multipart/form-data:
@@ -269,21 +488,26 @@ paths:
                   format: binary
       responses:
         '201':
-          description: Document uploaded and processing started
+          description: Created
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  document_id:
+                  status:
                     type: string
-                    format: uuid
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      document_id:
+                        type: string
+                        format: uuid
 
   /chat/sessions:
     post:
-      summary: Create a new chat session
-      tags:
-        - AI Workspace
+      summary: Tạo phòng Chat AI mới (Optional Context Document)
+      tags: [AI Workspace]
       requestBody:
         content:
           application/json:
@@ -293,41 +517,20 @@ paths:
                 document_id:
                   type: string
                   format: uuid
-                  description: Optional context for RAG
       responses:
         '201':
-          description: Chat session created
+          description: Created
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  session_id:
+                  status:
                     type: string
-                    format: uuid
-
-  /chat/sessions/{session_id}/messages:
-    post:
-      summary: Send a message to AI Tutor
-      tags:
-        - AI Workspace
-      parameters:
-        - name: session_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ChatMessageRequest'
-      responses:
-        '200':
-          description: AI response (Note, in reality this might be Streamed via WebSocket)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ChatMessageResponse'
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      session_id:
+                        type: string
+                        format: uuid
