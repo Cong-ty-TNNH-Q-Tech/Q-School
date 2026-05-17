@@ -78,3 +78,4 @@ class FlashcardReview(Base, UUIDMixin):
     )
 
     flashcard: Mapped["Flashcard"] = relationship("Flashcard", back_populates="reviews")
+    student: Mapped["User"] = relationship("User", foreign_keys=[student_id], viewonly=True)

@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import String, Text, Boolean, Integer, ForeignKey, DateTime, func
+from sqlalchemy import String, Text, Boolean, Integer, ForeignKey, DateTime, func, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from pgvector.sqlalchemy import Vector
@@ -72,10 +72,14 @@ class ChatSession(Base, UUIDMixin, TimestampMixin):
 class ChatMessage(Base, UUIDMixin, TimestampMixin):
     """
     Bảng CHAT_MESSAGES — Lịch sử tin nhắn.
+    IMMUTABLE: Không cho phép sửa/xóa tin nhắn sau khi đã gửi (chỉ soft-delete session).
     Dùng Cursor Pagination (không dùng Offset) khi query.
     sender_type: 'user' | 'ai'
     """
     __tablename__ = "chat_messages"
+    __table_args__ = (
+        CheckConstraint("sender_type IN ('user', 'ai')", name="ck_chat_messages_sender_type"),
+    )
 
     session_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("chat_sessions.id", ondelete="CASCADE"),
@@ -96,6 +100,10 @@ class Document(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
     status: 'pending' | 'parsing' | 'ready' | 'error'
     """
     __tablename__ = "documents"
+    __table_args__ = (
+        CheckConstraint("file_type IN ('pdf', 'docx', 'image')", name="ck_documents_file_type"),
+        CheckConstraint("status IN ('pending', 'parsing', 'ready', 'error')", name="ck_documents_status"),
+    )
 
     uploader_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True

@@ -19,16 +19,40 @@ from app.entrypoints.api_v1 import api_v1_router
 async def lifespan(app: FastAPI):
     """
     Lifecycle events:
-    - Startup: Kiểm tra kết nối DB, khởi tạo resources
-    - Shutdown: Đóng connections
+    - Startup: Kiểm tra kết nối DB và Redis, fail fast nếu không connect được
+    - Shutdown: Đóng connections sạch sẽ
     """
-    # STARTUP
+    from sqlalchemy import text
+    from app.core.database import engine
+
+    # STARTUP — Fail fast nếu infrastructure không sẵn sàng
     print(f"🚀 Starting {settings.APP_NAME} v{settings.APP_VERSION}")
-    # TODO: Ping DB, ping Redis khi các services sẵn sàng
+
+    # Ping PostgreSQL
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        print("✅ PostgreSQL: connected")
+    except Exception as e:
+        print(f"❌ PostgreSQL: FAILED to connect — {e}")
+        raise RuntimeError(f"Database connection failed: {e}") from e
+
+    # Ping Redis (nếu có REDIS_URL)
+    if settings.REDIS_URL:
+        try:
+            import redis.asyncio as aioredis
+            r = aioredis.from_url(settings.REDIS_URL, socket_connect_timeout=5)
+            await r.ping()
+            await r.aclose()
+            print("✅ Redis: connected")
+        except Exception as e:
+            # Redis là optional khi không có AI features — warn nhưng không fail
+            print(f"⚠️  Redis: WARNING — {e} (Celery tasks sẽ không hoạt động)")
 
     yield
 
     # SHUTDOWN
+    await engine.dispose()
     print(f"🛑 Shutting down {settings.APP_NAME}")
 
 

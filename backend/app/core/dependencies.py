@@ -71,9 +71,15 @@ async def get_current_user(
     # Lazy import để tránh circular dependency
     from app.domain.models.user import User
 
+    # Validate UUID format trước khi query DB
+    try:
+        user_uuid = uuid.UUID(user_id)
+    except ValueError:
+        raise UnauthorizedException("Token payload contains invalid user ID")
+
     result = await db.execute(
         select(User).where(
-            User.id == uuid.UUID(user_id),
+            User.id == user_uuid,
             User.deleted_at.is_(None),
             User.is_active.is_(True),
         )
@@ -108,3 +114,50 @@ async def require_admin(current_user: CurrentUserDep):
 
 TeacherDep = Annotated["User", Depends(require_teacher)]
 AdminDep = Annotated["User", Depends(require_admin)]
+
+
+# ──────────────────────────────────────────────
+# SaaS Billing Guard (AGENTS.md requirement)
+# Sử dụng cho TấT CẢ AI API routes
+# ──────────────────────────────────────────────
+async def require_active_subscription(current_user: CurrentUserDep, db: DbDep) -> "User":
+    """
+    Kiểm tra user có subscription đang active hay không.
+    Dùng làm dependency cho mọi AI route (Chat, Generate, RAG).
+
+    Raise PaymentRequiredException (402) nếu:
+      - Không có subscription nào
+      - Subscription đã hết hạn (current_period_end < now)
+      - Subscription bị cancel
+
+    TODO (khi billing implement):
+      1. Query UserSubscription theo user_id + status='active'
+      2. Kiểm tra current_period_end > datetime.now(timezone.utc)
+      3. Kiểm tra daily AI usage quota từ Redis
+    """
+    from datetime import datetime, timezone
+    from sqlalchemy import and_
+    from app.core.exceptions import PaymentRequiredException
+    from app.domain.models.billing import UserSubscription
+
+    result = await db.execute(
+        select(UserSubscription).where(
+            and_(
+                UserSubscription.user_id == current_user.id,
+                UserSubscription.status == "active",
+                UserSubscription.current_period_end > datetime.now(timezone.utc),
+            )
+        )
+    )
+    subscription = result.scalar_one_or_none()
+
+    if not subscription:
+        raise PaymentRequiredException(
+            "No active subscription. Please upgrade your plan to use AI features."
+        )
+
+    return current_user
+
+
+AIUserDep = Annotated["User", Depends(require_active_subscription)]
+"""Dùng dependency này thay vì CurrentUserDep cho tất cả AI endpoints."""

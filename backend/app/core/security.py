@@ -3,7 +3,7 @@ Security — JWT token handling và password hashing (bcrypt).
 Tuân thủ quy tắc: Access Token 15 phút, Refresh Token 7 ngày.
 """
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, TypedDict
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -29,6 +29,18 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 # ──────────────────────────────────────────────
 # JWT
 # ──────────────────────────────────────────────
+class TokenPayload(TypedDict, total=False):
+    """
+    Cấu trúc JWT payload — dùng để type hint khi đọc payload từ decode_token().
+    total=False để phần lớn field là optional (chỉ 'sub' và 'type' là bắt buộc).
+    """
+    sub: str          # user_id (UUID string)
+    type: str         # 'access' | 'refresh'
+    role: str         # 'student' | 'teacher' | 'admin' — chỉ có trong access token
+    exp: int          # Thời gian hết hạn (Unix timestamp)
+    iat: int          # Thời gian tạo (Unix timestamp)
+
+
 def _create_token(payload: dict[str, Any], expires_delta: timedelta) -> str:
     """Tạo JWT token với thời gian hết hạn."""
     expire = datetime.now(timezone.utc) + expires_delta
@@ -52,9 +64,18 @@ def create_refresh_token(user_id: str) -> str:
     )
 
 
-def decode_token(token: str) -> dict[str, Any]:
+def decode_token(token: str) -> TokenPayload:
     """
     Giải mã và xác thực JWT token.
     Raise JWTError nếu token không hợp lệ hoặc đã hết hạn.
+
+    Options rõ ràng:
+    - verify_exp=True: Luôn kiểm tra exp claim (mặc định của jose nhưng explicit cho sự rõ ràng)
+    - leeway=0: Không cho phép clock skew giữa server (strict security)
     """
-    return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    return jwt.decode(  # type: ignore[return-value]
+        token,
+        settings.SECRET_KEY,
+        algorithms=[settings.ALGORITHM],
+        options={"verify_exp": True, "leeway": 0},
+    )

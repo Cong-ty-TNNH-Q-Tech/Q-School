@@ -72,8 +72,10 @@ def upgrade() -> None:
         sa.Column("canceled_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.CheckConstraint("status IN ('active', 'past_due', 'canceled')", name="ck_user_subscriptions_status"),
     )
     op.create_index("ix_user_subscriptions_user_id", "user_subscriptions", ["user_id"])
+    op.create_index("ix_user_subscriptions_user_status", "user_subscriptions", ["user_id", "status"])
 
     # ─── PAYMENT_TRANSACTIONS ───
     op.create_table(
@@ -88,6 +90,8 @@ def upgrade() -> None:
         sa.Column("status", sa.String(20), nullable=False, server_default="pending"),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.CheckConstraint("provider IN ('stripe', 'vnpay', 'momo')", name="ck_payment_transactions_provider"),
+        sa.CheckConstraint("status IN ('pending', 'success', 'failed')", name="ck_payment_transactions_status"),
     )
 
     # ─── CLASSES ───
@@ -318,6 +322,7 @@ def upgrade() -> None:
         sa.Column("content", sa.Text(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.CheckConstraint("sender_type IN ('user', 'ai')", name="ck_chat_messages_sender_type"),
     )
     op.create_index("ix_chat_messages_session_id", "chat_messages", ["session_id"])
 
@@ -333,6 +338,8 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
     )
+    op.create_index("ix_ai_tasks_user_id", "ai_tasks", ["user_id"])
+    op.create_index("ix_ai_tasks_status", "ai_tasks", ["status"])  # Query tasks pending/processing
 
     # ─── GENERATED_ASSETS ───
     op.create_table(

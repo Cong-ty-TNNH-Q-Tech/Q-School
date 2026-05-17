@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime
+from sqlalchemy import String, Integer, Boolean, ForeignKey, DateTime, CheckConstraint, Index
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,6 +23,9 @@ class Plan(Base, UUIDMixin):
     features: JSONB chứa các giới hạn (VD: {"max_ai_chat_per_day": 5, "max_documents": 10})
     """
     __tablename__ = "plans"
+    __table_args__ = (
+        CheckConstraint("billing_cycle IN ('monthly', 'yearly')", name="ck_plans_billing_cycle"),
+    )
 
     name: Mapped[str] = mapped_column(
         String(50), unique=True, nullable=False,
@@ -56,6 +59,11 @@ class UserSubscription(Base, UUIDMixin, TimestampMixin):
     status: 'active' | 'past_due' | 'canceled'
     """
     __tablename__ = "user_subscriptions"
+    __table_args__ = (
+        # Composite index cho query "active subscription của user X" — rất phổ biến
+        Index("ix_user_subscriptions_user_status", "user_id", "status"),
+        CheckConstraint("status IN ('active', 'past_due', 'canceled')", name="ck_user_subscriptions_status"),
+    )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
@@ -84,6 +92,16 @@ class PaymentTransaction(Base, UUIDMixin, TimestampMixin):
     status: 'pending' | 'success' | 'failed'
     """
     __tablename__ = "payment_transactions"
+    __table_args__ = (
+        CheckConstraint(
+            "provider IN ('stripe', 'vnpay', 'momo')",
+            name="ck_payment_transactions_provider"
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'success', 'failed')",
+            name="ck_payment_transactions_status"
+        ),
+    )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
