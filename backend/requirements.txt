@@ -2,6 +2,7 @@
 fastapi>=0.104.0
 uvicorn[standard]>=0.23.2
 python-multipart>=0.0.6
+gunicorn>=21.2.0
 
 # Database (PostgreSQL + pgvector)
 SQLAlchemy>=2.0.22
@@ -11,8 +12,9 @@ psycopg2-binary>=2.9.9
 pgvector>=0.2.3
 
 # Storage & AI
-boto3>=1.28.78 # Cho Cloudflare R2 / MinIO / S3
-openai>=1.2.0 # Giao tiếp với vLLM server
+boto3>=1.28.78         # Cho Cloudflare R2 / MinIO / S3
+openai>=1.2.0          # Giao tiếp với vLLM server (OpenAI-compatible API)
+httpx>=0.25.0          # Async HTTP client
 
 # Background Jobs
 celery>=5.3.4
@@ -20,8 +22,14 @@ redis>=5.0.1
 
 # Security & Validation
 pydantic[email]>=2.4.2
+pydantic-settings>=2.0.3  # Load .env vào Settings class
 passlib[bcrypt]>=1.7.4
 python-jose[cryptography]>=3.3.0
 
 # Utils
 python-dotenv>=1.0.0
+
+# Testing (dev/ci only — không cần trên production)
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+anyio>=4.0.0           # Backend cho pytest-asyncio

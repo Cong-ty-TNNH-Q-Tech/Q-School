@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 // Base URL can be configured via environment variables
 export const apiClient = axios.create({
@@ -8,10 +9,10 @@ export const apiClient = axios.create({
   },
 })
 
-// Add token to requests
+// Add token to requests — đọc từ Zustand store (source of truth), không đọc localStorage trực tiếp
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = useAuthStore.getState().accessToken   // accessToken, không phải 'token'
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -26,16 +27,22 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response) {
       if (error.response.status === 401) {
-        // Handle unauthenticated
-        localStorage.removeItem('token')
-        window.location.href = '/login'
+        // Clear cả Zustand store lẫn localStorage để tránh race condition
+        useAuthStore.getState().logout()
+        // Tránh redirect loop nếu đang ở trang /login
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login'
+        }
       } else if (error.response.status === 402) {
-        // Handle payment required (SaaS billing)
-        console.warn('Payment Required: Subscription expired or quota reached.')
-        // Dispatch custom event or open modal
+        // Dispatch custom event để UI layer (Modal, Toast) bắt và hiển thị upgrade prompt
+        window.dispatchEvent(new CustomEvent('qschool:payment-required', {
+          detail: { error_code: error.response.data?.error_code }
+        }))
       } else if (error.response.status === 429) {
-        // Handle rate limit
-        console.warn('Too Many Requests: Rate limit exceeded.')
+        // Dispatch custom event để UI layer hiển thị rate limit toast
+        window.dispatchEvent(new CustomEvent('qschool:rate-limited', {
+          detail: { retry_after: error.response.headers?.['retry-after'] }
+        }))
       }
     }
     return Promise.reject(error)
