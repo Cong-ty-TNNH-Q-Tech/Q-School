@@ -55,6 +55,8 @@ class ClassStudent(Base):
     Composite PK: (class_id, student_id)
     """
     __tablename__ = "class_students"
+    # Composite PK (class_id, student_id) — PostgreSQL tự tạo index cho (class_id, student_id)
+    # Nhưng cần thêm index riêng cho student_id để query ngược lại (học sinh này đang học lớp nào)
 
     class_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -65,6 +67,7 @@ class ClassStudent(Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         primary_key=True,
+        index=True,  # Index để query 'học sinh này đang học lớp nào?'
     )
     joined_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

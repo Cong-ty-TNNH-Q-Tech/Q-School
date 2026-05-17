@@ -11,12 +11,12 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 
 class UUIDMixin:
-    """Primary key UUID v4."""
+    """Primary key UUID v4. PK tự có btree index — không cần index=True."""
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
-        index=True,
+        # Không thêm index=True — primary key column đã tự có unique btree index trên PostgreSQL
     )
 
 

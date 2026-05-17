@@ -4,7 +4,7 @@ User & Profile ORM Models — Group 1: System Core & Authentication
 import uuid
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, String, Text, Integer, ForeignKey
+from sqlalchemy import Boolean, String, Text, Integer, ForeignKey, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,6 +23,12 @@ class User(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
     role: 'student' | 'teacher' | 'admin'
     """
     __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint(
+            "role IN ('student', 'teacher', 'admin')",
+            name="ck_users_role"
+        ),
+    )
 
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)

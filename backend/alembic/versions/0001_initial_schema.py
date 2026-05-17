@@ -33,6 +33,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
+        sa.CheckConstraint("role IN ('student', 'teacher', 'admin')", name="ck_users_role"),
     )
     op.create_index("ix_users_email", "users", ["email"])
     op.create_index("ix_users_username", "users", ["username"])
@@ -115,6 +116,8 @@ def upgrade() -> None:
         sa.Column("student_id", postgresql.UUID(as_uuid=True), sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
         sa.Column("joined_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
     )
+    # PK tự có index (class_id, student_id). Thêm index riêng cho student_id để query ngược lại.
+    op.create_index("ix_class_students_student_id", "class_students", ["student_id"])
 
     # ─── LESSONS ───
     op.create_table(
@@ -258,6 +261,8 @@ def upgrade() -> None:
     )
     op.create_index("ix_class_assignments_class_id", "class_assignments", ["class_id"])
     op.create_index("ix_class_assignments_resource", "class_assignments", ["resource_type", "resource_id"])
+    op.create_index("ix_class_assignments_due_date", "class_assignments", ["due_date"])      # reminder jobs
+    op.create_index("ix_class_assignments_unlock_date", "class_assignments", ["unlock_date"]) # cron mở bài
 
     # ─── AI_PROMPTS ───
     op.create_table(

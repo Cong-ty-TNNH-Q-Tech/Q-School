@@ -20,14 +20,21 @@ celery_app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
-    timezone="Asia/Ho_Chi_Minh",
-    enable_utc=True,
+    enable_utc=True,            # Celery lưu timestamp ở UTC
+    timezone="Asia/Ho_Chi_Minh", # Chỉ ảnh hưởng display/scheduler — không ảnh hưởng lói
 
     # Task behavior
     task_track_started=True,
     task_acks_late=True,           # Worker xác nhận sau khi xử lý xong (tránh mất task)
     worker_prefetch_multiplier=1,  # Chỉ lấy 1 task mỗi lần (phù hợp task AI nặng)
     task_reject_on_worker_lost=True,
+
+    # Task timeout — BẮt buộc để tránh AI task treo vô hạn
+    task_time_limit=300,           # Hard limit: Kill task sau 5 phút
+    task_soft_time_limit=240,      # Soft limit: Raise SoftTimeLimitExceeded sau 4 phút (dọn dẹp)
+
+    # Worker memory management — AI models leak memory theo thời gian
+    worker_max_tasks_per_child=50,  # Restart worker process sau 50 tasks (giải phóng VRAM/RAM)
 
     # Result expiration
     result_expires=3600,           # Kết quả giữ 1 tiếng trong Redis

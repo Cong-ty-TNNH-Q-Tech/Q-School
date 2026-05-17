@@ -32,8 +32,12 @@ class ClassAssignment(Base, UUIDMixin):
             "resource_type IN ('lesson', 'quiz')",
             name="ck_class_assignments_resource_type"
         ),
-        # Index hỗ trợ query: 'lấy tất cả lớp đã giao quiz/lesson cụ thể'
+        # Index 1: query 'lấy tất cả lớp đã giao quiz/lesson cụ thể'
         Index("ix_class_assignments_resource", "resource_type", "resource_id"),
+        # Index 2: query 'bài có hạn nộp sắp đến' — dùng cho reminder jobs
+        Index("ix_class_assignments_due_date", "due_date"),
+        # Index 3: query 'bài cần mở hôm nay' — dùng cho cron job mở bài tự động
+        Index("ix_class_assignments_unlock_date", "unlock_date"),
     )
 
     class_id: Mapped[uuid.UUID] = mapped_column(

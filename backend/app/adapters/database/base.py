@@ -1,7 +1,13 @@
 """
 Base Repository — Generic CRUD pattern với SQLAlchemy Async.
 Áp dụng Repository Pattern để tách biệt logic nghiệp vụ khỏi ORM.
+
+CURSOR PAGINATION NOTE:
+  UUID v4 là random — KHÔNG thể dùng 'id < cursor' để paginate theo thứ tự thời gian.
+  Cursor PHẢI dựa vào created_at (timestamp monotonically tăng).
+  API trả về cursor là ISO datetime string của record cuối cùng trong page.
 """
+from datetime import datetime
 from typing import Generic, TypeVar, Type, Any, Sequence
 import uuid
 
@@ -38,6 +44,11 @@ class BaseRepository(Generic[ModelType]):
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def exists(self, id: uuid.UUID) -> bool:
+        """Kiểm tra record có tồn tại và chưa bị soft-deleted hay không."""
+        record = await self.get_by_id(id)
+        return record is not None
+
     async def get_all(
         self,
         *,
@@ -64,30 +75,59 @@ class BaseRepository(Generic[ModelType]):
     async def cursor_paginate(
         self,
         *,
-        cursor: uuid.UUID | None = None,
+        cursor_created_at: datetime | None = None,
         limit: int = 20,
         filters: list[Any] | None = None,
+        ascending: bool = False,
     ) -> Sequence[ModelType]:
         """
-        Cursor Pagination — Bắt buộc dùng cho streaming data (ChatMessage, Feed).
-        cursor: ID của phần tử cuối cùng đã fetch (None = từ đầu).
+        Cursor Pagination dựa trên created_at — KHÔNG dùng UUID làm cursor.
+
+        WHY NOT UUID:
+          UUID v4 là random (không tăng dần theo thời gian).
+          Comparison 'id < cursor' với UUID v4 cho kết quả ngẫu nhiên, sai hoàn toàn.
+
+        HOW IT WORKS:
+          - cursor_created_at: datetime của record cuối cùng đã fetch (None = từ đầu)
+          - ascending=False (default): lấy records MỚI hơn trước (inbox/chat)
+          - ascending=True: lấy records CŨ hơn trước (scroll up lịch sử chat)
+
+        API nên trả về cursor cho client như sau:
+          {
+            "data": [...],
+            "next_cursor": records[-1].created_at.isoformat() if len(records) == limit else None
+          }
 
         AGENTS.md: TUYỆT ĐỐI không dùng offset pagination cho bảng liên tục thay đổi.
         """
+        if not hasattr(self.model, "created_at"):
+            raise AttributeError(
+                f"Model {self.model.__name__} không có 'created_at' — "
+                "cursor_paginate() yêu cầu TimestampMixin."
+            )
+
         stmt = select(self.model)
 
         if hasattr(self.model, "deleted_at"):
             stmt = stmt.where(self.model.deleted_at.is_(None))
 
-        if cursor is not None:
-            # Lấy records có id < cursor (giả định UUID v4 tăng dần theo created_at)
-            stmt = stmt.where(self.model.id < cursor)
+        if cursor_created_at is not None:
+            if ascending:
+                # Scroll xuống: lấy records CŨ HƠN cursor (created_at < cursor)
+                stmt = stmt.where(self.model.created_at < cursor_created_at)
+            else:
+                # Lấy records MỚI HƠN cursor (created_at > cursor) — dùng cho feed/inbox
+                stmt = stmt.where(self.model.created_at > cursor_created_at)
 
         if filters:
             stmt = stmt.where(*filters)
 
-        # Order by id DESC để lấy records mới nhất trước
-        stmt = stmt.order_by(self.model.id.desc()).limit(limit)
+        # Order: DESC = mới nhất trước (default), ASC = cũ nhất trước
+        if ascending:
+            stmt = stmt.order_by(self.model.created_at.asc()).limit(limit)
+        else:
+            stmt = stmt.order_by(self.model.created_at.desc()).limit(limit)
+
         result = await self.db.execute(stmt)
         return result.scalars().all()
 

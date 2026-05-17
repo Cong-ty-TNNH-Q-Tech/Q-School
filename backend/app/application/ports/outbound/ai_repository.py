@@ -3,6 +3,7 @@ Outbound Port — Repository Interfaces cho AI Workspace.
 IDocumentRepository, IChatSessionRepository, IAITaskRepository.
 """
 from abc import ABC, abstractmethod
+from datetime import datetime
 from uuid import UUID
 from typing import Any
 
@@ -37,12 +38,36 @@ class IChatRepository(ABC):
     async def get_session_by_id(self, session_id: UUID) -> ChatSession | None: ...
 
     @abstractmethod
-    async def create_session(self, user_id: UUID, **kwargs) -> ChatSession: ...
+    async def get_sessions_by_user(
+        self, user_id: UUID, *, limit: int = 20
+    ) -> list[ChatSession]:
+        """Lấy danh sách sessions của user, sắp xếp theo updated_at DESC."""
+        ...
+
+    @abstractmethod
+    async def create_session(
+        self, user_id: UUID, *, title: str | None = None, ai_persona: str | None = None
+    ) -> ChatSession: ...
 
     @abstractmethod
     async def get_messages(
-        self, session_id: UUID, *, limit: int = 20, cursor: UUID | None = None
-    ) -> list[ChatMessage]: ...
+        self,
+        session_id: UUID,
+        *,
+        limit: int = 20,
+        cursor_created_at: "datetime | None" = None,
+        ascending: bool = True,
+    ) -> list[ChatMessage]:
+        """
+        Lấy tin nhắn với cursor-based pagination.
+
+        cursor_created_at: created_at của message cuối cùng đã fetch.
+        ascending=True (default): scroll xuống, lấy messages CŨ HƠN cursor.
+        ascending=False: lấy messages MỚI HƠN cursor (refresh).
+
+        KHÔNG dùng UUID làm cursor vì UUID v4 là random, không sortable theo thời gian.
+        """
+        ...
 
     @abstractmethod
     async def add_message(

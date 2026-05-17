@@ -55,9 +55,9 @@ class Settings(BaseSettings):
     # ──────────────────────────────────────────────
     # Redis & Celery
     # ──────────────────────────────────────────────
-    REDIS_URL: str = "redis://localhost:6379/0"
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+    REDIS_URL: str = "redis://localhost:6379/0"           # App sử dụng (future: rate limiting)
+    CELERY_BROKER_URL: str = "redis://localhost:6379/1"    # Celery task queue (DB 1, tách biệt)
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2" # Celery results (DB 2, tách biệt)
 
     # ──────────────────────────────────────────────
     # JWT Security
