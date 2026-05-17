@@ -8,7 +8,7 @@ gunicorn>=21.2.0
 SQLAlchemy>=2.0.22
 alembic>=1.12.1
 asyncpg>=0.28.0
-psycopg2-binary>=2.9.9
+psycopg2-binary>=2.9.12
 pgvector>=0.2.3
 
 # Storage & AI
