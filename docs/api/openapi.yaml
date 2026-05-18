@@ -242,11 +242,17 @@ components:
     CursorParam:
       name: cursor
       in: query
-      description: ID của phần tử cuối cùng để tải trang tiếp theo (tránh dùng page cho dữ liệu lớn)
+      description: |
+        ISO 8601 datetime string của `created_at` của record cuối cùng đã tải.
+        Ví dụ: `2024-01-15T10:30:00.123456+00:00`
+        
+        **KHÔNG dùng UUID làm cursor** — UUID v4 là random, không sortable theo thời gian.
+        BaseRepository.cursor_paginate() sử dụng `created_at` để phân trang ổn định.
       required: false
       schema:
         type: string
-        format: uuid
+        format: date-time
+        example: "2024-01-15T10:30:00.123456+00:00"
 
 security:
   - bearerAuth: []
