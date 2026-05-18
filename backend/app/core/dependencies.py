@@ -9,6 +9,7 @@ from fastapi import Depends, Header
 from jose import JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 
 from app.core.database import AsyncSessionFactory
 from app.core.security import decode_token
@@ -77,8 +78,13 @@ async def get_current_user(
     except ValueError:
         raise UnauthorizedException("Token payload contains invalid user ID")
 
+    # NOTE: selectinload(User.profile) bắt buộc — tránh MissingGreenlet exception
+    # khi Router serialize UserOut (truy cập user.profile trong async context).
+    # Query trực tiếp ở đây là intentional trade-off (xem BUG 4 trong deep_review.md).
     result = await db.execute(
-        select(User).where(
+        select(User)
+        .options(selectinload(User.profile))
+        .where(
             User.id == user_uuid,
             User.deleted_at.is_(None),
             User.is_active.is_(True),

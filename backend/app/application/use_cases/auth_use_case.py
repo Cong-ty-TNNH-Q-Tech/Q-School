@@ -10,6 +10,8 @@ Nguyên tắc Use Case trong Hexagonal Architecture:
 
 Member: Copy pattern này khi tạo ClassUseCase, QuizUseCase...
 """
+import uuid
+
 from app.application.ports.outbound.user_repository import IUserRepository
 from app.core.security import (
     hash_password,
@@ -86,10 +88,10 @@ class AuthUseCase:
             UserAlreadyExistsError: Email hoặc username đã tồn tại.
         """
         # Kiểm tra unique constraints
-        if await self._repo.is_email_taken(email):  # type: ignore[attr-defined]
+        if await self._repo.is_email_taken(email):
             raise UserAlreadyExistsError("Email này đã được sử dụng")
 
-        if await self._repo.is_username_taken(username):  # type: ignore[attr-defined]
+        if await self._repo.is_username_taken(username):
             raise UserAlreadyExistsError("Username này đã được sử dụng")
 
         password_hash = hash_password(password)
@@ -132,7 +134,6 @@ class AuthUseCase:
         if not user_id:
             raise InvalidCredentialsError("Token payload không hợp lệ")
 
-        import uuid
         try:
             user_uuid = uuid.UUID(user_id)
         except ValueError:

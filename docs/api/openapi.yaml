@@ -63,19 +63,6 @@ components:
           type: integer
           example: 4020
           
-    PaymentRequiredError:
-      type: object
-      properties:
-        status:
-          type: string
-          example: error
-        message:
-          type: string
-          example: "Payment required. Please upgrade your subscription plan."
-        error_code:
-          type: integer
-          example: 4020
-          
     PaginationMeta:
       type: object
       properties:

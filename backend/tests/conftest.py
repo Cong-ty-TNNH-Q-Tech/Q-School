@@ -80,20 +80,35 @@ def event_loop_policy():
 @pytest_asyncio.fixture(scope="function")
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """
-    Transaction isolation per test.
-    Dùng SAVEPOINT (nested transaction) để đảm bảo mỗi test clean slate.
+    Transaction isolation per test — SQLAlchemy 2.x compatible.
+
+    Dùng connection-level SAVEPOINT thay vì session-level begin() để tránh
+    "Can't reconnect until invalid transaction is rolled back" error trên SA 2.x.
+
+    Pattern:
+      1. Mở connection thô (không qua session factory)
+      2. Begin outer transaction trên connection
+      3. Tạo SAVEPOINT (nested)
+      4. Bind Session vào connection đang mở
+      5. Yield session cho test
+      6. Rollback SAVEPOINT → mọi thay đổi trong test bị hủy
+      7. Rollback outer transaction → DB sạch
     """
-    async with TestSessionFactory() as session:
-        # Bắt đầu outer transaction
-        async with session.begin():
-            # Tạo SAVEPOINT để nested rollback không ảnh hưởng outer
-            nested = await session.begin_nested()
+    async with test_engine.connect() as conn:
+        await conn.begin()                             # Outer transaction
+        nested = await conn.begin_nested()             # SAVEPOINT
+
+        # Bind session vào connection đang mở — không tạo connection mới
+        async with AsyncSession(bind=conn, expire_on_commit=False) as session:
             try:
                 yield session
             finally:
                 # Rollback SAVEPOINT — dữ liệu test không persist
-                await nested.rollback()
-        # Outer transaction KHÔNG commit — DB clean sau mỗi test
+                if nested.is_active:
+                    await nested.rollback()
+
+        # Rollback outer transaction — DB về trạng thái trước test
+        await conn.rollback()
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -111,3 +126,4 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
         yield c
 
     app.dependency_overrides.clear()
+

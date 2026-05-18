@@ -29,3 +29,13 @@ class IUserRepository(ABC):
 
     @abstractmethod
     async def soft_delete(self, user: User) -> User: ...
+
+    @abstractmethod
+    async def is_email_taken(self, email: str) -> bool:
+        """Kiểm tra email đã được đăng ký chưa (kể cả soft-deleted) — dùng khi đăng ký."""
+        ...
+
+    @abstractmethod
+    async def is_username_taken(self, username: str) -> bool:
+        """Kiểm tra username đã tồn tại chưa (kể cả soft-deleted) — dùng khi đăng ký."""
+        ...
