@@ -250,3 +250,59 @@ async def test_logout_success(client: AsyncClient):
 
     assert res.status_code == 200
     assert res.json()["status"] == "success"
+
+
+@pytest.mark.asyncio
+async def test_register_username_with_special_chars_rejected(client: AsyncClient):
+    """Username chứa ký tự đặc biệt → 422 Validation Error."""
+    for bad_username in ["user name", "user@name", "user<script>", "user;drop"]:
+        payload = {**REGISTER_PAYLOAD, "username": bad_username}
+        res = await client.post("/api/v1/auth/register", json=payload)
+        assert res.status_code == 422, f"Expected 422 for username: {bad_username!r}"
+
+
+@pytest.mark.asyncio
+async def test_login_email_case_insensitive(client: AsyncClient):
+    """Đăng nhập bằng email chữ hoa → vẫn tìm được user (normalize lowercase)."""
+    await client.post("/api/v1/auth/register", json=REGISTER_PAYLOAD)
+
+    res = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "username": REGISTER_PAYLOAD["email"].upper(),  # TEST@QSCHOOL.VN
+            "password": REGISTER_PAYLOAD["password"],
+        },
+    )
+
+    assert res.status_code == 200, "Email login phải case-insensitive"
+
+
+@pytest.mark.asyncio
+async def test_token_valid_after_logout_known_limitation(client: AsyncClient):
+    """
+    KNOWN LIMITATION: Token vẫn còn hiệu lực sau khi logout (stateless JWT, chưa có Redis blacklist).
+
+    Test này DOCUMENT current behavior, KHÔNG phải lỗi.
+    Khi Redis token blacklist được implement:
+      - test này SẼ FAIL (expected 401, got 200)
+      - Đó là dấu hiệu để UPDATE assert thành 401
+    TODO: implement Redis blacklist trong POST /auth/logout
+    """
+    tokens = await _register_and_login(client, REGISTER_PAYLOAD)
+    access_token = tokens["access_token"]
+
+    # Logout
+    await client.post(
+        "/api/v1/auth/logout",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+
+    # Token cũ vẫn hoạt động — KNOWN LIMITATION
+    res = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
+    assert res.status_code == 200, (
+        "EXPECTED: Token vẫn valid sau logout (stateless JWT). "
+        "Nếu test này fail với 401, Redis blacklist đã được implement — cập nhật assert!"
+    )

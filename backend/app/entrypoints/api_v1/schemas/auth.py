@@ -4,6 +4,7 @@ Auth Pydantic Schemas — Request/Response models cho Auth endpoints.
 
 NOTE: Dùng model_validate() (Pydantic v2) thay vì from_orm() (deprecated).
 """
+import re
 import uuid
 from datetime import datetime
 
@@ -15,15 +16,31 @@ from pydantic import BaseModel, EmailStr, field_validator
 # ──────────────────────────────────────────────
 class LoginRequest(BaseModel):
     """POST /auth/login"""
-    username: str
+    username: str  # username hoặc email
     password: str
 
-    @field_validator("username", "password")
+    @field_validator("password")
     @classmethod
-    def not_empty(cls, v: str) -> str:
+    def password_not_empty(cls, v: str) -> str:
         if not v or not v.strip():
-            raise ValueError("Field không được để trống")
-        return v.strip()
+            raise ValueError("Mật khẩu không được để trống")
+        return v
+
+    @field_validator("username")
+    @classmethod
+    def normalize_username_or_email(cls, v: str) -> str:
+        """
+        Normalize input:
+        - Trim whitespace ở đầu/cuối
+        - Nếu trông giống email (chứa @) thì lowercase — khớp với DB lưu email lowercase
+        - Nếu là username thì giữ nguyên case
+        """
+        v = v.strip()
+        if not v:
+            raise ValueError("Username/email không được để trống")
+        if "@" in v:
+            return v.lower()  # Normalize email
+        return v
 
 
 class RegisterRequest(BaseModel):
@@ -39,6 +56,9 @@ class RegisterRequest(BaseModel):
         v = v.strip()
         if len(v) < 3 or len(v) > 50:
             raise ValueError("username phải từ 3–50 ký tự")
+        # Chỉ cho phép chữ cái, số, dấu gạch dưới, gạch ngang — an toàn cho URL, email, display name
+        if not re.match(r"^[a-zA-Z0-9_-]+$", v):
+            raise ValueError("username chỉ được chứa chữ cái, số, _, -")
         return v
 
     @field_validator("password")

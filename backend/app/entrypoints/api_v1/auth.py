@@ -20,12 +20,10 @@ from app.core.dependencies import DbDep, CurrentUserDep
 from app.core.exceptions import (
     UnauthorizedException,
     ConflictException,
-    NotFoundException,
 )
 from app.domain.exceptions import (
     InvalidCredentialsError,
     UserAlreadyExistsError,
-    UserNotFoundError,
     InactiveUserError,
 )
 from app.entrypoints.api_v1.schemas import (
@@ -194,16 +192,12 @@ async def logout(
 )
 async def get_me(
     current_user: CurrentUserDep,
-    db: DbDep,
 ) -> ApiResponse[UserOut]:
     """
-    GET /users/me (mounted tại /auth/me — users router sẽ expose /users/me)
+    GET /auth/me
     Security: Bearer token required
-    """
-    use_case = get_auth_use_case(db)
-    try:
-        user = await use_case.get_current_user_profile(current_user)
-    except UserNotFoundError as e:
-        raise NotFoundException(str(e))
 
-    return ApiResponse(data=UserOut.model_validate(user))
+    NOTE: current_user đã được inject với Profile eager loaded bởi get_current_user dependency.
+    Không cần gọi qua Use Case — tránh double DB query.
+    """
+    return ApiResponse(data=UserOut.model_validate(current_user))

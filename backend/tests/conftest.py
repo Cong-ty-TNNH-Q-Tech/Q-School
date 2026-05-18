@@ -20,6 +20,12 @@ from app.core.database import Base
 from app.core.dependencies import get_db
 from main import app
 
+# BẮT BUỘC: Import tất cả models để Base.metadata biết toàn bộ bảng khi create_all chạy.
+# Nếu thiếu, Base.metadata.create_all() sẽ bỏ sót bảng → test fail với "relation does not exist".
+# Xem cách alembic/env.py giải quyết tương tự: import app.domain.models
+import app.domain.models  # noqa: F401
+
+
 # ──────────────────────────────────────────────
 # Test Database URL — parse an toàn, không dùng string.replace() thô
 # ──────────────────────────────────────────────

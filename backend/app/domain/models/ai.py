@@ -155,6 +155,16 @@ class AITask(Base, UUIDMixin, TimestampMixin):
     status: 'pending' | 'processing' | 'completed' | 'failed'
     """
     __tablename__ = "ai_tasks"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'processing', 'completed', 'failed')",
+            name="ck_ai_tasks_status"
+        ),
+        CheckConstraint(
+            "task_type IN ('essay_grading', 'lesson_plan', 'parse_document', 'quiz_generation')",
+            name="ck_ai_tasks_task_type"
+        ),
+    )
 
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
@@ -172,10 +182,16 @@ class AITask(Base, UUIDMixin, TimestampMixin):
 class GeneratedAsset(Base, UUIDMixin, TimestampMixin):
     """
     Bảng GENERATED_ASSETS — Gom nhóm tất cả văn bản AI sinh ra.
-    asset_type: 'email' | 'iep' | 'behavior_intervention' | 'report_comment' | ...
+    asset_type: 'lesson_plan' | 'quiz' | 'email' | 'iep' | 'behavior_intervention' | 'report_comment'
     Tránh tạo nhiều bảng rời cho từng loại output AI.
     """
     __tablename__ = "generated_assets"
+    __table_args__ = (
+        CheckConstraint(
+            "asset_type IN ('lesson_plan', 'quiz', 'email', 'iep', 'behavior_intervention', 'report_comment')",
+            name="ck_generated_assets_asset_type"
+        ),
+    )
 
     creator_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
