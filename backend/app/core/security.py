@@ -43,8 +43,8 @@ class TokenPayload(TypedDict, total=False):
 
 def _create_token(payload: dict[str, Any], expires_delta: timedelta) -> str:
     """Tạo JWT token với thời gian hết hạn."""
-    expire = datetime.now(timezone.utc) + expires_delta
-    to_encode = {**payload, "exp": expire, "iat": datetime.now(timezone.utc)}
+    now = datetime.now(timezone.utc)  # Gọi 1 lần duy nhất — tránh iat/exp lệch microseconds
+    to_encode = {**payload, "exp": now + expires_delta, "iat": now}
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
@@ -71,11 +71,11 @@ def decode_token(token: str) -> TokenPayload:
 
     Options rõ ràng:
     - verify_exp=True: Luôn kiểm tra exp claim (mặc định của jose nhưng explicit cho sự rõ ràng)
-    - leeway=0: Không cho phép clock skew giữa server (strict security)
+    - leeway=5: Cho phép ±5 giây clock skew giữa các server trong cluster/load balancer
     """
     return jwt.decode(  # type: ignore[return-value]
         token,
         settings.SECRET_KEY,
         algorithms=[settings.ALGORITHM],
-        options={"verify_exp": True, "leeway": 0},
+        options={"verify_exp": True, "leeway": 5},
     )

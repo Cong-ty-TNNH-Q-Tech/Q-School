@@ -44,12 +44,16 @@ class IChatRepository(ABC):
         *,
         limit: int = 20,
         cursor_updated_at: datetime | None = None,
+        cursor_id: UUID | None = None,
     ) -> list[ChatSession]:
         """
         Lấy danh sách sessions của user, sắp xếp theo updated_at DESC.
 
-        cursor_updated_at: updated_at của session cuối cùng đã fetch (None = từ đầu).
-        AGENTS.md: BắT BUỘC dùng cursor pagination cho streaming data, không dùng offset.
+        Composite Cursor (giống BaseRepository.cursor_paginate):
+          cursor_updated_at: updated_at của session cuối cùng đã fetch (None = từ đầu).
+          cursor_id: UUID tiebreaker khi nhiều sessions có cùng updated_at.
+
+        AGENTS.md: BẮT BUỘC dùng cursor pagination cho streaming data, không dùng offset.
         """
         ...
 
