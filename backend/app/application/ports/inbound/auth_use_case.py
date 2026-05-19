@@ -22,11 +22,12 @@ class IAuthUseCase(ABC):
         ...
 
     @abstractmethod
-    async def login(self, email: str, password: str) -> dict:
+    async def login(self, username: str, password: str) -> dict:
         """
-        Xác thực và trả về tokens.
-        Return: {"user": User, "access_token": str, "refresh_token": str}
-        Raise UnauthorizedException nếu sai credentials.
+        Xác thực bằng username (hoặc email) + password và trả về tokens.
+        Return: {"user": User, "access_token": str, "refresh_token": str, "expires_in": int}
+        Raise InvalidCredentialsError nếu sai credentials.
+        Raise InactiveUserError nếu tài khoản bị vô hiệu hóa.
         """
         ...
 

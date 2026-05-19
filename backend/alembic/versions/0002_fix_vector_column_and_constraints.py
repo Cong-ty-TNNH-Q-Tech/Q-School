@@ -24,9 +24,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # ─── 1. Fix embedding_vector: Text → vector(1536) ───
-    # Cột được tạo nullable=True với USING NULL — safe vì không có data thật ở bước initial.
-    # Nếu đã có data, cần custom USING expression.
+    # ─── 1. Đảm bảo embedding_vector là vector(1536) ───
+    # NOTE: Migration 0001 đã tạo cột TEXT rồi ALTER thành vector(1536) trong cùng migration.
+    # ALTER này là REDUNDANT (idempotent - không gây lỗi, chỉ no-op) nhưng giữ lại
+    # để migration chain chính xác. Xem 0001 line 302 để biết ALTER gốc.
     op.execute(
         "ALTER TABLE document_chunks "
         "ALTER COLUMN embedding_vector TYPE vector(1536) "

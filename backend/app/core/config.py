@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
     API_V1_PREFIX: str = "/api/v1"
+    APP_ENV: str = "development"  # development | staging | production
 
     # ──────────────────────────────────────────────
     # CORS
@@ -72,7 +73,13 @@ class Settings(BaseSettings):
     # ──────────────────────────────────────────────
     VLLM_API_URL: str = "http://localhost:8001/v1"
     VLLM_API_KEY: str = "dev_key_only"
-    VLLM_MODEL_NAME: str = "Qwen/Qwen2.5-7B-Instruct"
+    VLLM_MODEL_NAME: str = "Qwen/Qwen2.5-7B-Instruct"  # Generation model
+
+    # Embedding model (KHÁC với generation model — dùng cho RAG).
+    # Phải match với EMBEDDING_DIMENSION trong llm_service.py (default 1536).
+    # Ví dụ: "Qwen/Qwen2.5-Embedding-1.5B" hoặc "text-embedding-ada-002"
+    EMBEDDING_MODEL_NAME: str = "Qwen/Qwen2.5-Embedding-1.5B"
+    EMBEDDING_API_URL: str = "http://localhost:8001/v1"  # Có thể là endpoint riêng
 
     # ──────────────────────────────────────────────
     # Object Storage (Cloudflare R2 / MinIO / S3)
@@ -92,15 +99,32 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_production_secrets(self) -> "Settings":
         """
-        Guard: Ngăn deploy production với SECRET_KEY mặc định.
-        Nếu DEBUG=False mà vẫn dùng key mặc định — raise lỗi ngay khi khởi động.
+        Guard: Ngăn deploy production/staging với SECRET_KEY mặc định.
+
+        - APP_ENV='production': Bắt buộc phải có SECRET_KEY hợp lệ.
+        - APP_ENV='staging': Cũng bắt buộc — staging cần được bảo mật như production.
+        - APP_ENV='development' và DEBUG=True: Bỏ qua (cho phép dùng key mặc định local).
+
+        Ủu tiên kiểm tra APP_ENV trước (rõ ràng hơn DEBUG flag).
         """
         _DEFAULT_KEY = "CHANGE_ME_IN_PRODUCTION_USE_OPENSSL_RAND_HEX_32"
-        if not self.DEBUG and self.SECRET_KEY == _DEFAULT_KEY:
+        is_prod_or_staging = self.APP_ENV in ("production", "staging")
+
+        if is_prod_or_staging and self.SECRET_KEY == _DEFAULT_KEY:
             raise ValueError(
-                "SECRET_KEY is still the default value! "
+                f"SECRET_KEY is still the default value in APP_ENV='{self.APP_ENV}'! "
                 "Run: openssl rand -hex 32  and set SECRET_KEY in .env"
             )
+
+        # Fallback: Nếu DEBUG=False nhưng APP_ENV chưa set — vẫn guard
+        if not self.DEBUG and self.APP_ENV == "development" and self.SECRET_KEY == _DEFAULT_KEY:
+            import warnings
+            warnings.warn(
+                "Running with DEBUG=False and default SECRET_KEY. "
+                "Set APP_ENV=production or use a real SECRET_KEY.",
+                stacklevel=2,
+            )
+
         return self
 
 

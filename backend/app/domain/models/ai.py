@@ -72,8 +72,9 @@ class ChatSession(Base, UUIDMixin, TimestampMixin):
 class ChatMessage(Base, UUIDMixin, TimestampMixin):
     """
     Bảng CHAT_MESSAGES — Lịch sử tin nhắn.
-    IMMUTABLE: Không cho phép sửa/xóa tin nhắn sau khi đã gửi (chỉ soft-delete session).
-    Dùng Cursor Pagination (không dùng Offset) khi query.
+    IMMUTABLE: Không cho phép sửa/xóa tin nhắn sau khi đã gửi.
+    Khi Session bị xóa (hard delete qua ChatSession), messages tự xóa nhờ CASCADE.
+    Dùng Cursor Pagination (không dùng Offset) khi query — xem IChatRepository.get_messages().
     sender_type: 'user' | 'ai'
     """
     __tablename__ = "chat_messages"

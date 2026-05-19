@@ -93,6 +93,7 @@ class ProfileOut(BaseModel):
     school_name: str | None
     bio: str | None
     points: int
+    updated_at: datetime
 
     model_config = {"from_attributes": True}
 

@@ -4,6 +4,7 @@ Router SSE gọi interface này để stream chat response.
 """
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
+from datetime import datetime
 from uuid import UUID
 
 
@@ -36,12 +37,15 @@ class IAIChatUseCase(ABC):
         user_id: UUID,
         *,
         limit: int = 20,
-        cursor: UUID | None = None,
+        cursor_created_at: datetime | None = None,
     ) -> list[dict]:
         """
-        Lấy lịch sử tin nhắn (Cursor Pagination).
+        Lấy lịch sử tin nhắn (Cursor Pagination theo created_at).
         Return: list[dict] — mỗi item là ChatMessage dict:
             {"id": UUID, "sender_type": "user"|"ai", "content": str, "created_at": datetime}
+
+        cursor_created_at: created_at của message cuối cùng đã fetch (None = từ đầu).
+        AGENTS.md: TUYỆT ĐỐI không dùng UUID làm cursor vì UUID v4 là random.
         Raise ForbiddenException nếu user_id không phải chủ session.
         """
         ...

@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 from typing import Generic, TypeVar, Type, Any, Sequence
 import uuid
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import Base
@@ -87,26 +87,33 @@ class BaseRepository(Generic[ModelType]):
         self,
         *,
         cursor_created_at: datetime | None = None,
+        cursor_id: uuid.UUID | None = None,
         limit: int = 20,
         filters: list[Any] | None = None,
         ascending: bool = False,
     ) -> Sequence[ModelType]:
         """
-        Cursor Pagination dựa trên created_at — KHÔNG dùng UUID làm cursor.
+        Cursor Pagination dựa trên (created_at, id) — COMPOSITE CURSOR.
 
-        WHY NOT UUID:
+        WHY NOT UUID ALONE:
           UUID v4 là random (không tăng dần theo thời gian).
-          Comparison 'id < cursor' với UUID v4 cho kết quả ngẫu nhiên, sai hoàn toàn.
+          'id < cursor' với UUID v4 cho kết quả ngẫu nhiên, sai hoàn toàn.
+
+        WHY COMPOSITE (created_at, id):
+          Nếu nhiều records có cùng created_at (VD: bulk insert),
+          chỉ dùng created_at làm cursor sẽ bỏ sót hoặc trùng records ở biên trang.
+          Composite cursor (created_at, id) đảm bảo unique và stable pagination.
 
         HOW IT WORKS:
-          - cursor_created_at: datetime của record cuối cùng đã fetch (None = từ đầu)
+          - cursor_created_at + cursor_id: của record cuối cùng đã fetch (None = từ đầu)
           - ascending=False (default): lấy records MỚI hơn trước (inbox/chat)
           - ascending=True: lấy records CŨ hơn trước (scroll up lịch sử chat)
 
-        API nên trả về cursor cho client như sau:
+        API nên trả về cursor cho client:
           {
             "data": [...],
-            "next_cursor": records[-1].created_at.isoformat() if len(records) == limit else None
+            "next_cursor_created_at": records[-1].created_at.isoformat() if has_more else None,
+            "next_cursor_id": str(records[-1].id) if has_more else None
           }
 
         AGENTS.md: TUYỆT ĐỐI không dùng offset pagination cho bảng liên tục thay đổi.
@@ -125,21 +132,43 @@ class BaseRepository(Generic[ModelType]):
         if cursor_created_at is not None:
             if ascending:
                 # ascending=True (lịch sử chat — scroll up): lấy messages CŨ HƠN cursor
-                # (created_at < cursor) rồi ORDER BY ASC → hiển thị đúng thứ tự thời gian
-                stmt = stmt.where(self.model.created_at < cursor_created_at)
+                # (created_at < cursor) OR (created_at == cursor AND id < cursor_id) — tiebreak bằng id
+                if cursor_id is not None:
+                    stmt = stmt.where(
+                        or_(
+                            self.model.created_at < cursor_created_at,
+                            and_(
+                                self.model.created_at == cursor_created_at,
+                                self.model.id < cursor_id,
+                            ),
+                        )
+                    )
+                else:
+                    stmt = stmt.where(self.model.created_at < cursor_created_at)
             else:
                 # ascending=False (feed/inbox — load mới): lấy records MỚI HƠN cursor
-                # (created_at > cursor) rồi ORDER BY DESC → mới nhất ở trên
-                stmt = stmt.where(self.model.created_at > cursor_created_at)
+                # (created_at > cursor) OR (created_at == cursor AND id > cursor_id) — tiebreak bằng id
+                if cursor_id is not None:
+                    stmt = stmt.where(
+                        or_(
+                            self.model.created_at > cursor_created_at,
+                            and_(
+                                self.model.created_at == cursor_created_at,
+                                self.model.id > cursor_id,
+                            ),
+                        )
+                    )
+                else:
+                    stmt = stmt.where(self.model.created_at > cursor_created_at)
 
         if filters:
             stmt = stmt.where(*filters)
 
         # Order: DESC = mới nhất trước (default), ASC = cũ nhất trước
         if ascending:
-            stmt = stmt.order_by(self.model.created_at.asc()).limit(limit)
+            stmt = stmt.order_by(self.model.created_at.asc(), self.model.id.asc()).limit(limit)
         else:
-            stmt = stmt.order_by(self.model.created_at.desc()).limit(limit)
+            stmt = stmt.order_by(self.model.created_at.desc(), self.model.id.desc()).limit(limit)
 
         result = await self.db.execute(stmt)
         return result.scalars().all()

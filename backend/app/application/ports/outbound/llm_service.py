@@ -7,9 +7,18 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 
 # Độ dài vector embedding. PHẢI match với Vector(1536) trong DocumentChunk model.
-# Nếu đổi model embedding (VD: Qwen sang ada-002), cần:
-#   1. Cập nhật EMBEDDING_DIMENSION ở đây
-#   2. Tạo migration ALTER COLUMN embedding_vector TYPE vector(<new_dim>)
+#
+# ⚠️ QUAN TRỌNG — PHÂN BIỆT GENERATION vs. EMBEDDING MODEL:
+#   Qwen2.5-7B-Instruct (config VLLM_MODEL_NAME) là GENERATION model — KHÔNG tạo embeddings.
+#   RAG cần một EMBEDDING model riêng biệt, ví dụ:
+#     - Qwen/Qwen2.5-Embedding-1.5B (dim=1536) — nếu dùng Qwen cho embedding
+#     - OpenAI text-embedding-ada-002 (dim=1536) — nếu dùng OpenAI API
+#     - BAAI/bge-large-en-v1.5 (dim=1024) — cần đổi Vector(1024) trong migration
+#
+#   Trước khi implement RAG:
+#     1. Quyết định dùng embedding model nào
+#     2. Deploy riêng (hoặc thêm endpoint /embeddings vào vLLM server)
+#     3. Nếu dimension ≠ 1536, cần ALTER COLUMN + đổi constant này + tạo migration mới
 EMBEDDING_DIMENSION: int = 1536
 
 

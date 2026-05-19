@@ -25,6 +25,7 @@ from app.domain.exceptions import (
     InvalidCredentialsError,
     UserAlreadyExistsError,
     InactiveUserError,
+    UserNotFoundError,
 )
 from app.entrypoints.api_v1.schemas import (
     ApiResponse,

@@ -41,14 +41,18 @@ class PaginatedResponse(BaseModel, Generic[T]):
     Cursor-based paginated response wrapper.
     Dùng cho: GET list endpoints.
 
-    next_cursor: ISO datetime string của record cuối cùng.
-                 None nếu không còn trang tiếp theo.
-    has_more:    True nếu còn dữ liệu phía sau cursor.
+    Composite Cursor (KHUYẾN NGHỊ):
+      next_cursor_created_at: ISO datetime string của record cuối cùng.
+      next_cursor_id: UUID string của record cuối cùng (tiebreaker).
+      Dùng cả hai để tránh trùng/bỏ sót khi nhiều records có cùng created_at.
+
+    has_more: True nếu còn dữ liệu phía sau cursor.
 
     KHÔNG dùng page/total_pages — cursor pagination theo chuẩn AGENTS.md.
     """
     status: str = "success"
     data: list[T]
-    next_cursor: str | None = None
+    next_cursor_created_at: str | None = None   # ISO datetime của record cuối
+    next_cursor_id: str | None = None            # UUID của record cuối (tiebreaker)
     has_more: bool = False
     error_code: int = 0
