@@ -33,7 +33,7 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql+asyncpg://qschool:qschool_password@localhost:5432/qschool
+      DATABASE_URL: postgresql+asyncpg://qschool:qschool_password@localhost:5432/qschool_test
       SECRET_KEY: ci-test-secret-key-not-for-production-use
       ALGORITHM: HS256
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
@@ -48,7 +48,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v4.2.2
+
+      - name: Create test database and enable pgvector
+        run: |
+          PGPASSWORD=qschool_password psql -h localhost -U qschool -d qschool -c "CREATE DATABASE qschool_test;"
+          PGPASSWORD=qschool_password psql -h localhost -U qschool -d qschool_test -c "CREATE EXTENSION IF NOT EXISTS vector;"
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
@@ -74,7 +79,7 @@ jobs:
 
       - name: Upload coverage report
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v7.0.1
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: coverage-report
           path: backend/coverage.xml
@@ -86,7 +91,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v5
