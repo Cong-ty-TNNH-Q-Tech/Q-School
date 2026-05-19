@@ -39,9 +39,18 @@ class IChatRepository(ABC):
 
     @abstractmethod
     async def get_sessions_by_user(
-        self, user_id: UUID, *, limit: int = 20
+        self,
+        user_id: UUID,
+        *,
+        limit: int = 20,
+        cursor_updated_at: datetime | None = None,
     ) -> list[ChatSession]:
-        """Lấy danh sách sessions của user, sắp xếp theo updated_at DESC."""
+        """
+        Lấy danh sách sessions của user, sắp xếp theo updated_at DESC.
+
+        cursor_updated_at: updated_at của session cuối cùng đã fetch (None = từ đầu).
+        AGENTS.md: BắT BUỘC dùng cursor pagination cho streaming data, không dùng offset.
+        """
         ...
 
     @abstractmethod

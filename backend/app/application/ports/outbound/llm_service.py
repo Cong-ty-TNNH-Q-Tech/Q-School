@@ -6,6 +6,12 @@ Adapter thực tế ở: adapters/llm_client/vllm_adapter.py
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 
+# Độ dài vector embedding. PHẢI match với Vector(1536) trong DocumentChunk model.
+# Nếu đổi model embedding (VD: Qwen sang ada-002), cần:
+#   1. Cập nhật EMBEDDING_DIMENSION ở đây
+#   2. Tạo migration ALTER COLUMN embedding_vector TYPE vector(<new_dim>)
+EMBEDDING_DIMENSION: int = 1536
+
 
 class ILLMService(ABC):
     """
@@ -48,6 +54,9 @@ class ILLMService(ABC):
     async def embed(self, text: str) -> list[float]:
         """
         Tạo vector embedding cho RAG (DocumentChunk).
-        Output: list[float] với dimension phù hợp với Vector(1536) trong DB.
+
+        ⚠️ QUAN TRỌNG: Output PHẢI có đúng EMBEDDING_DIMENSION={EMBEDDING_DIMENSION} chiều.
+        Nếu dùng model embedding khác trả về dimension khác, DB sẽ reject insert.
+        Xem EMBEDDING_DIMENSION constant và migration để đồng bộ.
         """
         ...

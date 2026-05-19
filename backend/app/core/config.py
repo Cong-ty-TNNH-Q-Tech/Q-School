@@ -88,6 +88,7 @@ class Settings(BaseSettings):
     # ──────────────────────────────────────────────
     FREE_PLAN_AI_REQUESTS_PER_DAY: int = 10
     PRO_PLAN_AI_REQUESTS_PER_DAY: int = 200
+
     @model_validator(mode="after")
     def validate_production_secrets(self) -> "Settings":
         """

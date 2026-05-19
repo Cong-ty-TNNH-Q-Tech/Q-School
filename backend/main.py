@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.exceptions import register_exception_handlers
 from app.entrypoints.api_v1 import api_v1_router
+from app.entrypoints.api_v1.schemas import ApiResponse
 
 
 # ──────────────────────────────────────────────
@@ -94,17 +95,16 @@ app.include_router(api_v1_router)
 # ──────────────────────────────────────────────
 # Health Check (luôn public, không cần auth)
 # ──────────────────────────────────────────────
-@app.get("/health", tags=["System"])
-async def health_check():
-    return {
-        "status": "success",
-        "data": {
-            "app": settings.APP_NAME,
-            "version": settings.APP_VERSION,
-        },
-        "message": "Service is healthy",
-        "error_code": 0,
-    }
+@app.get("/health", response_model=ApiResponse[dict], tags=["System"])
+async def health_check() -> ApiResponse[dict]:
+    """
+    Health check endpoint — luôn public, không cần auth.
+    Dùng cho Load Balancer / Kubernetes liveness probe.
+    """
+    return ApiResponse(
+        data={"app": settings.APP_NAME, "version": settings.APP_VERSION},
+        message="Service is healthy",
+    )
 
 
 @app.get("/", include_in_schema=False)

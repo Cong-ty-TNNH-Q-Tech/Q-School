@@ -4,16 +4,18 @@ Dùng với Depends() trong các Router để inject dependencies.
 """
 from typing import AsyncGenerator, Annotated, TYPE_CHECKING
 import uuid
+from datetime import datetime, timezone
 
 from fastapi import Depends, Header
 from jose import JWTError
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
 from app.core.database import AsyncSessionFactory
 from app.core.security import decode_token
-from app.core.exceptions import UnauthorizedException, ForbiddenException
+from app.core.exceptions import UnauthorizedException, ForbiddenException, PaymentRequiredException
+from app.domain.models.billing import UserSubscription
 
 if TYPE_CHECKING:
     from app.domain.models.user import User
@@ -64,7 +66,9 @@ async def get_current_user(
         raise UnauthorizedException("Invalid token type")
 
     user_id = payload.get("sub")
-    role = payload.get("role")
+    # NOTE: role trong JWT không được dùng trực tiếp ở đây.
+    # Role thực tế luôn đọc từ user.role (DB) để phản ánh thay đổi realtime.
+    # Trade-off (stateless JWT): Nếu admin đổi role, user cần login lại để có hiệu lực.
 
     if not user_id:
         raise UnauthorizedException("Token payload is malformed")
@@ -137,15 +141,8 @@ async def require_active_subscription(current_user: CurrentUserDep, db: DbDep) -
       - Subscription bị cancel
 
     TODO (khi billing implement):
-      1. Query UserSubscription theo user_id + status='active'
-      2. Kiểm tra current_period_end > datetime.now(timezone.utc)
-      3. Kiểm tra daily AI usage quota từ Redis
+      1. Kiểm tra daily AI usage quota từ Redis (rate limiting per plan)
     """
-    from datetime import datetime, timezone
-    from sqlalchemy import and_
-    from app.core.exceptions import PaymentRequiredException
-    from app.domain.models.billing import UserSubscription
-
     result = await db.execute(
         select(UserSubscription).where(
             and_(

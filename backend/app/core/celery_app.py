@@ -21,7 +21,7 @@ celery_app.conf.update(
     accept_content=["json"],
     result_serializer="json",
     enable_utc=True,            # Celery lưu timestamp ở UTC
-    timezone="Asia/Ho_Chi_Minh", # Chỉ ảnh hưởng display/scheduler — không ảnh hưởng lói
+    timezone="Asia/Ho_Chi_Minh", # Chỉ ảnh hưởng display/scheduler — không ảnh hưởng lưu trữ
 
     # Task behavior
     task_track_started=True,

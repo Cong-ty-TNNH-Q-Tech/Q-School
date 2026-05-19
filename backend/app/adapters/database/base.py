@@ -6,8 +6,13 @@ CURSOR PAGINATION NOTE:
   UUID v4 là random — KHÔNG thể dùng 'id < cursor' để paginate theo thứ tự thời gian.
   Cursor PHẢI dựa vào created_at (timestamp monotonically tăng).
   API trả về cursor là ISO datetime string của record cuối cùng trong page.
+
+ORM UPDATE NOTE (C1):
+  SQLAlchemy onupdate=func.now() chỉ hoạt động với Core UPDATE expressions.
+  Với ORM-style (setattr + flush), updated_at KHÔNG tự cập nhật.
+  Fix: BaseRepository.update() luôn set updated_at=now() tường minh.
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Generic, TypeVar, Type, Any, Sequence
 import uuid
 
@@ -45,9 +50,15 @@ class BaseRepository(Generic[ModelType]):
         return result.scalar_one_or_none()
 
     async def exists(self, id: uuid.UUID) -> bool:
-        """Kiểm tra record có tồn tại và chưa bị soft-deleted hay không."""
-        record = await self.get_by_id(id)
-        return record is not None
+        """
+        Kiểm tra record có tồn tại và chưa bị soft-deleted hay không.
+        SELECT chỉ id — không load full row để tránh lãng phí I/O.
+        """
+        stmt = select(self.model.id).where(self.model.id == id)
+        if hasattr(self.model, "deleted_at"):
+            stmt = stmt.where(self.model.deleted_at.is_(None))
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none() is not None
 
     async def get_all(
         self,
@@ -113,10 +124,12 @@ class BaseRepository(Generic[ModelType]):
 
         if cursor_created_at is not None:
             if ascending:
-                # Scroll xuống: lấy records CŨ HƠN cursor (created_at < cursor)
+                # ascending=True (lịch sử chat — scroll up): lấy messages CŨ HƠN cursor
+                # (created_at < cursor) rồi ORDER BY ASC → hiển thị đúng thứ tự thời gian
                 stmt = stmt.where(self.model.created_at < cursor_created_at)
             else:
-                # Lấy records MỚI HƠN cursor (created_at > cursor) — dùng cho feed/inbox
+                # ascending=False (feed/inbox — load mới): lấy records MỚI HƠN cursor
+                # (created_at > cursor) rồi ORDER BY DESC → mới nhất ở trên
                 stmt = stmt.where(self.model.created_at > cursor_created_at)
 
         if filters:
@@ -143,6 +156,9 @@ class BaseRepository(Generic[ModelType]):
         """
         Cập nhật các fields của một record.
         Chỉ cho phép set các column hợp lệ — từ chối keys không tồn tại trong model.
+
+        NOTE (C1): updated_at được set tường minh ở đây vì SQLAlchemy onupdate=func.now()
+        chỉ hoạt động với Core UPDATE expressions, KHÔNG phải ORM-style setattr+flush.
         """
         valid_columns = {c.key for c in self.model.__table__.columns}
         invalid_keys = set(kwargs.keys()) - valid_columns
@@ -151,6 +167,9 @@ class BaseRepository(Generic[ModelType]):
                 f"Invalid fields for {self.model.__name__}: {invalid_keys}. "
                 f"Valid fields: {valid_columns}"
             )
+        # Tự động cập nhật updated_at nếu model có column này
+        if "updated_at" in valid_columns and "updated_at" not in kwargs:
+            kwargs["updated_at"] = datetime.now(timezone.utc)
         for key, value in kwargs.items():
             setattr(instance, key, value)
         await self.db.flush()
