@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, Asyn
 from app.core.config import settings
 from app.core.database import Base
 from app.core.dependencies import get_db
-from main import app
+from main import app as fastapi_app
 
 # BẮT BUỘC: Import tất cả models để Base.metadata biết toàn bộ bảng khi create_all chạy.
 # Nếu thiếu, Base.metadata.create_all() sẽ bỏ sót bảng → test fail với "relation does not exist".
@@ -123,13 +123,13 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
         yield db_session
 
-    app.dependency_overrides[get_db] = override_get_db
+    fastapi_app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
-        transport=ASGITransport(app=app),
+        transport=ASGITransport(app=fastapi_app),
         base_url="http://testserver",
     ) as c:
         yield c
 
-    app.dependency_overrides.clear()
+    fastapi_app.dependency_overrides.clear()
 
