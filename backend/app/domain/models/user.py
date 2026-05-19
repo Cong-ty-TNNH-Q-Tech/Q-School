@@ -39,7 +39,8 @@ class User(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
 
     # Relationships
     profile: Mapped["Profile"] = relationship(
-        "Profile", back_populates="user", uselist=False, cascade="all, delete-orphan"
+        "Profile", back_populates="user", uselist=False, cascade="all, delete-orphan",
+        lazy="selectin",  # Eager-load profile để tránh MissingGreenlet khi Pydantic serialize
     )
     managed_classes: Mapped[list["Class"]] = relationship(
         "Class", back_populates="teacher", foreign_keys="Class.teacher_id"
