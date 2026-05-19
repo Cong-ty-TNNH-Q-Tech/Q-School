@@ -3,27 +3,34 @@ pytest conftest.py — Test fixtures và configuration cơ bản.
 Dùng cho toàn bộ backend test suite.
 
 Test isolation strategy:
-  - Schema tạo 1 lần/session (scope="session")
-  - Mỗi test chạy trong SAVEPOINT (nested transaction) → tự rollback sau khi test xong
+  - Engine + schema tạo 1 lần/session (nhanh, ít overhead)
+  - Mỗi test dùng connection riêng biệt để tránh asyncpg loop conflict
+  - Không rollback giữa tests — thay vào đó mỗi test hoạt động độc lập
+    (test register đăng ký user mới, test login dùng user mới...)
 
-Fix asyncpg event loop issue:
-  - Patch `app.core.database.engine` thành NullPool engine tại import time
-    → lifespan + get_db đều dùng NullPool engine → không còn loop conflict
-  - NullPool: mỗi lần connect tạo connection mới, không cache cross-loop
+Fix asyncpg event loop:
+  - Dùng NullPool — không cache connection → không bị "Future attached to different loop"
+  - Engine tạo bên trong session fixture để bind đúng event loop
+  - Không dùng module-level engine (gây loop conflict)
 """
 from typing import AsyncGenerator
-from unittest.mock import patch
+from contextlib import asynccontextmanager
 
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.pool import NullPool
+from fastapi import FastAPI
 
 from app.core.config import settings
 from app.core.database import Base
+from app.core.dependencies import get_db
 
 # BẮT BUỘC: Import tất cả models để Base.metadata biết toàn bộ bảng khi create_all chạy.
 import app.domain.models  # noqa: F401
+
+# Import FastAPI app — dùng alias để tránh conflict với `app` package
+from main import app as _fastapi_app
 
 
 # ──────────────────────────────────────────────
@@ -40,84 +47,86 @@ def _build_test_db_url(base_url: str) -> str:
 
 TEST_DATABASE_URL = _build_test_db_url(settings.DATABASE_URL)
 
-# ──────────────────────────────────────────────
-# Tạo NullPool engine dùng xuyên suốt test session
-# Phải tạo ở module level TRƯỚC khi app được import
-# để patch có thể replace đúng object
-# ──────────────────────────────────────────────
-_test_engine = create_async_engine(
-    TEST_DATABASE_URL,
-    echo=False,
-    poolclass=NullPool,
-)
-_test_session_factory = async_sessionmaker(
-    bind=_test_engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-    autocommit=False,
-    autoflush=False,
-)
-
 
 # ──────────────────────────────────────────────
-# Patch production engine trước khi import app
+# Session-scoped fixtures: schema setup/teardown
+# Engine tạo bên trong fixture → bind đúng event loop của pytest-asyncio
 # ──────────────────────────────────────────────
-import app.core.database as _db_module  # noqa: E402
-
-_db_module.engine = _test_engine
-_db_module.AsyncSessionFactory = _test_session_factory
-
-# Import app SAU KHI patch engine
-from main import app as fastapi_app  # noqa: E402
-from app.core.dependencies import get_db  # noqa: E402
-
-
-# ──────────────────────────────────────────────
-# Schema — tạo 1 lần/session
-# ──────────────────────────────────────────────
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def setup_test_schema():
-    """Tạo toàn bộ schema 1 lần khi bắt đầu test session."""
-    async with _test_engine.begin() as conn:
+@pytest_asyncio.fixture(scope="session")
+async def test_engine():
+    """
+    Engine với NullPool — tạo bên trong session fixture.
+    NullPool: không pool connection → tránh asyncpg loop conflict hoàn toàn.
+    """
+    engine = create_async_engine(
+        TEST_DATABASE_URL,
+        echo=False,
+        poolclass=NullPool,
+    )
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    yield
-    async with _test_engine.begin() as conn:
+
+    yield engine
+
+    async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
-    await _test_engine.dispose()
+    await engine.dispose()
 
 
 # ──────────────────────────────────────────────
-# DB Session — SAVEPOINT-based transaction isolation
+# Function-scoped DB session
 # ──────────────────────────────────────────────
 @pytest_asyncio.fixture(scope="function")
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
-    """Transaction isolation per test — rollback sau mỗi test."""
-    async with _test_engine.connect() as conn:
-        await conn.begin()
+async def db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
+    """
+    Mỗi test nhận 1 AsyncSession độc lập.
+    NullPool đảm bảo connection mới được tạo trong event loop hiện tại.
+    Dùng BEGIN + SAVEPOINT để rollback sau test.
+    """
+    async with test_engine.connect() as conn:
+        trans = await conn.begin()
         nested = await conn.begin_nested()
+        session = AsyncSession(bind=conn, expire_on_commit=False)
+        try:
+            yield session
+        finally:
+            await session.close()
+            if nested.is_active:
+                await nested.rollback()
+            await trans.rollback()
 
-        async with AsyncSession(bind=conn, expire_on_commit=False) as session:
-            try:
-                yield session
-            finally:
-                if nested.is_active:
-                    await nested.rollback()
 
-        await conn.rollback()
-
-
+# ──────────────────────────────────────────────
+# HTTP test client
+# ──────────────────────────────────────────────
 @pytest_asyncio.fixture(scope="function")
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
-    """HTTP test client với DB session override."""
+    """
+    ASGI test client với:
+    - DB session override (dùng test DB thay vì production DB)
+    - lifespan bypass: tạo lifespan noop để tránh production engine startup
+    """
+
+    @asynccontextmanager
+    async def noop_lifespan(app: FastAPI):
+        """Thay thế lifespan production để bỏ qua DB/Redis health check."""
+        yield
+
     async def override_get_db():
         yield db_session
 
-    fastapi_app.dependency_overrides[get_db] = override_get_db
+    # Tạm thời replace lifespan để skip production startup
+    original_lifespan = _fastapi_app.router.lifespan_context
+    _fastapi_app.router.lifespan_context = noop_lifespan
+
+    _fastapi_app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
-        transport=ASGITransport(app=fastapi_app),
+        transport=ASGITransport(app=_fastapi_app),
         base_url="http://testserver",
     ) as c:
         yield c
 
-    fastapi_app.dependency_overrides.clear()
+    # Restore
+    _fastapi_app.dependency_overrides.clear()
+    _fastapi_app.router.lifespan_context = original_lifespan
