@@ -3,15 +3,15 @@ pytest conftest.py — Test fixtures và configuration cơ bản.
 Dùng cho toàn bộ backend test suite.
 
 Test isolation strategy:
-  - Engine + schema tạo 1 lần/session (nhanh, ít overhead)
-  - Mỗi test dùng connection riêng biệt để tránh asyncpg loop conflict
-  - Không rollback giữa tests — thay vào đó mỗi test hoạt động độc lập
-    (test register đăng ký user mới, test login dùng user mới...)
+  - Dùng function-scope cho tất cả async fixtures (mỗi test có event loop riêng)
+  - NullPool engine: không pool connection, tạo fresh connection mỗi lần
+  - Mỗi test nhận client + db_session riêng
 
-Fix asyncpg event loop:
-  - Dùng NullPool — không cache connection → không bị "Future attached to different loop"
-  - Engine tạo bên trong session fixture để bind đúng event loop
-  - Không dùng module-level engine (gây loop conflict)
+Fix asyncpg "Future attached to a different loop":
+  - asyncio_mode=auto + function scope → mỗi test có event loop riêng
+  - Engine + session tạo trong function scope → bind đúng event loop của test đó
+  - Bypass production lifespan (DB/Redis health check) bằng noop_lifespan
+    để tránh production pool tạo connection ở loop sai
 """
 from typing import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -29,7 +29,7 @@ from app.core.dependencies import get_db
 # BẮT BUỘC: Import tất cả models để Base.metadata biết toàn bộ bảng khi create_all chạy.
 import app.domain.models  # noqa: F401
 
-# Import FastAPI app — dùng alias để tránh conflict với `app` package
+# Import FastAPI app — alias để tránh conflict với `app` package trong sys.path
 from main import app as _fastapi_app
 
 
@@ -49,41 +49,50 @@ TEST_DATABASE_URL = _build_test_db_url(settings.DATABASE_URL)
 
 
 # ──────────────────────────────────────────────
-# Session-scoped fixtures: schema setup/teardown
-# Engine tạo bên trong fixture → bind đúng event loop của pytest-asyncio
+# Schema setup — chạy 1 lần trước tất cả tests (sync, không async)
+# Dùng synchronous psycopg2 để tránh vấn đề event loop
 # ──────────────────────────────────────────────
+import pytest
+import asyncio
+
+
+@pytest.fixture(scope="session")
+def event_loop_policy():
+    """Đặt asyncio event loop policy chuẩn."""
+    import asyncio
+    return asyncio.DefaultEventLoopPolicy()
+
+
 @pytest_asyncio.fixture(scope="session")
-async def test_engine():
-    """
-    Engine với NullPool — tạo bên trong session fixture.
-    NullPool: không pool connection → tránh asyncpg loop conflict hoàn toàn.
-    """
-    engine = create_async_engine(
-        TEST_DATABASE_URL,
-        echo=False,
-        poolclass=NullPool,
-    )
+async def setup_schema():
+    """Tạo schema 1 lần/session, drop khi xong. Dùng engine riêng."""
+    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool, echo=False)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-    yield engine
-
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
     await engine.dispose()
 
+    yield
+
+    engine2 = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool, echo=False)
+    async with engine2.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+    await engine2.dispose()
+
 
 # ──────────────────────────────────────────────
-# Function-scoped DB session
+# Function-scoped engine + session
+# Mỗi test có engine + session riêng bind vào event loop của test đó
 # ──────────────────────────────────────────────
 @pytest_asyncio.fixture(scope="function")
-async def db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
+async def db_session(setup_schema) -> AsyncGenerator[AsyncSession, None]:
     """
-    Mỗi test nhận 1 AsyncSession độc lập.
-    NullPool đảm bảo connection mới được tạo trong event loop hiện tại.
-    Dùng BEGIN + SAVEPOINT để rollback sau test.
+    Mỗi test nhận AsyncSession riêng, engine NullPool.
+    - setup_schema đảm bảo schema đã tạo trước khi test chạy
+    - NullPool: connection mới hoàn toàn, bind đúng event loop hiện tại
     """
-    async with test_engine.connect() as conn:
+    engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool, echo=False)
+
+    async with engine.connect() as conn:
         trans = await conn.begin()
         nested = await conn.begin_nested()
         session = AsyncSession(bind=conn, expire_on_commit=False)
@@ -95,30 +104,26 @@ async def db_session(test_engine) -> AsyncGenerator[AsyncSession, None]:
                 await nested.rollback()
             await trans.rollback()
 
+    await engine.dispose()
 
-# ──────────────────────────────────────────────
-# HTTP test client
-# ──────────────────────────────────────────────
+
 @pytest_asyncio.fixture(scope="function")
 async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     """
-    ASGI test client với:
-    - DB session override (dùng test DB thay vì production DB)
-    - lifespan bypass: tạo lifespan noop để tránh production engine startup
+    ASGI test client:
+    - Override get_db với test session
+    - Bypass production lifespan (noop) để tránh production engine startup
     """
 
     @asynccontextmanager
     async def noop_lifespan(app: FastAPI):
-        """Thay thế lifespan production để bỏ qua DB/Redis health check."""
         yield
 
     async def override_get_db():
         yield db_session
 
-    # Tạm thời replace lifespan để skip production startup
     original_lifespan = _fastapi_app.router.lifespan_context
     _fastapi_app.router.lifespan_context = noop_lifespan
-
     _fastapi_app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
@@ -127,6 +132,5 @@ async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     ) as c:
         yield c
 
-    # Restore
     _fastapi_app.dependency_overrides.clear()
     _fastapi_app.router.lifespan_context = original_lifespan
