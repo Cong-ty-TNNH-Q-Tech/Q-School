@@ -13,7 +13,11 @@ from app.core.config import settings
 # ──────────────────────────────────────────────
 # Password hashing (bcrypt)
 # ──────────────────────────────────────────────
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+_pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__truncate_error=False,  # bcrypt>=4.0 compat: suppress 72-byte truncation error
+)
 
 
 def hash_password(plain_password: str) -> str:
