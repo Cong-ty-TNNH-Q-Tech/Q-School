@@ -52,6 +52,8 @@ services:
     environment:
       # asyncpg driver prefix bắt buộc cho SQLAlchemy async
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-qschool}
+      # psycopg2 sync driver — dùng cho Celery on_failure DB update (sync context, không có async loop)
+      - SYNC_DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-qschool}
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/1
@@ -74,6 +76,8 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
+      # VITE_API_URL: browser (host machine) gọi backend qua cổng exposed 8000
+      # Không dùng 'http://backend:8000' vì browser không resolve Docker internal hostname
       - VITE_API_URL=http://localhost:8000/api/v1
     command: npm run dev -- --host 0.0.0.0
 

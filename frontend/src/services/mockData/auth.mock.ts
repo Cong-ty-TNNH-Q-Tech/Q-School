@@ -52,8 +52,9 @@ const MOCK_USERS: Array<User & { password: string }> = [
 // Mock API Functions
 // ──────────────────────────────────────────────
 export const mockLogin = async (req: LoginRequest): Promise<LoginResponse> => {
+  // Backend cho ph\u00e9p login b\u1eb1ng username ho\u1eb7c email \u2014 mock t\u01b0\u01a1ng t\u1ef1
   const user = MOCK_USERS.find(
-    (u) => u.email === req.email && u.password === req.password
+    (u) => (u.email === req.username || u.username === req.username) && u.password === req.password
   )
 
   if (!user) {

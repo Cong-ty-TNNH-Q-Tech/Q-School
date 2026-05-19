@@ -25,13 +25,15 @@ export interface Profile {
   school_name: string | null
   bio: string | null
   points: number
+  updated_at: string  // ISO datetime — thêm bởi migration 0003
 }
 
 // ──────────────────────────────────────────────
 // Auth Request / Response
 // ──────────────────────────────────────────────
+// Backend: POST /auth/login nhận `username` (có thể là username hoặc email)
 export interface LoginRequest {
-  email: string
+  username: string   // username hoặc email — backend tự detect
   password: string
 }
 
@@ -45,6 +47,7 @@ export interface RegisterRequest {
 
 export interface AuthTokens {
   access_token: string
+  refresh_token: string
   token_type: 'bearer'
   expires_in: number  // Seconds
 }
@@ -67,12 +70,10 @@ export interface ApiResponse<T = unknown> {
 
 export interface PaginatedResponse<T> {
   status: 'success'
-  data: {
-    items: T[]
-    total: number
-    cursor: string | null   // Cursor-based pagination
-    has_more: boolean
-  }
+  data: T[]
+  next_cursor_created_at: string | null  // Composite cursor — ISO datetime của record cuối
+  next_cursor_id: string | null          // UUID tiebreaker của record cuối
+  has_more: boolean
   message: string
   error_code: 0
 }

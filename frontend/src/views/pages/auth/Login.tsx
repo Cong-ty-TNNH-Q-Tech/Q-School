@@ -1,37 +1,29 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { mockApiResponse } from '@/services/apiClient'
+import { mockLogin } from '@/services/mockData'
 
 export default function Login() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
   const login = useAuthStore((state) => state.login)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
 
     try {
-      // Mock API call based on openapi.yaml
-      const response = await mockApiResponse({
-        token: 'mock-jwt-token-xyz',
-        user: {
-          id: 'usr_123',
-          email,
-          name: 'Teacher Admin',
-          role: 'teacher',
-        }
-      }, 1000)
-
-      if (response.status === 'success') {
-        login(response.data.user, response.data.token)
-        navigate('/')
-      }
-    } catch (error) {
-      console.error("Login failed", error)
+      // TODO: Thay mockLogin bằng apiClient.post('/auth/login') khi Backend sẵn sàng
+      const response = await mockLogin({ email: username, password })
+      login(response.user, response.tokens.access_token)
+      navigate('/')
+    } catch (err: unknown) {
+      const axiosErr = err as { response?: { data?: { message?: string } } }
+      setError(axiosErr.response?.data?.message ?? 'Đăng nhập thất bại. Vui lòng thử lại.')
     } finally {
       setLoading(false)
     }
@@ -48,16 +40,17 @@ export default function Login() {
         </div>
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none" htmlFor="email">
-              Email
+            <label className="text-sm font-medium leading-none" htmlFor="username">
+              Username hoặc Email
             </label>
             <input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              placeholder="username hoặc email"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               required
+              autoComplete="username"
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
@@ -71,9 +64,15 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="current-password"
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             />
           </div>
+
+          {/* Error message */}
+          {error && (
+            <p className="text-sm text-destructive" role="alert">{error}</p>
+          )}
           <button
             type="submit"
             disabled={loading}
