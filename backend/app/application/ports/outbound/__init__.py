@@ -8,6 +8,7 @@ from app.application.ports.outbound.quiz_repository import (
     IQuizRepository,
     IQuizAttemptRepository,
     IEssaySubmissionRepository,
+    IRubricRepository,
 )
 from app.application.ports.outbound.ai_repository import (
     IDocumentRepository,
@@ -23,6 +24,7 @@ __all__ = [
     "IQuizRepository",
     "IQuizAttemptRepository",
     "IEssaySubmissionRepository",
+    "IRubricRepository",
     "IDocumentRepository",
     "IChatRepository",
     "IAITaskRepository",

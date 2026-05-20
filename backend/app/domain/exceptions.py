@@ -51,7 +51,7 @@ class NotEnrolledError(DomainException):
 
 
 # ──────────────────────────────────────────────
-# Content (Lesson / Quiz)
+# Content (Lesson / Quiz / Rubric)
 # ──────────────────────────────────────────────
 class LessonNotFoundError(DomainException):
     """Không tìm thấy bài giảng."""
@@ -65,6 +65,11 @@ class QuizNotFoundError(DomainException):
 
 class QuizAttemptNotFoundError(DomainException):
     """Không tìm thấy lượt làm bài."""
+    pass
+
+
+class RubricNotFoundError(DomainException):
+    """Không tìm thấy rubric."""
     pass
 
 
