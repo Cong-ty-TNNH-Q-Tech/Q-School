@@ -5,7 +5,7 @@ Copy pattern từ AuthUseCase.
 Nguyên tắc Use Case trong Hexagonal Architecture:
   - Nhận INPUT từ Router (primitive types hoặc Pydantic models)
   - Gọi PORT (IClassRepository) để truy cập data — KHÔNG gọi SQLAlchemy trực tiếp
-  - Raise DOMAIN EXCEPTIONS khi business rule vi phạm
+  - Raise DOMAIN EXCEPTIONS khi business rule vi phạm — KHÔNG raise HTTP exceptions
   - Trả về DOMAIN OBJECTS
 
 Authorization Rules:
@@ -21,11 +21,10 @@ from app.domain.exceptions import (
     ClassNotFoundError,
     StudentAlreadyEnrolledError,
     NotEnrolledError,
-    UserNotFoundError,
+    PermissionDeniedError,
 )
 from app.domain.models.class_ import Class, ClassStudent
 from app.domain.models.user import User
-from app.core.exceptions import ForbiddenException
 
 
 class ClassUseCase:
@@ -33,7 +32,7 @@ class ClassUseCase:
     Use Case: Xử lý toàn bộ luồng nghiệp vụ Class.
     Inject IClassRepository qua constructor (Dependency Inversion).
 
-    KHÔNG import FastAPI, KHÔNG import SQLAlchemy ở đây.
+    KHÔNG import FastAPI, KHÔNG import SQLAlchemy, KHÔNG import HTTP exceptions ở đây.
     """
 
     def __init__(self, class_repo: IClassRepository) -> None:
@@ -88,7 +87,6 @@ class ClassUseCase:
     async def list_teacher_classes(self, teacher: User) -> list[Class]:
         """
         Lấy danh sách tất cả lớp học do giáo viên này quản lý.
-        Admin xem được tất cả (TODO: admin cần all_classes use case riêng).
 
         Returns:
             list[Class]: Danh sách lớp, sắp xếp mới nhất trước.
@@ -112,7 +110,7 @@ class ClassUseCase:
 
         Raises:
             ClassNotFoundError: Không tìm thấy lớp.
-            ForbiddenException: Teacher cố sửa lớp của người khác.
+            PermissionDeniedError: Teacher cố sửa lớp của người khác.
         """
         class_ = await self._repo.get_by_id(class_id)
         if class_ is None:
@@ -120,7 +118,7 @@ class ClassUseCase:
 
         # Ownership check: admin bypass, teacher chỉ sửa lớp mình
         if current_user.role != "admin" and class_.teacher_id != current_user.id:
-            raise ForbiddenException("Bạn không có quyền chỉnh sửa lớp học này")
+            raise PermissionDeniedError("Bạn không có quyền chỉnh sửa lớp học này")
 
         # Chỉ update các field được truyền vào (partial update)
         update_kwargs: dict = {}
@@ -134,7 +132,15 @@ class ClassUseCase:
         if not update_kwargs:
             return class_  # Không có gì cần update
 
-        return await self._repo.update(class_, **update_kwargs)
+        updated = await self._repo.update(class_, **update_kwargs)
+
+        # Reload với eager loading để tránh MissingGreenlet khi serialize students
+        # BaseRepository.update() chỉ flush+refresh, không eager load relationships
+        reloaded = await self._repo.get_by_id(updated.id)
+        if reloaded is None:
+            # Không thể xảy ra trong thực tế (vừa update xong), nhưng đảm bảo type safety
+            raise ClassNotFoundError(f"Lỗi internal: không thể reload lớp {class_id}")
+        return reloaded
 
     # ──────────────────────────────────────────────
     # Delete
@@ -150,7 +156,7 @@ class ClassUseCase:
 
         Raises:
             ClassNotFoundError: Không tìm thấy lớp.
-            ForbiddenException: Teacher cố xóa lớp của người khác.
+            PermissionDeniedError: Teacher cố xóa lớp của người khác.
         """
         class_ = await self._repo.get_by_id(class_id)
         if class_ is None:
@@ -158,7 +164,7 @@ class ClassUseCase:
 
         # Ownership check
         if current_user.role != "admin" and class_.teacher_id != current_user.id:
-            raise ForbiddenException("Bạn không có quyền xóa lớp học này")
+            raise PermissionDeniedError("Bạn không có quyền xóa lớp học này")
 
         await self._repo.soft_delete(class_)
 
@@ -177,7 +183,7 @@ class ClassUseCase:
 
         Raises:
             ClassNotFoundError: Không tìm thấy lớp.
-            ForbiddenException: Teacher không có quyền thêm vào lớp người khác.
+            PermissionDeniedError: Teacher không có quyền thêm vào lớp người khác.
             StudentAlreadyEnrolledError: Học sinh đã có trong lớp.
         """
         class_ = await self._repo.get_by_id(class_id)
@@ -186,15 +192,10 @@ class ClassUseCase:
 
         # Ownership check
         if current_user.role != "admin" and class_.teacher_id != current_user.id:
-            raise ForbiddenException("Bạn không có quyền thêm học sinh vào lớp này")
+            raise PermissionDeniedError("Bạn không có quyền thêm học sinh vào lớp này")
 
-        # Kiểm tra học sinh đã tham gia chưa
-        # Note: ClassSQLAlchemyRepository có is_student_enrolled(),
-        # nhưng IClassRepository không có method này.
-        # Ta dùng get_students để check — hoặc sẽ catch IntegrityError tại adapter.
-        # Cách sạch hơn: check qua repo method helper (cast về concrete type không được).
-        # Giải pháp: thêm is_enrolled vào IClassRepository interface.
-        # HIỆN TẠI: check qua get_students (vẫn OK vì eager loaded từ get_by_id).
+        # Kiểm tra học sinh đã tham gia chưa bằng cách dùng dữ liệu đã eager load
+        # get_by_id đã selectinload(Class.students), nên class_.students đã sẵn sàng
         enrolled_ids = {e.student_id for e in class_.students}
         if student_id in enrolled_ids:
             raise StudentAlreadyEnrolledError(
@@ -215,7 +216,7 @@ class ClassUseCase:
 
         Raises:
             ClassNotFoundError: Không tìm thấy lớp.
-            ForbiddenException: Teacher không có quyền.
+            PermissionDeniedError: Teacher không có quyền.
             NotEnrolledError: Học sinh chưa tham gia lớp này.
         """
         class_ = await self._repo.get_by_id(class_id)
@@ -224,9 +225,9 @@ class ClassUseCase:
 
         # Ownership check
         if current_user.role != "admin" and class_.teacher_id != current_user.id:
-            raise ForbiddenException("Bạn không có quyền xóa học sinh khỏi lớp này")
+            raise PermissionDeniedError("Bạn không có quyền xóa học sinh khỏi lớp này")
 
-        # Kiểm tra học sinh có trong lớp không
+        # Kiểm tra học sinh có trong lớp không — dùng dữ liệu đã eager load
         enrolled_ids = {e.student_id for e in class_.students}
         if student_id not in enrolled_ids:
             raise NotEnrolledError("Học sinh này không có trong lớp học")
@@ -242,10 +243,14 @@ class ClassUseCase:
 
         Raises:
             ClassNotFoundError: Không tìm thấy lớp.
+
+        NOTE: get_by_id đã eager load Class.students + ClassStudent.student,
+        nên trả về class_.students trực tiếp — tránh double DB query.
         """
-        # Kiểm tra lớp tồn tại trước
         class_ = await self._repo.get_by_id(class_id)
         if class_ is None:
             raise ClassNotFoundError(f"Không tìm thấy lớp học với ID: {class_id}")
 
-        return await self._repo.get_students(class_id)
+        # class_.students đã được eager loaded trong get_by_id,
+        # dùng trực tiếp thay vì gọi thêm get_students() (tránh 1 round-trip DB)
+        return list(class_.students)

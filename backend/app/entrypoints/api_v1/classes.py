@@ -32,7 +32,9 @@ from app.domain.exceptions import (
     ClassNotFoundError,
     StudentAlreadyEnrolledError,
     NotEnrolledError,
+    PermissionDeniedError,
 )
+from app.domain.models.class_ import Class, ClassStudent
 from app.entrypoints.api_v1.schemas import (
     ApiResponse,
     CreateClassRequest,
@@ -42,7 +44,6 @@ from app.entrypoints.api_v1.schemas import (
     ClassDetailOut,
     ClassStudentOut,
 )
-from app.entrypoints.api_v1.schemas.base import PaginatedResponse
 
 router = APIRouter()
 
@@ -60,12 +61,16 @@ def get_class_use_case(db: DbDep) -> ClassUseCase:
 
 
 # ──────────────────────────────────────────────
-# Helper: Map Class ORM → ClassOut schema
+# Helper: Map Class ORM → Response Schemas
 # ──────────────────────────────────────────────
-def _map_class_out(class_: object) -> ClassOut:
-    """Map Class ORM object sang ClassOut Pydantic schema."""
-    from app.domain.models.class_ import Class
-    assert isinstance(class_, Class)
+def _map_class_out(class_: Class, student_count: int | None = None) -> ClassOut:
+    """
+    Map Class ORM object sang ClassOut Pydantic schema.
+
+    student_count: Truyền vào khi biết trước (VD: 0 cho lớp mới tạo).
+    Nếu None, tính từ len(class_.students) — chỉ dùng khi đã eager loaded.
+    """
+    count = student_count if student_count is not None else len(class_.students)
     return ClassOut(
         id=class_.id,
         teacher_id=class_.teacher_id,
@@ -74,24 +79,24 @@ def _map_class_out(class_: object) -> ClassOut:
         subject=class_.subject,
         created_at=class_.created_at,
         updated_at=class_.updated_at,
-        student_count=len(class_.students) if class_.students else 0,
+        student_count=count,
     )
 
 
-def _map_class_detail_out(class_: object) -> ClassDetailOut:
-    """Map Class ORM object sang ClassDetailOut (bao gồm danh sách học sinh)."""
-    from app.domain.models.class_ import Class, ClassStudent as ClassStudentModel
-    assert isinstance(class_, Class)
-
-    students_out = []
-    for enrollment in (class_.students or []):
-        student_out = ClassStudentOut(
+def _map_class_detail_out(class_: Class) -> ClassDetailOut:
+    """
+    Map Class ORM object sang ClassDetailOut (bao gồm danh sách học sinh).
+    Yêu cầu class_.students và ClassStudent.student đã được eager loaded.
+    """
+    students_out = [
+        ClassStudentOut(
             student_id=enrollment.student_id,
             joined_at=enrollment.joined_at,
             username=enrollment.student.username if enrollment.student else None,
             email=enrollment.student.email if enrollment.student else None,
         )
-        students_out.append(student_out)
+        for enrollment in (class_.students or [])
+    ]
 
     return ClassDetailOut(
         id=class_.id,
@@ -106,10 +111,11 @@ def _map_class_detail_out(class_: object) -> ClassDetailOut:
     )
 
 
-def _map_student_out(enrollment: object) -> ClassStudentOut:
-    """Map ClassStudent ORM → ClassStudentOut schema."""
-    from app.domain.models.class_ import ClassStudent
-    assert isinstance(enrollment, ClassStudent)
+def _map_student_out(enrollment: ClassStudent) -> ClassStudentOut:
+    """
+    Map ClassStudent ORM → ClassStudentOut schema.
+    Yêu cầu enrollment.student đã được eager loaded.
+    """
     return ClassStudentOut(
         student_id=enrollment.student_id,
         joined_at=enrollment.joined_at,
@@ -144,8 +150,10 @@ async def create_class(
         grade_level=body.grade_level,
         subject=body.subject,
     )
+    # Lớp mới tạo chắc chắn chưa có học sinh — truyền student_count=0
+    # để tránh truy cập class_.students chưa được eager loaded
     return ApiResponse(
-        data=_map_class_out(class_),
+        data=_map_class_out(class_, student_count=0),
         message="Tạo lớp học thành công",
     )
 
@@ -164,6 +172,8 @@ async def list_my_classes(
     """
     GET /classes
     Security: Bearer token required (Teacher/Admin role)
+
+    NOTE: get_by_teacher eager loads Class.students để có student_count.
     """
     use_case = get_class_use_case(db)
     classes = await use_case.list_teacher_classes(current_user)
@@ -226,8 +236,8 @@ async def update_class(
         )
     except ClassNotFoundError as e:
         raise NotFoundException(str(e))
-    except ForbiddenException:
-        raise
+    except PermissionDeniedError as e:
+        raise ForbiddenException(str(e))
 
     return ApiResponse(
         data=_map_class_out(class_),
@@ -257,8 +267,8 @@ async def delete_class(
         await use_case.delete_class(class_id, current_user)
     except ClassNotFoundError as e:
         raise NotFoundException(str(e))
-    except ForbiddenException:
-        raise
+    except PermissionDeniedError as e:
+        raise ForbiddenException(str(e))
 
     return ApiResponse(data=None, message="Xóa lớp học thành công")
 
@@ -291,8 +301,8 @@ async def enroll_student(
         raise NotFoundException(str(e))
     except StudentAlreadyEnrolledError as e:
         raise ConflictException(str(e))
-    except ForbiddenException:
-        raise
+    except PermissionDeniedError as e:
+        raise ForbiddenException(str(e))
 
     return ApiResponse(
         data=ClassStudentOut(
@@ -331,8 +341,8 @@ async def remove_student(
         raise NotFoundException(str(e))
     except NotEnrolledError as e:
         raise NotFoundException(str(e))
-    except ForbiddenException:
-        raise
+    except PermissionDeniedError as e:
+        raise ForbiddenException(str(e))
 
     return ApiResponse(data=None, message="Xóa học sinh khỏi lớp thành công")
 

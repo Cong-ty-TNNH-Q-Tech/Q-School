@@ -50,6 +50,11 @@ class NotEnrolledError(DomainException):
     pass
 
 
+class PermissionDeniedError(DomainException):
+    """Không có quyền thực hiện thao tác này (domain-level authorization)."""
+    pass
+
+
 # ──────────────────────────────────────────────
 # Content (Lesson / Quiz)
 # ──────────────────────────────────────────────
