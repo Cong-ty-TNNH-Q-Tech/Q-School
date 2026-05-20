@@ -35,6 +35,7 @@ from app.domain.exceptions import (
     NotEnrolledError,
     PermissionDeniedError,
     UserNotFoundError,
+    InvalidRoleError,
 )
 from app.domain.models.class_ import Class, ClassStudent
 from app.entrypoints.api_v1.schemas import (
@@ -304,20 +305,17 @@ async def enroll_student(
         raise NotFoundException(str(e))
     except UserNotFoundError as e:
         raise NotFoundException(str(e))
+    except InvalidRoleError as e:
+        # Map sang 404 (security: không để lộ user tồn tại nhưng sai role)
+        raise NotFoundException(str(e))
     except StudentAlreadyEnrolledError as e:
         raise ConflictException(str(e))
     except PermissionDeniedError as e:
         raise ForbiddenException(str(e))
 
+    # enrollment.student được UseCase gán sau khi add_student() — không cần extra DB query.
     return ApiResponse(
-        data=ClassStudentOut(
-            student_id=enrollment.student_id,
-            joined_at=enrollment.joined_at,
-            # NOTE: ClassStudent.student chưa được eager load sau add_student().
-            # Reload class để lấy username/email, hoặc dùng nullable defaults.
-            # Tránh MissingGreenlet bằng cách KHÔNG truy cập enrollment.student.
-            # username/email = None là valid theo spec (nullable: true).
-        ),
+        data=_map_student_out(enrollment),
         message="Thêm học sinh vào lớp thành công",
     )
 

@@ -25,6 +25,7 @@ from app.domain.exceptions import (
     NotEnrolledError,
     PermissionDeniedError,
     UserNotFoundError,
+    InvalidRoleError,
 )
 from app.domain.models.class_ import Class, ClassStudent
 from app.domain.models.user import User
@@ -209,7 +210,9 @@ class ClassUseCase:
         if student is None:
             raise UserNotFoundError(f"Không tìm thấy học sinh với ID: {student_id}")
         if student.role != "student":
-            raise UserNotFoundError(
+            # InvalidRoleError chứ không phải UserNotFoundError — user tồn tại
+            # nhưng sai role. Router map cả hai sang 404 (để ẩn việc user tồn tại).
+            raise InvalidRoleError(
                 f"User với ID {student_id} không phải học sinh (role: {student.role})"
             )
 
@@ -221,7 +224,11 @@ class ClassUseCase:
                 "Học sinh này đã được thêm vào lớp học"
             )
 
-        return await self._repo.add_student(class_id, student_id)
+        enrollment = await self._repo.add_student(class_id, student_id)
+        # Gán student vào enrollment.student để router có thể populate username/email
+        # mà không cần extra DB query — student đã được load trong bước validate ở trên.
+        enrollment.student = student
+        return enrollment
 
     async def remove_student(
         self,

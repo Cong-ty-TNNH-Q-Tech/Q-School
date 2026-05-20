@@ -55,6 +55,17 @@ class PermissionDeniedError(DomainException):
     pass
 
 
+class InvalidRoleError(DomainException):
+    """
+    User tồn tại nhưng không có role phù hợp với thao tác.
+    VD: Enroll một teacher vào lớp với tư cách 'student'.
+
+    Security note: Router map exception này sang 404 (không phải 422/403)
+    để không lộ thông tin user tồn tại nhưng sai role (security by obscurity).
+    """
+    pass
+
+
 # ──────────────────────────────────────────────
 # Content (Lesson / Quiz)
 # ──────────────────────────────────────────────

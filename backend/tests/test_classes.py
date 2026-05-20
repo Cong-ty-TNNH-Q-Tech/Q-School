@@ -344,6 +344,9 @@ async def test_enroll_student_success(
     assert response.status_code == 201
     data = response.json()["data"]
     assert data["student_id"] == str(student.id)
+    # UseCase gán enrollment.student sau add_student() → username/email phải có giá trị
+    assert data["username"] == student.username
+    assert data["email"] == student.email
 
 
 async def test_enroll_student_duplicate(
