@@ -12,6 +12,14 @@ from app.entrypoints.api_v1.schemas.auth import (
     UserOut,
     LoginResponse,
 )
+from app.entrypoints.api_v1.schemas.class_ import (
+    CreateClassRequest,
+    UpdateClassRequest,
+    EnrollStudentRequest,
+    ClassOut,
+    ClassDetailOut,
+    ClassStudentOut,
+)
 
 __all__ = [
     # Base
@@ -25,4 +33,11 @@ __all__ = [
     "ProfileOut",
     "UserOut",
     "LoginResponse",
+    # Class
+    "CreateClassRequest",
+    "UpdateClassRequest",
+    "EnrollStudentRequest",
+    "ClassOut",
+    "ClassDetailOut",
+    "ClassStudentOut",
 ]
