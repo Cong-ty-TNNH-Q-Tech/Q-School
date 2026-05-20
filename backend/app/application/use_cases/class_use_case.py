@@ -191,7 +191,8 @@ class ClassUseCase:
 
         Raises:
             ClassNotFoundError: Không tìm thấy lớp.
-            UserNotFoundError: student_id không tồn tại hoặc không có role 'student'.
+            UserNotFoundError: student_id không tồn tại (hoặc đã bị soft-delete).
+            InvalidRoleError: User tồn tại nhưng không có role 'student'.
             PermissionDeniedError: Teacher không có quyền thêm vào lớp người khác.
             StudentAlreadyEnrolledError: Học sinh đã có trong lớp.
         """

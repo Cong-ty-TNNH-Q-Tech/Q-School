@@ -44,7 +44,9 @@ class CreateClassRequest(BaseModel):
     def subject_valid(cls, v: str | None) -> str | None:
         if v is not None and len(v.strip()) > 100:
             raise ValueError("subject không được vượt quá 100 ký tự")
-        return v.strip() if v else None
+        # Dùng `or None` để whitespace-only input ("   ") trả None thay vì ""
+        # Giống grade_level_valid — nhất quán hóa pattern.
+        return v.strip() or None if v is not None else None
 
 
 class UpdateClassRequest(BaseModel):
@@ -79,7 +81,9 @@ class UpdateClassRequest(BaseModel):
     def subject_valid(cls, v: str | None) -> str | None:
         if v is not None and len(v.strip()) > 100:
             raise ValueError("subject không được vượt quá 100 ký tự")
-        return v.strip() if v else None
+        # Dùng `or None` để whitespace-only input ("   ") trả None thay vì ""
+        # Giống grade_level_valid — nhất quán hóa pattern.
+        return v.strip() or None if v is not None else None
 
     @model_validator(mode="after")
     def at_least_one_field(self) -> "UpdateClassRequest":
