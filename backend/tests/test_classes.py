@@ -475,3 +475,52 @@ async def test_remove_student_not_enrolled(
         headers=_auth_headers(teacher),
     )
     assert response.status_code == 404
+
+
+# ──────────────────────────────────────────────
+# Test: Student Validation (role + existence)
+# ──────────────────────────────────────────────
+@pytest.mark.asyncio
+async def test_enroll_nonexistent_student(
+    client: AsyncClient,
+    teacher: User,
+):
+    """Enroll student_id không tồn tại trong DB → 404 (không được là 500 FK error)."""
+    create_resp = await client.post(
+        "/api/v1/classes",
+        json={"name": "Lớp Validate Test"},
+        headers=_auth_headers(teacher),
+    )
+    class_id = create_resp.json()["data"]["id"]
+
+    fake_student_id = str(uuid.uuid4())
+    response = await client.post(
+        f"/api/v1/classes/{class_id}/students",
+        json={"student_id": fake_student_id},
+        headers=_auth_headers(teacher),
+    )
+    # Phải là 404, KHÔNG phải 500 (FK IntegrityError)
+    assert response.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_enroll_teacher_as_student_rejected(
+    client: AsyncClient,
+    teacher: User,
+    other_teacher: User,
+):
+    """Không thể enroll một giáo viên khác vào lớp với tư cách 'học sinh'."""
+    create_resp = await client.post(
+        "/api/v1/classes",
+        json={"name": "Lớp Role Check Test"},
+        headers=_auth_headers(teacher),
+    )
+    class_id = create_resp.json()["data"]["id"]
+
+    response = await client.post(
+        f"/api/v1/classes/{class_id}/students",
+        json={"student_id": str(other_teacher.id)},
+        headers=_auth_headers(teacher),
+    )
+    # Teacher không phải student → 404 (UserNotFoundError)
+    assert response.status_code == 404

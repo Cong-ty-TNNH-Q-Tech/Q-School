@@ -4,8 +4,9 @@ Copy pattern từ AuthUseCase.
 
 Nguyên tắc Use Case trong Hexagonal Architecture:
   - Nhận INPUT từ Router (primitive types hoặc Pydantic models)
-  - Gọi PORT (IClassRepository) để truy cập data — KHÔNG gọi SQLAlchemy trực tiếp
-  - Raise DOMAIN EXCEPTIONS khi business rule vi phạm — KHÔNG raise HTTP exceptions
+  - Gọi PORT (IClassRepository, IUserRepository) để truy cập data
+  - KHÔNG gọi SQLAlchemy trực tiếp, KHÔNG raise HTTP exceptions
+  - Raise DOMAIN EXCEPTIONS khi business rule vi phạm
   - Trả về DOMAIN OBJECTS
 
 Authorization Rules:
@@ -17,11 +18,13 @@ Authorization Rules:
 import uuid
 
 from app.application.ports.outbound.class_repository import IClassRepository
+from app.application.ports.outbound.user_repository import IUserRepository
 from app.domain.exceptions import (
     ClassNotFoundError,
     StudentAlreadyEnrolledError,
     NotEnrolledError,
     PermissionDeniedError,
+    UserNotFoundError,
 )
 from app.domain.models.class_ import Class, ClassStudent
 from app.domain.models.user import User
@@ -30,13 +33,18 @@ from app.domain.models.user import User
 class ClassUseCase:
     """
     Use Case: Xử lý toàn bộ luồng nghiệp vụ Class.
-    Inject IClassRepository qua constructor (Dependency Inversion).
+    Inject IClassRepository + IUserRepository qua constructor (Dependency Inversion).
 
     KHÔNG import FastAPI, KHÔNG import SQLAlchemy, KHÔNG import HTTP exceptions ở đây.
     """
 
-    def __init__(self, class_repo: IClassRepository) -> None:
+    def __init__(
+        self,
+        class_repo: IClassRepository,
+        user_repo: IUserRepository,
+    ) -> None:
         self._repo = class_repo
+        self._user_repo = user_repo
 
     # ──────────────────────────────────────────────
     # Create
@@ -134,11 +142,10 @@ class ClassUseCase:
 
         updated = await self._repo.update(class_, **update_kwargs)
 
-        # Reload với eager loading để tránh MissingGreenlet khi serialize students
-        # BaseRepository.update() chỉ flush+refresh, không eager load relationships
+        # Reload với eager loading để tránh MissingGreenlet khi serialize students.
+        # BaseRepository.update() chỉ flush+refresh, không eager load relationships.
         reloaded = await self._repo.get_by_id(updated.id)
         if reloaded is None:
-            # Không thể xảy ra trong thực tế (vừa update xong), nhưng đảm bảo type safety
             raise ClassNotFoundError(f"Lỗi internal: không thể reload lớp {class_id}")
         return reloaded
 
@@ -183,6 +190,7 @@ class ClassUseCase:
 
         Raises:
             ClassNotFoundError: Không tìm thấy lớp.
+            UserNotFoundError: student_id không tồn tại hoặc không có role 'student'.
             PermissionDeniedError: Teacher không có quyền thêm vào lớp người khác.
             StudentAlreadyEnrolledError: Học sinh đã có trong lớp.
         """
@@ -194,8 +202,18 @@ class ClassUseCase:
         if current_user.role != "admin" and class_.teacher_id != current_user.id:
             raise PermissionDeniedError("Bạn không có quyền thêm học sinh vào lớp này")
 
-        # Kiểm tra học sinh đã tham gia chưa bằng cách dùng dữ liệu đã eager load
-        # get_by_id đã selectinload(Class.students), nên class_.students đã sẵn sàng
+        # Validate student tồn tại và có đúng role "student"
+        # Quan trọng: ngăn FK IntegrityError do add_student với user_id không hợp lệ
+        student = await self._user_repo.get_by_id(student_id)
+        if student is None or student.deleted_at is not None:
+            raise UserNotFoundError(f"Không tìm thấy học sinh với ID: {student_id}")
+        if student.role != "student":
+            raise UserNotFoundError(
+                f"User với ID {student_id} không phải học sinh (role: {student.role})"
+            )
+
+        # Kiểm tra học sinh đã tham gia chưa bằng cách dùng dữ liệu đã eager load.
+        # get_by_id đã selectinload(Class.students), nên class_.students đã sẵn sàng.
         enrolled_ids = {e.student_id for e in class_.students}
         if student_id in enrolled_ids:
             raise StudentAlreadyEnrolledError(

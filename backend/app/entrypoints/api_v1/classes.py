@@ -25,6 +25,7 @@ import uuid
 from fastapi import APIRouter, status
 
 from app.adapters.database.class_repository import ClassSQLAlchemyRepository
+from app.adapters.database.user_repository import UserSQLAlchemyRepository
 from app.application.use_cases.class_use_case import ClassUseCase
 from app.core.dependencies import DbDep, CurrentUserDep, TeacherDep
 from app.core.exceptions import NotFoundException, ConflictException, ForbiddenException
@@ -33,6 +34,7 @@ from app.domain.exceptions import (
     StudentAlreadyEnrolledError,
     NotEnrolledError,
     PermissionDeniedError,
+    UserNotFoundError,
 )
 from app.domain.models.class_ import Class, ClassStudent
 from app.entrypoints.api_v1.schemas import (
@@ -53,11 +55,12 @@ router = APIRouter()
 # ──────────────────────────────────────────────
 def get_class_use_case(db: DbDep) -> ClassUseCase:
     """
-    Factory function tạo ClassUseCase với concrete ClassRepository.
-    Dùng FastAPI Depends để inject vào endpoint.
+    Factory function tạo ClassUseCase với concrete Repositories.
+    Inject cả ClassRepository lẫn UserRepository (cần để validate student).
     """
-    repo = ClassSQLAlchemyRepository(db)
-    return ClassUseCase(repo)
+    class_repo = ClassSQLAlchemyRepository(db)
+    user_repo = UserSQLAlchemyRepository(db)
+    return ClassUseCase(class_repo, user_repo)
 
 
 # ──────────────────────────────────────────────
@@ -298,6 +301,8 @@ async def enroll_student(
             current_user=current_user,
         )
     except ClassNotFoundError as e:
+        raise NotFoundException(str(e))
+    except UserNotFoundError as e:
         raise NotFoundException(str(e))
     except StudentAlreadyEnrolledError as e:
         raise ConflictException(str(e))
