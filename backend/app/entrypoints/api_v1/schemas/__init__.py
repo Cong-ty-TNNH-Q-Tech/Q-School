@@ -12,6 +12,11 @@ from app.entrypoints.api_v1.schemas.auth import (
     UserOut,
     LoginResponse,
 )
+from app.entrypoints.api_v1.schemas.rubric import (
+    CreateRubricRequest,
+    UpdateRubricRequest,
+    RubricOut,
+)
 
 __all__ = [
     # Base
@@ -25,4 +30,8 @@ __all__ = [
     "ProfileOut",
     "UserOut",
     "LoginResponse",
+    # Rubric
+    "CreateRubricRequest",
+    "UpdateRubricRequest",
+    "RubricOut",
 ]

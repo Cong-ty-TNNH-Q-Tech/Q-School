@@ -4,7 +4,7 @@ Outbound Port — Repository Interface cho Quiz, Question, Attempt.
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from app.domain.models.quiz import Quiz, QuizAttempt, EssaySubmission
+from app.domain.models.quiz import Quiz, QuizAttempt, EssaySubmission, Rubric
 
 
 class IQuizRepository(ABC):
@@ -65,3 +65,24 @@ class IEssaySubmissionRepository(ABC):
     async def update_feedback(
         self, submission: EssaySubmission, ai_feedback: dict, score: float
     ) -> EssaySubmission: ...
+
+
+class IRubricRepository(ABC):
+    """Abstract Port: Contract cho Rubric data access."""
+
+    @abstractmethod
+    async def get_by_id(self, rubric_id: UUID) -> Rubric | None: ...
+
+    @abstractmethod
+    async def get_by_teacher(
+        self, teacher_id: UUID, *, limit: int = 100
+    ) -> list[Rubric]: ...
+
+    @abstractmethod
+    async def create(self, teacher_id: UUID, title: str, criteria_matrix: dict) -> Rubric: ...
+
+    @abstractmethod
+    async def update(self, rubric: Rubric, **kwargs) -> Rubric: ...
+
+    @abstractmethod
+    async def soft_delete(self, rubric: Rubric) -> Rubric: ...

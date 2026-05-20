@@ -151,6 +151,57 @@ components:
           description: "Danh sách câu hỏi (Đã ẩn đáp án đúng đối với Học sinh)"
 
     # ----------------------------------------
+    # RUBRIC SCHEMAS
+    # ----------------------------------------
+    RubricResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        teacher_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          example: "Writing Assessment Rubric"
+        criteria_matrix:
+          type: object
+          description: "Ma trận tiêu chí chấm điểm (JSONB)"
+          example:
+            content: { excellent: 5, good: 4, fair: 3, poor: 1 }
+            grammar: { excellent: 5, good: 4, fair: 3, poor: 1 }
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateRubricRequest:
+      type: object
+      required: [title, criteria_matrix]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        criteria_matrix:
+          type: object
+          description: "Ma trận tiêu chí chấm điểm — không được rỗng"
+
+    UpdateRubricRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        criteria_matrix:
+          type: object
+          description: "Ma trận tiêu chí chấm điểm — không được rỗng nếu có"
+
+    # ----------------------------------------
     # REQUEST PAYLOADS
     # ----------------------------------------
     AssignResourceRequest:
@@ -515,6 +566,222 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TooManyRequestsError'
+
+  # ==========================================
+  # GROUP 2B: RUBRICS (Teacher CRUD)
+  # ==========================================
+  /rubrics:
+    post:
+      summary: Tạo Rubric mới
+      tags: [Rubrics]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRubricRequest'
+      responses:
+        '201':
+          description: Tạo thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/RubricResponse'
+                  message:
+                    type: string
+                    example: "Tạo rubric thành công"
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Không phải Teacher/Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    get:
+      summary: Danh sách Rubric của teacher
+      tags: [Rubrics]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RubricResponse'
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Không phải Teacher/Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /rubrics/{rubric_id}:
+    get:
+      summary: Chi tiết Rubric
+      tags: [Rubrics]
+      parameters:
+        - name: rubric_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/RubricResponse'
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy hoặc không phải owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    patch:
+      summary: Cập nhật Rubric
+      tags: [Rubrics]
+      parameters:
+        - name: rubric_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRubricRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/RubricResponse'
+                  message:
+                    type: string
+                    example: "Cập nhật rubric thành công"
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Không phải Teacher/Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy rubric
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    delete:
+      summary: Xóa Rubric (Soft Delete)
+      tags: [Rubrics]
+      parameters:
+        - name: rubric_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Xóa thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    nullable: true
+                  message:
+                    type: string
+                    example: "Xóa rubric thành công"
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Không phải Teacher/Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy rubric
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
 
   # ==========================================
   # GROUP 3: STUDENT TRACKING (Quizzes & Submissions)
