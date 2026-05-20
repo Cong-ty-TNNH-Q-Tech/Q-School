@@ -544,6 +544,10 @@ paths:
                     $ref: '#/components/schemas/ClassDetailResponse'
         '401':
           description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
         '404':
           description: Không tìm thấy lớp
           content:
@@ -600,6 +604,10 @@ paths:
                     example: "Cập nhật lớp học thành công"
         '403':
           description: Không có quyền (không phải chủ lớp)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
         '404':
           description: Không tìm thấy lớp
     delete:
@@ -631,6 +639,10 @@ paths:
                     example: "Xóa lớp học thành công"
         '403':
           description: Không có quyền
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
         '404':
           description: Không tìm thấy lớp
 
@@ -674,6 +686,10 @@ paths:
                     $ref: '#/components/schemas/ClassStudentResponse'
         '404':
           description: Không tìm thấy lớp hoặc học sinh không tồn tại
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
         '409':
           description: Học sinh đã có trong lớp
           content:
@@ -744,6 +760,10 @@ paths:
                     example: "Xóa học sinh khỏi lớp thành công"
         '404':
           description: Không tìm thấy lớp hoặc học sinh chưa trong lớp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
 
   /classes/{class_id}/assignments:
     get:

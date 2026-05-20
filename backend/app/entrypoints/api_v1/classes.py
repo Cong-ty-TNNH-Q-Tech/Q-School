@@ -194,7 +194,7 @@ async def list_my_classes(
 )
 async def get_class(
     class_id: uuid.UUID,
-    current_user: CurrentUserDep,
+    _current_user: CurrentUserDep,
     db: DbDep,
 ) -> ApiResponse[ClassDetailOut]:
     """
@@ -365,7 +365,7 @@ async def remove_student(
 )
 async def list_students(
     class_id: uuid.UUID,
-    current_user: CurrentUserDep,
+    _current_user: CurrentUserDep,
     db: DbDep,
 ) -> ApiResponse[list[ClassStudentOut]]:
     """

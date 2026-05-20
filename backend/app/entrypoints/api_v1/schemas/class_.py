@@ -32,9 +32,12 @@ class CreateClassRequest(BaseModel):
     @field_validator("grade_level")
     @classmethod
     def grade_level_valid(cls, v: str | None) -> str | None:
-        if v is not None and len(v.strip()) > 20:
+        if v is None:
+            return None
+        v = v.strip()
+        if len(v) > 20:
             raise ValueError("grade_level không được vượt quá 20 ký tự")
-        return v.strip() if v else None
+        return v or None
 
     @field_validator("subject")
     @classmethod
@@ -64,9 +67,12 @@ class UpdateClassRequest(BaseModel):
     @field_validator("grade_level")
     @classmethod
     def grade_level_valid(cls, v: str | None) -> str | None:
-        if v is not None and len(v.strip()) > 20:
+        if v is None:
+            return None
+        v = v.strip()
+        if len(v) > 20:
             raise ValueError("grade_level không được vượt quá 20 ký tự")
-        return v.strip() if v else None
+        return v or None
 
     @field_validator("subject")
     @classmethod
@@ -77,8 +83,8 @@ class UpdateClassRequest(BaseModel):
 
     @model_validator(mode="after")
     def at_least_one_field(self) -> "UpdateClassRequest":
-        """Đảm bảo PATCH request không gửi body rỗng (tất cả fields đều None)."""
-        if self.name is None and self.grade_level is None and self.subject is None:
+        """Đảm bảo PATCH request có ít nhất một field được gửi trong body."""
+        if not self.model_fields_set:
             raise ValueError(
                 "Phải cung cấp ít nhất một trường cần cập nhật (name, grade_level, hoặc subject)"
             )
