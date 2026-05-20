@@ -12,11 +12,13 @@ Implement đầy đủ:
 import uuid
 
 from sqlalchemy import select, delete
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adapters.database.base import BaseRepository
 from app.application.ports.outbound.class_repository import IClassRepository
+from app.domain.exceptions import StudentAlreadyEnrolledError
 from app.domain.models.class_ import Class, ClassStudent
 
 
@@ -106,13 +108,23 @@ class ClassSQLAlchemyRepository(BaseRepository[Class], IClassRepository):
         """
         Thêm học sinh vào lớp.
         Caller phải kiểm tra StudentAlreadyEnrolledError trước khi gọi.
+
+        Race condition guard: Nếu hai request concurrent cùng vượt qua kiểm tra
+        in-memory trong UseCase và cùng insert, PK (class_id, student_id) sẽ
+        raise IntegrityError. Bắt ở đây và chuyển thành domain exception.
         """
         enrollment = ClassStudent(
             class_id=class_id,
             student_id=student_id,
         )
         self.db.add(enrollment)
-        await self.db.flush()
+        try:
+            await self.db.flush()
+        except IntegrityError:
+            await self.db.rollback()
+            raise StudentAlreadyEnrolledError(
+                "Học sinh này đã được thêm vào lớp học (concurrent request)"
+            )
         await self.db.refresh(enrollment)
         return enrollment
 

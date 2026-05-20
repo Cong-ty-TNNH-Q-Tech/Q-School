@@ -203,9 +203,10 @@ class ClassUseCase:
             raise PermissionDeniedError("Bạn không có quyền thêm học sinh vào lớp này")
 
         # Validate student tồn tại và có đúng role "student"
-        # Quan trọng: ngăn FK IntegrityError do add_student với user_id không hợp lệ
+        # UserSQLAlchemyRepository.get_by_id đã filter deleted_at IS NULL,
+        # nên None kết quả đồng nghĩa với user không tồn tại hoặc đã bị xóa.
         student = await self._user_repo.get_by_id(student_id)
-        if student is None or student.deleted_at is not None:
+        if student is None:
             raise UserNotFoundError(f"Không tìm thấy học sinh với ID: {student_id}")
         if student.role != "student":
             raise UserNotFoundError(

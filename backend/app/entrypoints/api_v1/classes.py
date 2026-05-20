@@ -313,6 +313,10 @@ async def enroll_student(
         data=ClassStudentOut(
             student_id=enrollment.student_id,
             joined_at=enrollment.joined_at,
+            # NOTE: ClassStudent.student chưa được eager load sau add_student().
+            # Reload class để lấy username/email, hoặc dùng nullable defaults.
+            # Tránh MissingGreenlet bằng cách KHÔNG truy cập enrollment.student.
+            # username/email = None là valid theo spec (nullable: true).
         ),
         message="Thêm học sinh vào lớp thành công",
     )

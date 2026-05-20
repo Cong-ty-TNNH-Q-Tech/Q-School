@@ -524,3 +524,75 @@ async def test_enroll_teacher_as_student_rejected(
     )
     # Teacher không phải student → 404 (UserNotFoundError)
     assert response.status_code == 404
+
+
+# ──────────────────────────────────────────────
+# Test: Edge Cases
+# ──────────────────────────────────────────────
+@pytest.mark.asyncio
+async def test_update_class_empty_body(client: AsyncClient, teacher: User):
+    """PATCH với body rỗng (tất cả None) → 422 Validation Error."""
+    create_resp = await client.post(
+        "/api/v1/classes",
+        json={"name": "Lớp Test Empty PATCH"},
+        headers=_auth_headers(teacher),
+    )
+    class_id = create_resp.json()["data"]["id"]
+
+    response = await client.patch(
+        f"/api/v1/classes/{class_id}",
+        json={},
+        headers=_auth_headers(teacher),
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_student_can_get_class_detail(
+    client: AsyncClient,
+    teacher: User,
+    student: User,
+):
+    """Student (CurrentUserDep) có thể xem chi tiết lớp học."""
+    create_resp = await client.post(
+        "/api/v1/classes",
+        json={"name": "Lớp Student Xem"},
+        headers=_auth_headers(teacher),
+    )
+    class_id = create_resp.json()["data"]["id"]
+
+    response = await client.get(
+        f"/api/v1/classes/{class_id}",
+        headers=_auth_headers(student),
+    )
+    assert response.status_code == 200
+    assert response.json()["data"]["id"] == class_id
+
+
+@pytest.mark.asyncio
+async def test_enroll_student_count_increments(
+    client: AsyncClient,
+    teacher: User,
+    student: User,
+):
+    """student_count trong GET /classes/{id}/students phản ánh đúng số học sinh."""
+    create_resp = await client.post(
+        "/api/v1/classes",
+        json={"name": "Lớp Count Test"},
+        headers=_auth_headers(teacher),
+    )
+    class_id = create_resp.json()["data"]["id"]
+    assert create_resp.json()["data"]["student_count"] == 0
+
+    await client.post(
+        f"/api/v1/classes/{class_id}/students",
+        json={"student_id": str(student.id)},
+        headers=_auth_headers(teacher),
+    )
+
+    detail_resp = await client.get(
+        f"/api/v1/classes/{class_id}",
+        headers=_auth_headers(teacher),
+    )
+    assert detail_resp.json()["data"]["student_count"] == 1
+    assert len(detail_resp.json()["data"]["students"]) == 1

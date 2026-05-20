@@ -7,7 +7,7 @@ NOTE: Dùng model_validate() (Pydantic v2) thay vì from_orm() (deprecated).
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, model_validator
 
 
 # ──────────────────────────────────────────────
@@ -74,6 +74,15 @@ class UpdateClassRequest(BaseModel):
         if v is not None and len(v.strip()) > 100:
             raise ValueError("subject không được vượt quá 100 ký tự")
         return v.strip() if v else None
+
+    @model_validator(mode="after")
+    def at_least_one_field(self) -> "UpdateClassRequest":
+        """Đảm bảo PATCH request không gửi body rỗng (tất cả fields đều None)."""
+        if self.name is None and self.grade_level is None and self.subject is None:
+            raise ValueError(
+                "Phải cung cấp ít nhất một trường cần cập nhật (name, grade_level, hoặc subject)"
+            )
+        return self
 
 
 class EnrollStudentRequest(BaseModel):
