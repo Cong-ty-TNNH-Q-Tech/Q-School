@@ -37,8 +37,12 @@ class ClassSQLAlchemyRepository(BaseRepository[Class], IClassRepository):
     # ──────────────────────────────────────────────
     async def get_by_id(self, class_id: uuid.UUID) -> Class | None:
         """
-        Lấy Class theo ID.
-        Eager load students (ClassStudent) và teacher (User) để tránh N+1.
+        Lấy Class theo ID, eager load students + teacher để tránh N+1.
+
+        DRY note: deleted_at filter được viết lại ở đây (không gọi super()) vì cần
+        thêm selectinload vào cùng một SELECT statement. SQLAlchemy không cho phép
+        thêm options() sau khi query đã cấu hình bởi super(). Đây là trade-off cố
+        ý được document rõ ràng.
         """
         stmt = (
             select(Class)
@@ -48,7 +52,7 @@ class ClassSQLAlchemyRepository(BaseRepository[Class], IClassRepository):
             )
             .where(
                 Class.id == class_id,
-                Class.deleted_at.is_(None),
+                Class.deleted_at.is_(None),  # duplicate từ BaseRepository.get_by_id
             )
         )
         result = await self.db.execute(stmt)
@@ -147,11 +151,21 @@ class ClassSQLAlchemyRepository(BaseRepository[Class], IClassRepository):
         await self.db.execute(stmt)
         await self.db.flush()
 
+    # ──────────────────────────────────────────────
+    # Extra helper (ngoài IClassRepository interface)
+    # ──────────────────────────────────────────────
     async def get_students(self, class_id: uuid.UUID) -> list[ClassStudent]:
         """
         Lấy danh sách học sinh của một lớp.
-        Eager load User để có username, email.
-        Sắp xếp theo joined_at ASC.
+        Eager load User để có username, email. Sắp xếp theo joined_at ASC.
+
+        ISP note: Method này KHÔNG nằm trong IClassRepository vì ClassUseCase
+        dùng class_.students đã eager-loaded từ get_by_id(), không cần extra query.
+        Giữ lại ở đây cho future use cases có thể cần.
+
+        SRP note: is_student_enrolled() đã bị xóa — logic kiểm tra duplicate
+        được thực hiện in-memory trong UseCase (dùng enrolled_ids set từ eager load),
+        hiệu quả hơn một round-trip DB bổ sung.
         """
         stmt = (
             select(ClassStudent)
@@ -161,19 +175,3 @@ class ClassSQLAlchemyRepository(BaseRepository[Class], IClassRepository):
         )
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
-
-    # ──────────────────────────────────────────────
-    # Extra helper queries
-    # ──────────────────────────────────────────────
-    async def is_student_enrolled(
-        self,
-        class_id: uuid.UUID,
-        student_id: uuid.UUID,
-    ) -> bool:
-        """Kiểm tra học sinh đã tham gia lớp này chưa."""
-        stmt = select(ClassStudent.student_id).where(
-            ClassStudent.class_id == class_id,
-            ClassStudent.student_id == student_id,
-        )
-        result = await self.db.execute(stmt)
-        return result.scalar_one_or_none() is not None
