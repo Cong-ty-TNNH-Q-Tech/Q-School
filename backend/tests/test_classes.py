@@ -505,7 +505,7 @@ async def test_enroll_teacher_as_student_rejected(
         json={"student_id": str(other_teacher.id)},
         headers=_auth_headers(teacher),
     )
-    # Teacher không phải student → 404 (UserNotFoundError)
+    # Teacher không phải student → 404 (InvalidRoleError — mapped to 404 for security)
     assert response.status_code == 404
 
 
@@ -528,6 +528,30 @@ async def test_update_class_empty_body(client: AsyncClient, teacher: User):
     )
     assert response.status_code == 422
 
+
+
+
+async def test_update_class_all_null_fields(client: AsyncClient, teacher: User):
+    """PATCH voi tat ca field = null -> 422 (bug regression guard).
+
+    PR commit 6d6addb doi validator sang:
+        if not self.model_fields_set: ...
+    Khien {"name": null} pass qua vi model_fields_set = {"name"} != empty.
+    Test nay dam bao {"name": null} van bi 422.
+    """
+    create_resp = await client.post(
+        "/api/v1/classes",
+        json={"name": "Lop Test Null Fields"},
+        headers=_auth_headers(teacher),
+    )
+    class_id = create_resp.json()["data"]["id"]
+
+    response = await client.patch(
+        f"/api/v1/classes/{class_id}",
+        json={"name": None},
+        headers=_auth_headers(teacher),
+    )
+    assert response.status_code == 422
 
 async def test_student_can_get_class_detail(
     client: AsyncClient,

@@ -83,8 +83,21 @@ class UpdateClassRequest(BaseModel):
 
     @model_validator(mode="after")
     def at_least_one_field(self) -> "UpdateClassRequest":
-        """Đảm bảo PATCH request có ít nhất một field được gửi trong body."""
-        if not self.model_fields_set:
+        """
+        Đảm bảo PATCH request có ít nhất một field cập nhật có ý nghĩa.
+
+        Hai trường hợp cần reject:
+          1. Body rỗng hoàn toàn: {} → model_fields_set = set()
+          2. Tất cả field gửi lên đều là null: {"name": null} →
+             model_fields_set = {"name"} nhưng sau validation name = None.
+
+        Dùng model_fields_set (check case 1) VÀ all-None (check case 2).
+        Chỉ dùng model_fields_set là SAI — {"name": null} sẽ pass qua.
+        Chỉ dùng all-None là đủ, nhưng gộp cả hai để rõ intent.
+        """
+        if not self.model_fields_set or (
+            self.name is None and self.grade_level is None and self.subject is None
+        ):
             raise ValueError(
                 "Phải cung cấp ít nhất một trường cần cập nhật (name, grade_level, hoặc subject)"
             )
