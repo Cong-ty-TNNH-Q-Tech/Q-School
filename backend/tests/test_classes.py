@@ -88,7 +88,6 @@ async def student(db_session: AsyncSession) -> User:
 # ──────────────────────────────────────────────
 # Test: Create Class
 # ──────────────────────────────────────────────
-@pytest.mark.asyncio
 async def test_create_class_success(client: AsyncClient, teacher: User):
     """Teacher tạo lớp học thành công."""
     response = await client.post(
@@ -110,7 +109,6 @@ async def test_create_class_success(client: AsyncClient, teacher: User):
     assert data["data"]["student_count"] == 0
 
 
-@pytest.mark.asyncio
 async def test_create_class_minimal(client: AsyncClient, teacher: User):
     """Tạo lớp với chỉ tên (grade_level, subject optional)."""
     response = await client.post(
@@ -125,7 +123,6 @@ async def test_create_class_minimal(client: AsyncClient, teacher: User):
     assert data["subject"] is None
 
 
-@pytest.mark.asyncio
 async def test_create_class_unauthorized(client: AsyncClient, student: User):
     """Student không được tạo lớp (403 Forbidden)."""
     response = await client.post(
@@ -136,7 +133,6 @@ async def test_create_class_unauthorized(client: AsyncClient, student: User):
     assert response.status_code == 403
 
 
-@pytest.mark.asyncio
 async def test_create_class_no_auth(client: AsyncClient):
     """Không có token → 401."""
     response = await client.post(
@@ -146,7 +142,6 @@ async def test_create_class_no_auth(client: AsyncClient):
     assert response.status_code == 401
 
 
-@pytest.mark.asyncio
 async def test_create_class_empty_name(client: AsyncClient, teacher: User):
     """Tên lớp trống → 422 Validation Error."""
     response = await client.post(
@@ -160,7 +155,6 @@ async def test_create_class_empty_name(client: AsyncClient, teacher: User):
 # ──────────────────────────────────────────────
 # Test: List Classes
 # ──────────────────────────────────────────────
-@pytest.mark.asyncio
 async def test_list_classes_empty(client: AsyncClient, teacher: User):
     """Teacher chưa có lớp nào → trả về list rỗng."""
     response = await client.get(
@@ -172,7 +166,6 @@ async def test_list_classes_empty(client: AsyncClient, teacher: User):
     assert data["data"] == []
 
 
-@pytest.mark.asyncio
 async def test_list_classes_returns_own_classes(
     client: AsyncClient,
     teacher: User,
@@ -205,7 +198,6 @@ async def test_list_classes_returns_own_classes(
 # ──────────────────────────────────────────────
 # Test: Get Class Detail
 # ──────────────────────────────────────────────
-@pytest.mark.asyncio
 async def test_get_class_detail(client: AsyncClient, teacher: User):
     """Lấy chi tiết lớp học."""
     create_resp = await client.post(
@@ -226,7 +218,6 @@ async def test_get_class_detail(client: AsyncClient, teacher: User):
     assert data["students"] == []
 
 
-@pytest.mark.asyncio
 async def test_get_class_not_found(client: AsyncClient, teacher: User):
     """Lớp không tồn tại → 404."""
     fake_id = str(uuid.uuid4())
@@ -240,7 +231,6 @@ async def test_get_class_not_found(client: AsyncClient, teacher: User):
 # ──────────────────────────────────────────────
 # Test: Update Class
 # ──────────────────────────────────────────────
-@pytest.mark.asyncio
 async def test_update_class_success(client: AsyncClient, teacher: User):
     """Teacher cập nhật lớp của mình thành công."""
     create_resp = await client.post(
@@ -261,7 +251,6 @@ async def test_update_class_success(client: AsyncClient, teacher: User):
     assert data["subject"] == "Hóa"
 
 
-@pytest.mark.asyncio
 async def test_update_class_forbidden(
     client: AsyncClient,
     teacher: User,
@@ -288,7 +277,6 @@ async def test_update_class_forbidden(
 # ──────────────────────────────────────────────
 # Test: Delete Class
 # ──────────────────────────────────────────────
-@pytest.mark.asyncio
 async def test_delete_class_success(client: AsyncClient, teacher: User):
     """Teacher soft delete lớp của mình."""
     create_resp = await client.post(
@@ -312,7 +300,6 @@ async def test_delete_class_success(client: AsyncClient, teacher: User):
     assert get_resp.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_delete_class_forbidden(
     client: AsyncClient,
     teacher: User,
@@ -336,7 +323,6 @@ async def test_delete_class_forbidden(
 # ──────────────────────────────────────────────
 # Test: Student Enrollment
 # ──────────────────────────────────────────────
-@pytest.mark.asyncio
 async def test_enroll_student_success(
     client: AsyncClient,
     teacher: User,
@@ -360,7 +346,6 @@ async def test_enroll_student_success(
     assert data["student_id"] == str(student.id)
 
 
-@pytest.mark.asyncio
 async def test_enroll_student_duplicate(
     client: AsyncClient,
     teacher: User,
@@ -390,7 +375,6 @@ async def test_enroll_student_duplicate(
     assert response.status_code == 409
 
 
-@pytest.mark.asyncio
 async def test_list_students(
     client: AsyncClient,
     teacher: User,
@@ -420,7 +404,6 @@ async def test_list_students(
     assert students[0]["student_id"] == str(student.id)
 
 
-@pytest.mark.asyncio
 async def test_remove_student_success(
     client: AsyncClient,
     teacher: User,
@@ -456,7 +439,6 @@ async def test_remove_student_success(
     assert list_resp.json()["data"] == []
 
 
-@pytest.mark.asyncio
 async def test_remove_student_not_enrolled(
     client: AsyncClient,
     teacher: User,
@@ -480,7 +462,6 @@ async def test_remove_student_not_enrolled(
 # ──────────────────────────────────────────────
 # Test: Student Validation (role + existence)
 # ──────────────────────────────────────────────
-@pytest.mark.asyncio
 async def test_enroll_nonexistent_student(
     client: AsyncClient,
     teacher: User,
@@ -503,7 +484,6 @@ async def test_enroll_nonexistent_student(
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_enroll_teacher_as_student_rejected(
     client: AsyncClient,
     teacher: User,
@@ -529,7 +509,6 @@ async def test_enroll_teacher_as_student_rejected(
 # ──────────────────────────────────────────────
 # Test: Edge Cases
 # ──────────────────────────────────────────────
-@pytest.mark.asyncio
 async def test_update_class_empty_body(client: AsyncClient, teacher: User):
     """PATCH với body rỗng (tất cả None) → 422 Validation Error."""
     create_resp = await client.post(
@@ -547,7 +526,6 @@ async def test_update_class_empty_body(client: AsyncClient, teacher: User):
     assert response.status_code == 422
 
 
-@pytest.mark.asyncio
 async def test_student_can_get_class_detail(
     client: AsyncClient,
     teacher: User,
@@ -569,7 +547,6 @@ async def test_student_can_get_class_detail(
     assert response.json()["data"]["id"] == class_id
 
 
-@pytest.mark.asyncio
 async def test_enroll_student_count_increments(
     client: AsyncClient,
     teacher: User,

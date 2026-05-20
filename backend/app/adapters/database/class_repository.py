@@ -111,7 +111,8 @@ class ClassSQLAlchemyRepository(BaseRepository[Class], IClassRepository):
 
         Race condition guard: Nếu hai request concurrent cùng vượt qua kiểm tra
         in-memory trong UseCase và cùng insert, PK (class_id, student_id) sẽ
-        raise IntegrityError. Bắt ở đây và chuyển thành domain exception.
+        raise IntegrityError. Bắt trong SAVEPOINT để không rollback toàn bộ
+        transaction bao ngoài (quan trọng cho cả production lẫn test isolation).
         """
         enrollment = ClassStudent(
             class_id=class_id,
@@ -119,9 +120,11 @@ class ClassSQLAlchemyRepository(BaseRepository[Class], IClassRepository):
         )
         self.db.add(enrollment)
         try:
-            await self.db.flush()
+            # begin_nested() tạo SAVEPOINT riêng — chỉ rollback phần insert này
+            # nếu PK violation, không ảnh hưởng transaction bao ngoài.
+            async with self.db.begin_nested():
+                await self.db.flush()
         except IntegrityError:
-            await self.db.rollback()
             raise StudentAlreadyEnrolledError(
                 "Học sinh này đã được thêm vào lớp học (concurrent request)"
             )

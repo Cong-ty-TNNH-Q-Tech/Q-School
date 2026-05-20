@@ -56,14 +56,7 @@ import pytest
 import asyncio
 
 
-@pytest.fixture(scope="session")
-def event_loop_policy():
-    """Đặt asyncio event loop policy chuẩn."""
-    import asyncio
-    return asyncio.DefaultEventLoopPolicy()
-
-
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def setup_schema():
     """Tạo schema 1 lần/session, drop khi xong. Dùng engine riêng."""
     engine = create_async_engine(TEST_DATABASE_URL, poolclass=NullPool, echo=False)
