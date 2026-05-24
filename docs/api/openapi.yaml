@@ -63,19 +63,6 @@ components:
           type: integer
           example: 4020
           
-    PaymentRequiredError:
-      type: object
-      properties:
-        status:
-          type: string
-          example: error
-        message:
-          type: string
-          example: "Payment required. Please upgrade your subscription plan."
-        error_code:
-          type: integer
-          example: 4020
-          
     PaginationMeta:
       type: object
       properties:
@@ -116,6 +103,62 @@ components:
           type: string
         points:
           type: integer
+
+    ClassStudentResponse:
+      type: object
+      description: "Thông tin học sinh trong lớp (từ bảng class_students)"
+      properties:
+        student_id:
+          type: string
+          format: uuid
+        joined_at:
+          type: string
+          format: date-time
+        username:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+
+    ClassResponse:
+      type: object
+      description: "Thông tin lớp học cơ bản"
+      properties:
+        id:
+          type: string
+          format: uuid
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        grade_level:
+          type: string
+          nullable: true
+        subject:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        student_count:
+          type: integer
+          example: 0
+
+    ClassDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ClassResponse'
+        - type: object
+          properties:
+            students:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClassStudentResponse'
 
     ClassAssignmentResponse:
       type: object
@@ -296,11 +339,17 @@ components:
     CursorParam:
       name: cursor
       in: query
-      description: ID của phần tử cuối cùng để tải trang tiếp theo (tránh dùng page cho dữ liệu lớn)
+      description: |
+        ISO 8601 datetime string của `created_at` của record cuối cùng đã tải.
+        Ví dụ: `2024-01-15T10:30:00.123456+00:00`
+        
+        **KHÔNG dùng UUID làm cursor** — UUID v4 là random, không sortable theo thời gian.
+        BaseRepository.cursor_paginate() sử dụng `created_at` để phân trang ổn định.
       required: false
       schema:
         type: string
-        format: uuid
+        format: date-time
+        example: "2024-01-15T10:30:00.123456+00:00"
 
 security:
   - bearerAuth: []
@@ -438,12 +487,73 @@ paths:
   # GROUP 2: EDTECH CORE (Teacher Operations)
   # ==========================================
   /classes:
-    get:
-      summary: Lấy danh sách Lớp học (Có phân trang)
+    post:
+      summary: Tạo lớp học mới
       tags: [Classes]
-      parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/LimitParam'
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  example: "Lớp Toán 10A"
+                grade_level:
+                  type: string
+                  maxLength: 20
+                  example: "10"
+                  nullable: true
+                subject:
+                  type: string
+                  maxLength: 100
+                  example: "Toán"
+                  nullable: true
+      responses:
+        '201':
+          description: Tạo lớp thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/ClassResponse'
+                  message:
+                    type: string
+                    example: "Tạo lớp học thành công"
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Không có quyền (chỉ Teacher/Admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    get:
+      summary: Lấy danh sách Lớp học của giáo viên
+      description: "Giáo viên chỉ xem được lớp do mình tạo. Admin xem lớp của mình."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
       responses:
         '200':
           description: OK
@@ -458,15 +568,256 @@ paths:
                   data:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        name:
-                          type: string
-                  meta:
-                    $ref: '#/components/schemas/PaginationMeta'
+                      $ref: '#/components/schemas/ClassResponse'
+
+  /classes/{class_id}:
+    get:
+      summary: Chi tiết lớp học (bao gồm danh sách học sinh)
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/ClassDetailResponse'
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy lớp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    patch:
+      summary: Cập nhật thông tin lớp học (Partial Update)
+      description: "Teacher chỉ được sửa lớp do mình tạo. Admin bypass."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  nullable: true
+                grade_level:
+                  type: string
+                  maxLength: 20
+                  nullable: true
+                subject:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+      responses:
+        '200':
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/ClassResponse'
+                  message:
+                    type: string
+                    example: "Cập nhật lớp học thành công"
+        '403':
+          description: Không có quyền (không phải chủ lớp)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy lớp
+    delete:
+      summary: Xóa lớp học (Soft Delete)
+      description: "Teacher chỉ được xóa lớp do mình tạo. Admin bypass. Dữ liệu được soft-deleted, không xóa cứng."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Xóa thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Xóa lớp học thành công"
+        '403':
+          description: Không có quyền
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy lớp
+
+  /classes/{class_id}/students:
+    post:
+      summary: Thêm học sinh vào lớp
+      description: "Teacher chỉ được thêm vào lớp của mình. Student phải tồn tại và có role='student'."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id]
+              properties:
+                student_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Thêm học sinh thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/ClassStudentResponse'
+        '404':
+          description: Không tìm thấy lớp hoặc học sinh không tồn tại
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '409':
+          description: Học sinh đã có trong lớp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    get:
+      summary: Lấy danh sách học sinh trong lớp
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassStudentResponse'
+
+  /classes/{class_id}/students/{student_id}:
+    delete:
+      summary: Xóa học sinh khỏi lớp
+      description: "Teacher chỉ được xóa khỏi lớp của mình. Admin bypass."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Xóa thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Xóa học sinh khỏi lớp thành công"
+        '404':
+          description: Không tìm thấy lớp hoặc học sinh chưa trong lớp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
 
   /classes/{class_id}/assignments:
     get:

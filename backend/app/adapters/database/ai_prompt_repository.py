@@ -11,7 +11,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.ports.outbound.ai_prompt_repository import AIPromptRepository
-from app.domain.models.ai_prompt import AIPrompt
+from app.domain.models.ai import AIPrompt
 
 
 class SQLAlchemyAIPromptRepository(AIPromptRepository):  # pragma: no cover

@@ -11,7 +11,7 @@ from datetime import datetime
 from fastapi import HTTPException, status
 
 from app.application.ports.outbound.ai_prompt_repository import AIPromptRepository
-from app.domain.models.ai_prompt import AIPrompt
+from app.domain.models.ai import AIPrompt
 
 
 @dataclass

@@ -11,7 +11,7 @@ export default function MainLayout() {
         <div className="font-bold text-xl">Q-School AI</div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
-            {user?.name || 'Guest'}
+            {user?.profile?.full_name || user?.username || 'Guest'}
           </span>
           <button 
             onClick={logout}

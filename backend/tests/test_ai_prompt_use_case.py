@@ -12,7 +12,7 @@ import pytest
 from fastapi import HTTPException
 
 from app.application.use_cases.ai_prompt_use_case import AIPromptDTO, AIPromptUseCase
-from app.domain.models.ai_prompt import AIPrompt
+from app.domain.models.ai import AIPrompt
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 

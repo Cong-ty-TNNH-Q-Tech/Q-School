@@ -123,41 +123,50 @@ class TestSecurity:
     def _make_token(self, payload: dict) -> str:
         from jose import jwt
 
-        return jwt.encode(payload, "change-me-in-production", algorithm="HS256")
+        from app.core.config import settings
 
-    def test_decode_valid_admin_token(self):
+        return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+    def test_decode_valid_access_token(self):
         from datetime import datetime, timedelta, timezone
 
-        from app.core.security import _decode_token
+        from app.core.security import decode_token
 
         token = self._make_token(
             {
                 "sub": "user-1",
                 "role": "admin",
+                "type": "access",
                 "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+                "iat": datetime.now(timezone.utc),
             }
         )
-        payload = _decode_token(token)
+        payload = decode_token(token)
         assert payload["role"] == "admin"
+        assert payload["sub"] == "user-1"
 
-    def test_decode_invalid_token_raises_401(self):
-        from app.core.security import _decode_token
+    def test_decode_invalid_token_raises_jwt_error(self):
+        from jose import JWTError
 
-        with pytest.raises(HTTPException) as exc:
-            _decode_token("invalid.token.here")
-        assert exc.value.status_code == 401
+        from app.core.security import decode_token
 
-    def test_decode_expired_token_raises_401(self):
+        with pytest.raises(JWTError):
+            decode_token("invalid.token.here")
+
+    def test_decode_expired_token_raises_jwt_error(self):
         from datetime import datetime, timedelta, timezone
 
-        from app.core.security import _decode_token
+        from jose import JWTError
+
+        from app.core.security import decode_token
 
         token = self._make_token(
             {
                 "sub": "user-1",
+                "type": "access",
                 "exp": datetime.now(timezone.utc) - timedelta(hours=1),  # expired
+                "iat": datetime.now(timezone.utc) - timedelta(hours=2),
             }
         )
-        with pytest.raises(HTTPException) as exc:
-            _decode_token(token)
-        assert exc.value.status_code == 401
+        with pytest.raises(JWTError):
+            decode_token(token)

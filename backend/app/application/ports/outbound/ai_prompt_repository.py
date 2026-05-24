@@ -7,7 +7,7 @@ Use Case chỉ phụ thuộc vào Port này, không biết gì về SQLAlchemy.
 import uuid
 from abc import ABC, abstractmethod
 
-from app.domain.models.ai_prompt import AIPrompt
+from app.domain.models.ai import AIPrompt
 
 
 class AIPromptRepository(ABC):
