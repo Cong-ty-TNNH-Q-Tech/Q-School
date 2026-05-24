@@ -9,6 +9,7 @@ Cấu trúc implement:
 
 Member: Copy pattern này khi tạo ClassRepository, QuizRepository...
 """
+
 import uuid
 
 from sqlalchemy import select

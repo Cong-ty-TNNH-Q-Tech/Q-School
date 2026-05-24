@@ -2,6 +2,7 @@
 Inbound Port — AI Chat Use Case Interface.
 Router SSE gọi interface này để stream chat response.
 """
+
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from datetime import datetime

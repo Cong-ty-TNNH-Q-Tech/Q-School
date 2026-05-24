@@ -2,6 +2,7 @@
 Security — JWT token handling và password hashing (bcrypt).
 Tuân thủ quy tắc: Access Token 15 phút, Refresh Token 7 ngày.
 """
+
 from datetime import datetime, timedelta, timezone
 from typing import Any, TypedDict
 
@@ -38,16 +39,19 @@ class TokenPayload(TypedDict, total=False):
     Cấu trúc JWT payload — dùng để type hint khi đọc payload từ decode_token().
     total=False để phần lớn field là optional (chỉ 'sub' và 'type' là bắt buộc).
     """
-    sub: str          # user_id (UUID string)
-    type: str         # 'access' | 'refresh'
-    role: str         # 'student' | 'teacher' | 'admin' — chỉ có trong access token
-    exp: int          # Thời gian hết hạn (Unix timestamp)
-    iat: int          # Thời gian tạo (Unix timestamp)
+
+    sub: str  # user_id (UUID string)
+    type: str  # 'access' | 'refresh'
+    role: str  # 'student' | 'teacher' | 'admin' — chỉ có trong access token
+    exp: int  # Thời gian hết hạn (Unix timestamp)
+    iat: int  # Thời gian tạo (Unix timestamp)
 
 
 def _create_token(payload: dict[str, Any], expires_delta: timedelta) -> str:
     """Tạo JWT token với thời gian hết hạn."""
-    now = datetime.now(timezone.utc)  # Gọi 1 lần duy nhất — tránh iat/exp lệch microseconds
+    now = datetime.now(
+        timezone.utc
+    )  # Gọi 1 lần duy nhất — tránh iat/exp lệch microseconds
     to_encode = {**payload, "exp": now + expires_delta, "iat": now}
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 

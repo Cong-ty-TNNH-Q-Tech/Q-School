@@ -2,6 +2,7 @@
 Database — Async SQLAlchemy engine, session factory, và Base declarative model.
 Sử dụng asyncpg driver để đạt hiệu năng tối đa với async/await.
 """
+
 from sqlalchemy.ext.asyncio import (
     AsyncSession,
     async_sessionmaker,
@@ -16,11 +17,11 @@ from app.core.config import settings
 # ──────────────────────────────────────────────
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.DEBUG,          # Log SQL queries khi DEBUG=True
-    pool_pre_ping=True,           # Kiểm tra connection trước khi sử dụng
+    echo=settings.DEBUG,  # Log SQL queries khi DEBUG=True
+    pool_pre_ping=True,  # Kiểm tra connection trước khi sử dụng
     pool_size=10,
     max_overflow=20,
-    pool_recycle=1800,            # Recycle connections sau 30 phút (tránh stale qua load balancer)
+    pool_recycle=1800,  # Recycle connections sau 30 phút (tránh stale qua load balancer)
 )
 
 # ──────────────────────────────────────────────
@@ -29,7 +30,7 @@ engine = create_async_engine(
 AsyncSessionFactory = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
-    expire_on_commit=False,       # Tránh lazy-load sau commit trong async context
+    expire_on_commit=False,  # Tránh lazy-load sau commit trong async context
     autocommit=False,
     autoflush=False,
 )

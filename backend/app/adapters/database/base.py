@@ -12,6 +12,7 @@ ORM UPDATE NOTE (C1):
   Với ORM-style (setattr + flush), updated_at KHÔNG tự cập nhật.
   Fix: BaseRepository.update() luôn set updated_at=now() tường minh.
 """
+
 from datetime import datetime, timezone
 from typing import Generic, TypeVar, Type, Any, Sequence
 import uuid
@@ -166,9 +167,13 @@ class BaseRepository(Generic[ModelType]):
 
         # Order: DESC = mới nhất trước (default), ASC = cũ nhất trước
         if ascending:
-            stmt = stmt.order_by(self.model.created_at.asc(), self.model.id.asc()).limit(limit)
+            stmt = stmt.order_by(
+                self.model.created_at.asc(), self.model.id.asc()
+            ).limit(limit)
         else:
-            stmt = stmt.order_by(self.model.created_at.desc(), self.model.id.desc()).limit(limit)
+            stmt = stmt.order_by(
+                self.model.created_at.desc(), self.model.id.desc()
+            ).limit(limit)
 
         result = await self.db.execute(stmt)
         return result.scalars().all()

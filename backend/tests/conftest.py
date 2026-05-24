@@ -13,6 +13,7 @@ Fix asyncpg "Future attached to a different loop":
   - Bypass production lifespan (DB/Redis health check) bằng noop_lifespan
     để tránh production pool tạo connection ở loop sai
 """
+
 from typing import AsyncGenerator
 from contextlib import asynccontextmanager
 

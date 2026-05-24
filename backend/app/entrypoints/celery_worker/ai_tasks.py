@@ -8,6 +8,7 @@ Pattern chuẩn cho mọi AI Task:
     3. Set AITask.status = 'completed' + lưu result_payload
     4. Nếu lỗi: Set AITask.status = 'failed' + lưu error trong result_payload
 """
+
 import logging
 from celery import Task
 from app.core.celery_app import celery_app
@@ -21,6 +22,7 @@ class AIBaseTask(Task):
     Tự động update AITask.status trong DB khi task thất bại.
     Member implement task cụ thể bằng cách kế thừa class này.
     """
+
     abstract = True
 
     def _update_task_status_sync(
@@ -39,7 +41,9 @@ class AIBaseTask(Task):
                     Truyền vào qua kwargs['ai_task_id'] khi enqueue task.
         """
         if not task_db_id:
-            logger.warning("_update_task_status_sync: không có ai_task_id, bỏ qua DB update")
+            logger.warning(
+                "_update_task_status_sync: không có ai_task_id, bỏ qua DB update"
+            )
             return
 
         try:
@@ -52,6 +56,7 @@ class AIBaseTask(Task):
                 result_payload = None
                 if error_message:
                     import json
+
                     result_payload = json.dumps({"error": error_message})
 
                 conn.execute(
@@ -76,7 +81,10 @@ class AIBaseTask(Task):
         """
         logger.error(
             "AI Task FAILED | celery_task_id=%s | ai_task_id=%s | error=%s",
-            task_id, kwargs.get("ai_task_id"), str(exc), exc_info=einfo
+            task_id,
+            kwargs.get("ai_task_id"),
+            str(exc),
+            exc_info=einfo,
         )
         # Update DB — task bị stuck 'processing' nếu không có dòng này
         self._update_task_status_sync(
@@ -92,7 +100,8 @@ class AIBaseTask(Task):
         """
         logger.info(
             "AI Task SUCCESS | celery_task_id=%s | ai_task_id=%s",
-            task_id, kwargs.get("ai_task_id")
+            task_id,
+            kwargs.get("ai_task_id"),
         )
 
 
@@ -118,7 +127,11 @@ def process_essay_grading(
         5. Parse kết quả AI -> ai_feedback JSONB
         6. Update EssaySubmission.score + AITask.status = 'completed'
     """
-    logger.info("[essay_grading] START submission=%s ai_task_id=%s", essay_submission_id, ai_task_id)
+    logger.info(
+        "[essay_grading] START submission=%s ai_task_id=%s",
+        essay_submission_id,
+        ai_task_id,
+    )
     try:
         # TODO: Implement khi AI pipeline sẵn sàng.
         # QUAN TRọNG: Kiểm tra idempotency trước khi chạy:
@@ -126,7 +139,9 @@ def process_essay_grading(
         #   if result.status == 'completed': return {"status": "already_completed"}
         return {"status": "not_implemented", "task_id": self.request.id}
     except Exception as exc:
-        logger.error("[essay_grading] FAIL submission=%s error=%s", essay_submission_id, exc)
+        logger.error(
+            "[essay_grading] FAIL submission=%s error=%s", essay_submission_id, exc
+        )
         raise self.retry(exc=exc)
 
 

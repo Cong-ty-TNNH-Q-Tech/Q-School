@@ -20,6 +20,7 @@ Authorization Summary:
   - DELETE /classes/{id}/students/{sid}  → TeacherDep (ownership check trong UseCase)
   - GET /classes/{id}/students           → CurrentUserDep
 """
+
 import uuid
 
 from fastapi import APIRouter, status

@@ -2,6 +2,7 @@
 Outbound Port — Storage Service Interface.
 Adapter thực tế ở: adapters/storage/r2_adapter.py (hoặc minio_adapter.py)
 """
+
 from abc import ABC, abstractmethod
 
 

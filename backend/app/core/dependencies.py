@@ -2,6 +2,7 @@
 FastAPI Dependencies — get_db, get_current_user, get_current_teacher, etc.
 Dùng với Depends() trong các Router để inject dependencies.
 """
+
 from typing import AsyncGenerator, Annotated, TYPE_CHECKING
 import uuid
 from datetime import datetime, timezone
@@ -14,7 +15,11 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import AsyncSessionFactory
 from app.core.security import decode_token
-from app.core.exceptions import UnauthorizedException, ForbiddenException, PaymentRequiredException
+from app.core.exceptions import (
+    UnauthorizedException,
+    ForbiddenException,
+    PaymentRequiredException,
+)
 from app.domain.models.billing import UserSubscription
 
 if TYPE_CHECKING:
@@ -130,7 +135,9 @@ AdminDep = Annotated["User", Depends(require_admin)]
 # SaaS Billing Guard (AGENTS.md requirement)
 # Sử dụng cho TấT CẢ AI API routes
 # ──────────────────────────────────────────────
-async def require_active_subscription(current_user: CurrentUserDep, db: DbDep) -> "User":
+async def require_active_subscription(
+    current_user: CurrentUserDep, db: DbDep
+) -> "User":
     """
     Kiểm tra user có subscription đang active hay không.
     Dùng làm dependency cho mọi AI route (Chat, Generate, RAG).
