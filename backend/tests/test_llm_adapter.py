@@ -73,6 +73,7 @@ async def test_stream_chat_success(adapter: VLLMAdapter):
     with patch.object(
         adapter._gen_client.chat.completions,
         "create",
+        new_callable=AsyncMock,
         return_value=_mock_stream_response(mock_chunks),
     ):
         tokens = []
@@ -94,6 +95,7 @@ async def test_stream_chat_empty_response(adapter: VLLMAdapter):
     with patch.object(
         adapter._gen_client.chat.completions,
         "create",
+        new_callable=AsyncMock,
         return_value=empty_stream(),
     ):
         tokens = []
@@ -111,6 +113,7 @@ async def test_stream_chat_custom_model(adapter: VLLMAdapter):
     with patch.object(
         adapter._gen_client.chat.completions,
         "create",
+        new_callable=AsyncMock,
         return_value=_mock_stream_response(["OK"]),
     ) as mock_create:
         async for _ in adapter.stream_chat(
