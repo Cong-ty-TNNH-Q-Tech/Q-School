@@ -294,6 +294,11 @@ class VLLMAdapter(ILLMService):
             raise LLMConnectionError(
                 f"Embedding server timeout sau {self._timeout}s: {e}"
             ) from e
+        except RateLimitError as e:
+            logger.warning("Embedding rate limited: %s", e)
+            raise LLMRateLimitError(
+                f"Embedding server rate limit (429): {e}"
+            ) from e
 
     # ──────────────────────────────────────────────
     # Lifecycle

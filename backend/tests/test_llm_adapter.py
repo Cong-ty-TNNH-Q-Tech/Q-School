@@ -305,6 +305,29 @@ async def test_embed_connection_error(adapter: VLLMAdapter):
             await adapter.embed("Hello world")
 
 
+@pytest.mark.asyncio
+async def test_embed_rate_limit(adapter: VLLMAdapter):
+    """embed raise LLMRateLimitError khi embedding server 429."""
+    from openai import RateLimitError
+
+    mock_response = MagicMock()
+    mock_response.status_code = 429
+    mock_response.headers = {}
+
+    with patch.object(
+        adapter._embed_client.embeddings,
+        "create",
+        new_callable=AsyncMock,
+        side_effect=RateLimitError(
+            message="Rate limited",
+            response=mock_response,
+            body=None,
+        ),
+    ):
+        with pytest.raises(LLMRateLimitError):
+            await adapter.embed("Hello world")
+
+
 # ──────────────────────────────────────────────
 # Test: Factory
 # ──────────────────────────────────────────────
