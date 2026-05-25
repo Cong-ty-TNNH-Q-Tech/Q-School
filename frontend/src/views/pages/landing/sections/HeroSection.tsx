@@ -115,7 +115,11 @@ export function HeroSection() {
             <div className="vc-body">
               <div className="vc-chat-bubble vc-user">Tạo giáo án Toán lớp 10 chương Hàm số</div>
               <div className="vc-chat-bubble vc-ai">
-                <span className="vc-ai-icon">✦</span>
+                <span className="vc-ai-icon" aria-hidden="true">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3z" />
+                  </svg>
+                </span>
                 <div>
                   <div className="vc-typing">Đang tạo giáo án chi tiết...</div>
                   <div className="vc-progress"><div className="vc-progress-bar" /></div>
