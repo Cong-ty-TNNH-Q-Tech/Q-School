@@ -260,6 +260,7 @@ class VLLMAdapter(ILLMService):
         Raises:
             EmbeddingDimensionError: Output dimension khong match
             LLMConnectionError: Embedding server khong phan hoi
+            LLMRateLimitError: Embedding server tra ve 429
         """
         try:
             response = await self._embed_client.embeddings.create(
