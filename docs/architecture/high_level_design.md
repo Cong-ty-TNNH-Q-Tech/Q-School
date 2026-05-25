@@ -122,16 +122,16 @@ flowchart TD
 ## 4. Các luồng xử lý điển hình (Typical Data Flows)
 
 ### 4.1. Luồng xử lý Đồng bộ (Synchronous Flow)
-*(Ví dụ: Xem danh sách học sinh - UC-SYS-004)*
-1. **React App** gửi request GET `/api/students`.
+*(Ví dụ: Xem danh sách học sinh trong lớp - UC-SYS-004)*
+1. **React App** gửi request GET `/api/v1/classes/{class_id}/students`.
 2. **API Gateway** định tuyến đến **FastAPI REST Router** (Driving Adapter).
-3. Router gọi **Use Case (Core Domain)**, xác thực quyền truy cập.
+3. Router gọi **Use Case (Core Domain)**, xác thực quyền truy cập (TeacherDep).
 4. Use Case gọi **Repository (Driven Adapter)** để truy vấn **PostgreSQL**.
-5. Dữ liệu được trả về và mapping thành JSON response gửi lại React.
+5. Dữ liệu được trả về và mapping thành JSON response (ApiResponse[ClassStudentOut]) gửi lại React.
 
 ### 4.2. Luồng xử lý AI Bất đồng bộ (Async AI Flow)
 *(Ví dụ: Nhờ AI Tutor sinh câu hỏi - UC-FS-001)*
-1. Học sinh nhấn nút "Gửi câu hỏi". React gửi POST `/api/ai-tutor/ask`.
+1. Học sinh nhấn nút "Gửi câu hỏi". React gửi POST `/api/v1/chat/sessions/{session_id}/messages`.
 2. **FastAPI Router** nhận request, gọi **Use Case**.
 3. **Use Case** thông qua **Queue Adapter** đẩy thông điệp vào **Redis Queue** và lập tức trả về HTTP 202 Accepted cho React.
 4. **Celery Worker** lấy thông điệp từ Queue.
