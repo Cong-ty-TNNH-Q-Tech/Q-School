@@ -14,7 +14,7 @@ Design Decisions:
   - stream_chat: AsyncIterator[str] cho SSE streaming (AGENTS.md mandate)
   - generate: non-streaming cho Celery background tasks
   - embed: Dung EMBEDDING model rieng (KHAC generation model)
-  - Retry logic: tenacity voi exponential backoff
+  - Retry logic: openai SDK built-in max_retries voi exponential backoff
 
 Luu y AGENTS.md:
   - KHONG hardcode API keys — doc tu Settings (environment variables)
@@ -23,7 +23,6 @@ Luu y AGENTS.md:
 """
 import logging
 from collections.abc import AsyncIterator
-from typing import Any
 
 import httpx
 from openai import AsyncOpenAI, APIConnectionError, APITimeoutError, RateLimitError
