@@ -71,7 +71,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./backend
-          target: production
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -114,7 +113,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
-          target: production
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
