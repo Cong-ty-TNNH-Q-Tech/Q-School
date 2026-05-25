@@ -176,6 +176,81 @@ components:
           type: string
           format: date-time
 
+    # ----------------------------------------
+    # LESSON SCHEMAS
+    # ----------------------------------------
+    CreateLessonRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          maxLength: 500
+          example: "Bai 1: Gioi thieu Python"
+        subject:
+          type: string
+          maxLength: 100
+          nullable: true
+        grade_level:
+          type: string
+          maxLength: 20
+          nullable: true
+        content:
+          type: object
+          nullable: true
+          description: "Noi dung giao an dang JSONB (sections, objectives, activities)"
+
+    UpdateLessonRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+          nullable: true
+        subject:
+          type: string
+          maxLength: 100
+          nullable: true
+        grade_level:
+          type: string
+          maxLength: 20
+          nullable: true
+        content:
+          type: object
+          nullable: true
+
+    LessonResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        subject:
+          type: string
+          nullable: true
+        grade_level:
+          type: string
+          nullable: true
+        content:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        teacher_name:
+          type: string
+          nullable: true
+          description: "Username cua giao vien (eager-loaded)"
+
     QuizDetailResponse:
       type: object
       properties:
@@ -828,6 +903,185 @@ paths:
                       assignment_id:
                         type: string
                         format: uuid
+
+  # ==========================================
+  # GROUP 2b: LESSON CRUD
+  # ==========================================
+  /lessons:
+    post:
+      summary: Tao bai giang moi
+      tags: [Lessons]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLessonRequest'
+      responses:
+        '201':
+          description: Tao thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+                  message:
+                    type: string
+                    example: "Tao bai giang thanh cong"
+        '401':
+          description: Chua xac thuc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Khong co quyen (khong phai teacher/admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    get:
+      summary: Danh sach bai giang cua giao vien dang dang nhap
+      tags: [Lessons]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LessonResponse'
+        '401':
+          description: Chua xac thuc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /lessons/{lesson_id}:
+    get:
+      summary: Chi tiet bai giang
+      tags: [Lessons]
+      parameters:
+        - name: lesson_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+        '404':
+          description: Khong tim thay bai giang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    patch:
+      summary: Cap nhat bai giang (partial update)
+      tags: [Lessons]
+      parameters:
+        - name: lesson_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLessonRequest'
+      responses:
+        '200':
+          description: Cap nhat thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+                  message:
+                    type: string
+                    example: "Cap nhat bai giang thanh cong"
+        '403':
+          description: Khong co quyen (khong phai owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Khong tim thay bai giang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    delete:
+      summary: Soft delete bai giang
+      tags: [Lessons]
+      parameters:
+        - name: lesson_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Xoa thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: "null"
+                  message:
+                    type: string
+                    example: "Xoa bai giang thanh cong"
+        '403':
+          description: Khong co quyen (khong phai owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Khong tim thay bai giang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
 
   /lesson-generation-tasks:
     post:

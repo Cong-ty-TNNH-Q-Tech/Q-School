@@ -69,7 +69,15 @@ class LessonUseCase:
             title=title,
             **kwargs,
         )
-        return lesson
+
+        # NOTE: repo.create() uses flush()+refresh() which does NOT eager-load
+        # the teacher relationship. Must reload via get_by_id() which uses
+        # selectinload(Lesson.teacher) to avoid MissingGreenlet or null teacher_name.
+        reloaded = await self._repo.get_by_id(lesson.id)
+        if reloaded is None:
+            # Should never happen — just created it
+            return lesson
+        return reloaded
 
     # ──────────────────────────────────────────────
     # Read
