@@ -36,7 +36,8 @@ jobs:
         working-directory: frontend
         run: |
           npx eslint src/ --max-warnings=50 || {
-            echo "::warning::ESLint found issues. Review warnings above."
+            echo "::error::ESLint found issues. Review warnings/errors above."
+            exit 1
           }
 
       - name: TypeScript type check
