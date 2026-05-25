@@ -54,7 +54,7 @@ services:
 
   # ─── MinIO (S3-compatible Object Storage) ────────────────
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
     container_name: qschool_minio
     restart: unless-stopped
     ports:
@@ -67,7 +67,7 @@ services:
       - minio_data:/data
     command: server /data --console-address ":9001"
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -77,7 +77,7 @@ services:
 
   # ─── MinIO Init (tạo bucket tự động) ─────────────────────
   minio-init:
-    image: minio/mc:latest
+    image: minio/mc:RELEASE.2025-04-16T18-13-36Z
     container_name: qschool_minio_init
     depends_on:
       minio:
@@ -110,7 +110,7 @@ services:
       - S3_SECRET_KEY=${S3_SECRET_KEY:-minioadmin}
       - S3_BUCKET_NAME=${S3_BUCKET_NAME:-qschool-uploads}
       - S3_PUBLIC_URL=http://localhost:9000/${S3_BUCKET_NAME:-qschool-uploads}
-      - SECRET_KEY=${SECRET_KEY:-dev_secret_key_not_for_production}
+      - SECRET_KEY=${SECRET_KEY:-CHANGE_ME_IN_PRODUCTION_USE_OPENSSL_RAND_HEX_32}
       - DEBUG=true
       - APP_ENV=development
     ports:
@@ -123,7 +123,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health')"]
+      test: ["CMD", "python", "-c", "import httpx; r = httpx.get('http://localhost:8000/health'); r.raise_for_status()"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -146,7 +146,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - CELERY_BROKER_URL=redis://redis:6379/1
       - CELERY_RESULT_BACKEND=redis://redis:6379/2
-      - SECRET_KEY=${SECRET_KEY:-dev_secret_key_not_for_production}
+      - SECRET_KEY=${SECRET_KEY:-CHANGE_ME_IN_PRODUCTION_USE_OPENSSL_RAND_HEX_32}
       - DEBUG=true
     volumes:
       - ./backend:/app
@@ -180,7 +180,7 @@ services:
 
   # ─── Adminer (DB Management) ────────────────────────────
   adminer:
-    image: adminer:latest
+    image: adminer:4.8.4
     container_name: qschool_adminer
     restart: unless-stopped
     ports:

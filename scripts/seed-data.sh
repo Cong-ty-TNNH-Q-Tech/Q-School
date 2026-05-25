@@ -2,14 +2,14 @@
 # ══════════════════════════════════════════════════════════
 # Q-School AI — Seed Demo Data
 # Chạy sau khi database đã sẵn sàng và migration đã apply.
-# Usage: docker compose exec backend python -c "exec(open('scripts/seed_data.py').read())"
-#    Or: ./scripts/seed-data.sh
+# Usage: ./scripts/seed-data.sh
+#    Or: docker compose exec -T backend alembic upgrade head
 # ══════════════════════════════════════════════════════════
 
 set -e
 
 echo "=== Q-School: Applying Alembic migrations ==="
-docker compose exec backend alembic upgrade head
+docker compose exec -T backend alembic upgrade head
 
 echo "=== Q-School: Seed data applied via migration 0001 ==="
 echo "  - 3 Plans seeded: Free, Pro, Enterprise"

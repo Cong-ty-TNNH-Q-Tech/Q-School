@@ -7,7 +7,7 @@
 
 set -e
 
-echo "=== Q-School DB Init: Enabling pgvector extension ==="
+echo "=== Q-School DB Init: Enabling required extensions ==="
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     -- Enable pgvector extension cho vector search (RAG)
     CREATE EXTENSION IF NOT EXISTS vector;
@@ -15,8 +15,11 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     -- Enable uuid-ossp (backup cho gen_random_uuid)
     CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     
+    -- Enable pgcrypto (provides gen_random_uuid() used by Alembic migrations)
+    CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+    
     -- Verify extensions
-    SELECT extname, extversion FROM pg_extension WHERE extname IN ('vector', 'uuid-ossp');
+    SELECT extname, extversion FROM pg_extension WHERE extname IN ('vector', 'uuid-ossp', 'pgcrypto');
 EOSQL
 
 echo "=== Q-School DB Init: Extensions installed successfully ==="
