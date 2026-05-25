@@ -19,23 +19,68 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6.4.0
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: 'npm'
-          cache-dependency-path: frontend/package.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         working-directory: frontend
-        run: npm install
+        run: npm ci
 
       - name: Run ESLint
         working-directory: frontend
-        run: npm run lint || echo "Lint skipped or failed"
+        run: |
+          npx eslint src/ --max-warnings=50 || {
+            echo "::warning::ESLint found issues. Review warnings above."
+          }
 
-      - name: TypeScript Type Check
+      - name: TypeScript type check
         working-directory: frontend
-        run: npm run build || echo "Build skipped or failed"
+        run: npx tsc --noEmit
+
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build production bundle
+        working-directory: frontend
+        env:
+          VITE_API_URL: http://localhost:8000/api/v1
+        run: npm run build
+
+      - name: Check bundle size
+        working-directory: frontend
+        run: |
+          echo "=== Bundle Size Report ==="
+          du -sh dist/
+          echo "--- Asset breakdown ---"
+          find dist/assets -type f -name "*.js" -exec du -h {} + | sort -rh | head -10
+          find dist/assets -type f -name "*.css" -exec du -h {} + | sort -rh | head -5
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/dist/
+          retention-days: 3
