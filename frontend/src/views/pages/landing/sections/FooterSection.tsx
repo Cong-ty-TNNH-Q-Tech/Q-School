@@ -26,17 +26,17 @@ export function FooterSection() {
           <div className="footer-col">
             <h4>Hỗ trợ</h4>
             <ul>
-              <li><a href="#">Trung tâm trợ giúp</a></li>
-              <li><a href="#">Tài liệu API</a></li>
-              <li><a href="#">Liên hệ</a></li>
+              <li><span>Trung tâm trợ giúp</span></li>
+              <li><span>Tài liệu API</span></li>
+              <li><span>Liên hệ</span></li>
             </ul>
           </div>
 
           <div className="footer-col">
             <h4>Pháp lý</h4>
             <ul>
-              <li><a href="#">Điều khoản sử dụng</a></li>
-              <li><a href="#">Chính sách bảo mật</a></li>
+              <li><span>Điều khoản sử dụng</span></li>
+              <li><span>Chính sách bảo mật</span></li>
             </ul>
           </div>
         </div>
