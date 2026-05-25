@@ -44,29 +44,47 @@ function AnimatedCounter({ target, suffix }: { target: number; suffix: string })
   useEffect(() => {
     const el = ref.current
     if (!el) return
+
+    let frameId: number | null = null
+    let cancelled = false
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting && !started.current) {
           started.current = true
+          observer.unobserve(el)
+
           const duration = 2000
           const step = target / (duration / 16)
           let current = 0
+
           const tick = () => {
+            if (cancelled) return
+
             current += step
             if (current >= target) {
               setCount(target)
             } else {
               setCount(Math.floor(current))
-              requestAnimationFrame(tick)
+              frameId = requestAnimationFrame(tick)
             }
           }
-          requestAnimationFrame(tick)
+
+          frameId = requestAnimationFrame(tick)
         }
       },
       { threshold: 0.5 }
     )
+
     observer.observe(el)
-    return () => observer.disconnect()
+
+    return () => {
+      cancelled = true
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId)
+      }
+      observer.disconnect()
+    }
   }, [target])
 
   return (
