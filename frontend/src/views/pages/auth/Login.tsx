@@ -18,7 +18,7 @@ export default function Login() {
 
     try {
       // TODO: Thay mockLogin bằng apiClient.post('/auth/login') khi Backend sẵn sàng
-      const response = await mockLogin({ email: username, password })
+      const response = await mockLogin({ username, password })
       login(response.user, response.tokens.access_token)
       navigate('/')
     } catch (err: unknown) {

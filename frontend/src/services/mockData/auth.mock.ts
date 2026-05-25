@@ -27,6 +27,7 @@ const MOCK_USERS: Array<User & { password: string }> = [
       school_name: 'Trường THPT Nguyễn Du',
       bio: 'Giáo viên Toán với 10 năm kinh nghiệm',
       points: 150,
+      updated_at: new Date().toISOString(),
     },
   },
   {
@@ -44,6 +45,7 @@ const MOCK_USERS: Array<User & { password: string }> = [
       school_name: 'Trường THPT Nguyễn Du',
       bio: null,
       points: 320,
+      updated_at: new Date().toISOString(),
     },
   },
 ]
@@ -77,6 +79,7 @@ export const mockLogin = async (req: LoginRequest): Promise<LoginResponse> => {
     user: safeUser,
     tokens: {
       access_token: `mock_token_${safeUser.id}_${Date.now()}`,
+      refresh_token: `mock_refresh_${safeUser.id}_${Date.now()}`,
       token_type: 'bearer',
       expires_in: 900, // 15 phút
     },
