@@ -1,8 +1,16 @@
 """
-Alembic env.py — Cấu hình migration environment.
-Hỗ trợ cả online mode (apply migration) và offline mode (generate SQL script).
-Load DATABASE_URL từ app/core/config.py — KHÔNG hardcode credentials.
+Alembic env.py — Cau hinh migration environment.
+Ho tro ca online mode (apply migration) va offline mode (generate SQL script).
+Load DATABASE_URL tu app/core/config.py — KHONG hardcode credentials.
 """
+import os
+import sys
+
+# Ensure the backend root (parent of alembic/) is on sys.path
+# so 'from app.core.config import settings' resolves correctly
+# regardless of how alembic is invoked (binary, python -m, CI, etc.)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import asyncio
 from logging.config import fileConfig
 

@@ -113,7 +113,6 @@ jobs:
       S3_BUCKET_NAME: qschool-test
       APP_ENV: development
       DEBUG: true
-      PYTHONPATH: ${{ github.workspace }}/backend
 
     steps:
       - name: Checkout code
@@ -144,22 +143,22 @@ jobs:
         working-directory: backend
         run: |
           echo "=== Running: alembic upgrade head ==="
-          python -m alembic upgrade head
+          alembic upgrade head
           echo "=== Migration chain applied successfully ==="
 
       - name: Verify current migration head
         working-directory: backend
         run: |
           echo "=== Current Alembic head ==="
-          python -m alembic current
+          alembic current
           echo ""
           echo "=== Migration history ==="
-          python -m alembic history --verbose
+          alembic history --verbose
 
       - name: Check for model drift (alembic check)
         working-directory: backend
         run: |
-          python -m alembic check 2>&1 || {
+          alembic check 2>&1 || {
             echo "::warning::Alembic detected model changes not covered by migrations."
             echo "::warning::Run 'alembic revision --autogenerate -m \"description\"' to create a new migration."
           }
