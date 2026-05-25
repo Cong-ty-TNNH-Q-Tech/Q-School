@@ -36,7 +36,7 @@ class CreateLessonRequest(BaseModel):
     def subject_valid(cls, v: str | None) -> str | None:
         if v is not None and len(v.strip()) > 100:
             raise ValueError("subject khong duoc vuot qua 100 ky tu")
-        return v.strip() or None if v is not None else None
+        return (v.strip() or None) if v is not None else None
 
     @field_validator("grade_level")
     @classmethod
@@ -72,7 +72,7 @@ class UpdateLessonRequest(BaseModel):
     def subject_valid(cls, v: str | None) -> str | None:
         if v is not None and len(v.strip()) > 100:
             raise ValueError("subject khong duoc vuot qua 100 ky tu")
-        return v.strip() or None if v is not None else None
+        return (v.strip() or None) if v is not None else None
 
     @field_validator("grade_level")
     @classmethod
