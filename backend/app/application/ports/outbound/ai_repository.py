@@ -2,6 +2,7 @@
 Outbound Port — Repository Interfaces cho AI Workspace.
 IDocumentRepository, IChatSessionRepository, IAITaskRepository.
 """
+
 from abc import ABC, abstractmethod
 from datetime import datetime
 from uuid import UUID

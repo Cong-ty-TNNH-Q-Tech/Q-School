@@ -262,6 +262,60 @@ components:
           type: object
           description: "Thông số đầu vào dạng JSON (VD: Tên học sinh, lỗi vi phạm)"
 
+    # ----------------------------------------
+    # AI PROMPTS SCHEMAS (Issue #114)
+    # ----------------------------------------
+    AIPromptResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        persona_name:
+          type: string
+          example: "Raina"
+        system_prompt_template:
+          type: string
+          example: "Bạn là Raina, trợ lý AI thân thiện..."
+        version:
+          type: string
+          example: "v1.0"
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateAIPromptRequest:
+      type: object
+      required: [persona_name, system_prompt_template]
+      properties:
+        persona_name:
+          type: string
+          maxLength: 100
+          example: "Raina"
+          description: "Tên nhân vật AI — phải là duy nhất"
+        system_prompt_template:
+          type: string
+          minLength: 10
+          description: "Nội dung System Prompt truyền vào LLM"
+        version:
+          type: string
+          default: "v1.0"
+          maxLength: 20
+
+    UpdateAIPromptRequest:
+      type: object
+      description: "PATCH — tất cả fields đều optional (partial update)"
+      properties:
+        system_prompt_template:
+          type: string
+          minLength: 10
+          description: "Nội dung System Prompt mới"
+        version:
+          type: string
+          maxLength: 20
+          example: "v2.0"
+
+
   # ----------------------------------------
   # COMMON PARAMETERS
   # ----------------------------------------
@@ -1373,3 +1427,140 @@ paths:
                   status:
                     type: string
                     example: success
+
+  # ==========================================
+  # GROUP 5: AI PROMPTS (Admin — Issue #114)
+  # ==========================================
+  /ai-prompts:
+    post:
+      summary: "[Admin] Tạo mới AI Prompt / Persona"
+      tags: [AI Prompts]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAIPromptRequest'
+      responses:
+        '201':
+          description: Tạo Prompt thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/AIPromptResponse'
+        '409':
+          description: persona_name đã tồn tại
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Không đủ quyền Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+    get:
+      summary: "[Admin] Lấy danh sách tất cả AI Prompts"
+      tags: [AI Prompts]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AIPromptResponse'
+
+  /ai-prompts/{id}:
+    get:
+      summary: Lấy chi tiết AI Prompt theo ID
+      tags: [AI Prompts]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/AIPromptResponse'
+        '404':
+          description: Không tìm thấy Prompt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+    patch:
+      summary: "[Admin] Cập nhật system_prompt_template / version"
+      tags: [AI Prompts]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAIPromptRequest'
+      responses:
+        '200':
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/AIPromptResponse'
+        '404':
+          description: Không tìm thấy Prompt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Không đủ quyền Admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'

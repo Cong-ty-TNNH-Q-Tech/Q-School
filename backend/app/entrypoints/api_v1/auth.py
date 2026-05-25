@@ -12,6 +12,7 @@ Nguyên tắc Router trong Hexagonal Architecture:
 
 Member: Copy pattern này khi tạo classes_router, quizzes_router...
 """
+
 from fastapi import APIRouter, status
 
 from app.adapters.database.user_repository import UserSQLAlchemyRepository

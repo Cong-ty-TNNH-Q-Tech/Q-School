@@ -10,6 +10,7 @@ Nguyên tắc Use Case trong Hexagonal Architecture:
 
 Member: Copy pattern này khi tạo ClassUseCase, QuizUseCase...
 """
+
 import uuid
 
 from app.application.ports.outbound.user_repository import IUserRepository
@@ -61,7 +62,9 @@ class AuthUseCase:
             raise InvalidCredentialsError("Thông tin đăng nhập không đúng")
 
         if not user.is_active:
-            raise InactiveUserError("Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.")
+            raise InactiveUserError(
+                "Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên."
+            )
 
         access_token = create_access_token(str(user.id), user.role)
         refresh_token = create_refresh_token(str(user.id))

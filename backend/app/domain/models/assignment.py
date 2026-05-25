@@ -2,6 +2,7 @@
 ClassAssignment ORM Model — Bảng trung gian giao bài cho Lớp học.
 "Trái tim" của LMS: Giáo viên phải tạo assignment thì Học sinh mới thấy được Lesson/Quiz.
 """
+
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -26,11 +27,12 @@ class ClassAssignment(Base, UUIDMixin):
     unlock_date: Thời điểm mở bài (null = mở ngay)
     due_date: Hạn chót nộp bài
     """
+
     __tablename__ = "class_assignments"
     __table_args__ = (
         CheckConstraint(
             "resource_type IN ('lesson', 'quiz')",
-            name="ck_class_assignments_resource_type"
+            name="ck_class_assignments_resource_type",
         ),
         # Index 1: query 'lấy tất cả lớp đã giao quiz/lesson cụ thể'
         Index("ix_class_assignments_resource", "resource_type", "resource_id"),
@@ -47,20 +49,18 @@ class ClassAssignment(Base, UUIDMixin):
         index=True,
     )
     resource_type: Mapped[str] = mapped_column(
-        String(20), nullable=False,
-        comment="'lesson' hoặc 'quiz'"
+        String(20), nullable=False, comment="'lesson' hoặc 'quiz'"
     )
     resource_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), nullable=False,
-        comment="ID của Lesson hoặc Quiz"
+        UUID(as_uuid=True), nullable=False, comment="ID của Lesson hoặc Quiz"
     )
     unlock_date: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
-        comment="Thời gian mở bài. NULL = mở ngay lập tức."
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Thời gian mở bài. NULL = mở ngay lập tức.",
     )
     due_date: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True,
-        comment="Hạn chót nộp bài."
+        DateTime(timezone=True), nullable=True, comment="Hạn chót nộp bài."
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

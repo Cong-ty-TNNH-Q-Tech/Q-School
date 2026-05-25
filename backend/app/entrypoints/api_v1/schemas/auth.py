@@ -4,6 +4,7 @@ Auth Pydantic Schemas — Request/Response models cho Auth endpoints.
 
 NOTE: Dùng model_validate() (Pydantic v2) thay vì from_orm() (deprecated).
 """
+
 import re
 import uuid
 from datetime import datetime
@@ -16,6 +17,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 # ──────────────────────────────────────────────
 class LoginRequest(BaseModel):
     """POST /auth/login"""
+
     username: str  # username hoặc email
     password: str
 
@@ -45,6 +47,7 @@ class LoginRequest(BaseModel):
 
 class RegisterRequest(BaseModel):
     """POST /auth/register"""
+
     username: str
     email: EmailStr
     password: str
@@ -79,6 +82,7 @@ class RegisterRequest(BaseModel):
 
 class RefreshRequest(BaseModel):
     """POST /auth/refresh"""
+
     refresh_token: str
 
 
@@ -87,6 +91,7 @@ class RefreshRequest(BaseModel):
 # ──────────────────────────────────────────────
 class ProfileOut(BaseModel):
     """Thông tin Profile của User."""
+
     user_id: uuid.UUID
     full_name: str | None
     avatar_url: str | None
@@ -103,6 +108,7 @@ class UserOut(BaseModel):
     Thông tin User public (không có password_hash).
     Dùng cho: /users/me, login response.
     """
+
     id: uuid.UUID
     username: str
     email: str
@@ -116,6 +122,7 @@ class UserOut(BaseModel):
 
 class TokenData(BaseModel):
     """JWT token pair trả về sau login/refresh."""
+
     access_token: str
     refresh_token: str | None = None  # None khi chỉ refresh access token
     token_type: str = "bearer"
@@ -124,5 +131,6 @@ class TokenData(BaseModel):
 
 class LoginResponse(BaseModel):
     """Data field cho ApiResponse[LoginResponse]."""
+
     user: UserOut
     tokens: TokenData

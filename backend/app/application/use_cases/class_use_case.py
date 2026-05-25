@@ -15,6 +15,7 @@ Authorization Rules:
   - enroll_student / remove_student: teacher ownership check hoặc admin
   - list_teacher_classes / get_class: bất kỳ authenticated user
 """
+
 import uuid
 
 from app.application.ports.outbound.class_repository import IClassRepository
@@ -221,9 +222,7 @@ class ClassUseCase:
         # get_by_id đã selectinload(Class.students), nên class_.students đã sẵn sàng.
         enrolled_ids = {e.student_id for e in class_.students}
         if student_id in enrolled_ids:
-            raise StudentAlreadyEnrolledError(
-                "Học sinh này đã được thêm vào lớp học"
-            )
+            raise StudentAlreadyEnrolledError("Học sinh này đã được thêm vào lớp học")
 
         enrollment = await self._repo.add_student(class_id, student_id)
         # Gán student vào enrollment.student để router có thể populate username/email

@@ -2,6 +2,7 @@
 Ports — Outbound Port exports (barrel file).
 Adapters import từ đây để biết interface nào cần implement.
 """
+
 from app.application.ports.outbound.user_repository import IUserRepository
 from app.application.ports.outbound.class_repository import IClassRepository
 from app.application.ports.outbound.quiz_repository import (

@@ -7,6 +7,7 @@ PATTERN CHO MEMBER khi thêm router mới:
   3. api_v1_router.include_router(your_router, prefix="/<feature>", tags=["<Tag>"])
   4. Cập nhật docs/api/openapi.yaml nếu API chưa có trong spec
 """
+
 from fastapi import APIRouter
 
 # ── Group 1: Auth & Users ──────────────────────
@@ -14,6 +15,7 @@ from app.entrypoints.api_v1.auth import router as auth_router
 
 # ── Group 2: EdTech Core ────────────────────────
 from app.entrypoints.api_v1.classes import router as classes_router
+
 # from app.entrypoints.api_v1.lessons import router as lessons_router
 
 # ── Group 3: Student Tracking ──────────────────
@@ -26,7 +28,10 @@ from app.entrypoints.api_v1.classes import router as classes_router
 # from app.entrypoints.api_v1.documents import router as documents_router
 # from app.entrypoints.api_v1.generated_assets import router as assets_router
 
-# ── Group 5: Billing ───────────────────────────
+# ── Group 5: Admin Tools ───────────────────────
+from app.entrypoints.api_v1.routers.ai_prompts import router as ai_prompts_router
+
+# ── Group 6: Billing ───────────────────────────
 # from app.entrypoints.api_v1.billing import router as billing_router
 # from app.entrypoints.api_v1.webhooks import router as webhooks_router
 
@@ -45,5 +50,8 @@ api_v1_router.include_router(classes_router, prefix="/classes", tags=["Classes"]
 # api_v1_router.include_router(ai_chat_router, prefix="/chat", tags=["AI Workspace"])
 # api_v1_router.include_router(documents_router, prefix="/documents", tags=["AI Workspace"])
 # api_v1_router.include_router(assets_router, prefix="/generated-assets", tags=["AI Workspace"])
+api_v1_router.include_router(
+    ai_prompts_router, prefix="/ai-prompts", tags=["AI Prompts"]
+)  # Issue #114
 # api_v1_router.include_router(billing_router, prefix="/billing", tags=["Billing"])
 # api_v1_router.include_router(webhooks_router, prefix="/webhooks", tags=["Billing"])

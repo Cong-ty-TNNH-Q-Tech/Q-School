@@ -3,6 +3,7 @@ Outbound Port — AI Inference Service Interface.
 Use Case gọi interface này để tương tác với vLLM/OpenAI — không biết provider cụ thể.
 Adapter thực tế ở: adapters/llm_client/vllm_adapter.py
 """
+
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 

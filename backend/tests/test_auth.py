@@ -7,9 +7,9 @@ Mỗi test tự rollback — không cần cleanup thủ công.
 
 Member: Copy pattern này khi viết test cho classes, quizzes...
 """
+
 import pytest
 from httpx import AsyncClient
-
 
 # ──────────────────────────────────────────────
 # Helpers / Fixtures
@@ -113,7 +113,10 @@ async def test_login_success_by_username(client: AsyncClient):
 
     res = await client.post(
         "/api/v1/auth/login",
-        json={"username": REGISTER_PAYLOAD["username"], "password": REGISTER_PAYLOAD["password"]},
+        json={
+            "username": REGISTER_PAYLOAD["username"],
+            "password": REGISTER_PAYLOAD["password"],
+        },
     )
 
     assert res.status_code == 200
@@ -129,7 +132,10 @@ async def test_login_success_by_email(client: AsyncClient):
 
     res = await client.post(
         "/api/v1/auth/login",
-        json={"username": REGISTER_PAYLOAD["email"], "password": REGISTER_PAYLOAD["password"]},
+        json={
+            "username": REGISTER_PAYLOAD["email"],
+            "password": REGISTER_PAYLOAD["password"],
+        },
     )
 
     assert res.status_code == 200
@@ -170,7 +176,9 @@ async def test_refresh_token_success(client: AsyncClient):
     tokens = await _register_and_login(client, REGISTER_PAYLOAD)
     refresh_token = tokens["refresh_token"]
 
-    res = await client.post("/api/v1/auth/refresh", json={"refresh_token": refresh_token})
+    res = await client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": refresh_token}
+    )
 
     assert res.status_code == 200
     assert "access_token" in res.json()["data"]
@@ -182,7 +190,9 @@ async def test_refresh_with_access_token_fails(client: AsyncClient):
     tokens = await _register_and_login(client, REGISTER_PAYLOAD)
     access_token = tokens["access_token"]
 
-    res = await client.post("/api/v1/auth/refresh", json={"refresh_token": access_token})
+    res = await client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": access_token}
+    )
 
     assert res.status_code == 401
 
@@ -190,7 +200,9 @@ async def test_refresh_with_access_token_fails(client: AsyncClient):
 @pytest.mark.asyncio
 async def test_refresh_invalid_token(client: AsyncClient):
     """Token giả → 401."""
-    res = await client.post("/api/v1/auth/refresh", json={"refresh_token": "totally.fake.token"})
+    res = await client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": "totally.fake.token"}
+    )
 
     assert res.status_code == 401
 

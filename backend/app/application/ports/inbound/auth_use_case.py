@@ -2,6 +2,7 @@
 Inbound Port — Auth Use Case Interface.
 Router gọi interface này, không gọi thẳng vào Use Case class cụ thể.
 """
+
 from abc import ABC, abstractmethod
 from uuid import UUID
 

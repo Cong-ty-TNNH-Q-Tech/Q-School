@@ -18,6 +18,7 @@ Ví dụ sử dụng trong Router:
             has_more=has_more,
         )
 """
+
 from typing import Generic, TypeVar
 
 from pydantic import BaseModel
@@ -30,6 +31,7 @@ class ApiResponse(BaseModel, Generic[T]):
     Standard single-item response wrapper.
     Dùng cho: POST (create), GET (single item), DELETE, PATCH.
     """
+
     status: str = "success"
     data: T
     message: str | None = None
@@ -50,9 +52,10 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
     KHÔNG dùng page/total_pages — cursor pagination theo chuẩn AGENTS.md.
     """
+
     status: str = "success"
     data: list[T]
-    next_cursor_created_at: str | None = None   # ISO datetime của record cuối
-    next_cursor_id: str | None = None            # UUID của record cuối (tiebreaker)
+    next_cursor_created_at: str | None = None  # ISO datetime của record cuối
+    next_cursor_id: str | None = None  # UUID của record cuối (tiebreaker)
     has_more: bool = False
     error_code: int = 0
