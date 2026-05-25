@@ -73,7 +73,8 @@ export const mockLogin = async (req: LoginRequest): Promise<LoginResponse> => {
     }
   }
 
-  const { password: _, ...safeUser } = user
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: _password, ...safeUser } = user
 
   return {
     user: safeUser,
@@ -89,6 +90,7 @@ export const mockLogin = async (req: LoginRequest): Promise<LoginResponse> => {
 export const mockGetCurrentUser = async (userId: string): Promise<User> => {
   const user = MOCK_USERS.find((u) => u.id === userId)
   if (!user) throw new Error('User not found')
-  const { password: _, ...safeUser } = user
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: _password, ...safeUser } = user
   return safeUser
 }
