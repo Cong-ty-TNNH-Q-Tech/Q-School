@@ -17,7 +17,7 @@ openai>=2.37.0          # Giao tiếp với vLLM server (OpenAI-compatible API)
 httpx>=0.25.0          # Async HTTP client
 
 # Background Jobs
-celery>=5.3.4
+celery>=5.6.3
 redis>=5.0.1
 
 # Security & Validation
