@@ -128,7 +128,7 @@ Dành cho chức năng "Tổng hợp kiến thức sách giáo khoa".
   - Sử dụng **JWT (JSON Web Token)** để cấp quyền truy cập. Token hết hạn ngắn (15 phút), kèm theo `Refresh Token` lưu trong HttpOnly Cookie.
   - Mật khẩu lưu trữ phải mã hóa bằng chuẩn `Bcrypt`.
 - **Authorization (Phân quyền - RBAC):** 
-  - Các Router trong FastAPI được gắn Dependency Injection để kiểm tra Role. User `Student` không được phép truy cập vào các API có tiền tố `/api/v1/teacher/...`
+  - Các Router trong FastAPI sử dụng **Dependency Injection** (`TeacherDep`, `CurrentUserDep`, `AdminDep`) để kiểm tra Role. Ví dụ: Endpoint tạo Lesson inject `TeacherDep` — nếu User không có role `teacher` hoặc `admin`, hệ thống trả về 403 Forbidden. Phương pháp này linh hoạt hơn URL-prefix và cho phép kiểm soát quyền ở mức từng endpoint.
 - **Rate Limiting, Anti-Spam & SaaS Billing:** 
   - Đặt ngưỡng Rate Limit trên API Gateway (Nginx) để chống DDoS.
   - **Mô hình SaaS:** API AI kiểm tra quyền lợi theo gói cước (`user_subscriptions`). 

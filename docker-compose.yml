@@ -1,10 +1,20 @@
 version: '3.8'
 
+# ══════════════════════════════════════════════════════════
+# Q-School AI — Docker Compose (Full-Stack Local Development)
+# Usage:
+#   cp .env.example .env     # Tạo file .env
+#   docker compose up -d     # Khởi động toàn bộ stack
+#   docker compose logs -f   # Xem logs real-time
+#   docker compose down -v   # Dừng + xoá volumes (clean reset)
+# ══════════════════════════════════════════════════════════
+
 services:
+  # ─── PostgreSQL + pgvector ───────────────────────────────
   db:
     image: pgvector/pgvector:pg16
     container_name: qschool_db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -13,93 +23,214 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-qschool}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - qschool_net
 
+  # ─── Redis 7 ─────────────────────────────────────────────
   redis:
-    image: redis:alpine
+    image: redis:7-alpine
     container_name: qschool_redis
-    restart: always
+    restart: unless-stopped
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - qschool_net
 
+  # ─── MinIO (S3-compatible Object Storage) ────────────────
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: qschool_minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console UI
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - qschool_net
+
+  # ─── MinIO Init (tạo bucket tự động) ─────────────────────
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-36Z
+    container_name: qschool_minio_init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set qschool http://minio:9000 ${S3_ACCESS_KEY:-minioadmin} ${S3_SECRET_KEY:-minioadmin};
+      mc mb --ignore-existing qschool/${S3_BUCKET_NAME:-qschool-uploads};
+      mc anonymous set download qschool/${S3_BUCKET_NAME:-qschool-uploads};
+      echo 'MinIO bucket ready.';
+      "
+    networks:
+      - qschool_net
+
+  # ─── FastAPI Backend ─────────────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: development
     container_name: qschool_backend
-    restart: always
+    restart: unless-stopped
     environment:
-      # asyncpg driver prefix bắt buộc cho SQLAlchemy async
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-qschool}
       - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/1
-      - DEBUG=false
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - S3_ENDPOINT_URL=http://minio:9000
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY:-minioadmin}
+      - S3_SECRET_KEY=${S3_SECRET_KEY:-minioadmin}
+      - S3_BUCKET_NAME=${S3_BUCKET_NAME:-qschool-uploads}
+      - S3_PUBLIC_URL=http://localhost:9000/${S3_BUCKET_NAME:-qschool-uploads}
+      - SECRET_KEY=${SECRET_KEY:-CHANGE_ME_IN_PRODUCTION_USE_OPENSSL_RAND_HEX_32}
+      - DEBUG=true
+      - APP_ENV=development
+      # vLLM AI Inference (uncomment khi có GPU server)
+      # - VLLM_API_URL=http://vllm:8000/v1
+      # - VLLM_API_KEY=${VLLM_API_KEY:-dev_key}
+      # - VLLM_MODEL_NAME=${VLLM_MODEL_NAME:-Qwen/Qwen2.5-7B-Instruct}
+      # - EMBEDDING_MODEL_NAME=${EMBEDDING_MODEL_NAME:-Qwen/Qwen2.5-Embedding-1.5B}
+      # - EMBEDDING_API_URL=http://vllm:8000/v1
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; r = httpx.get('http://localhost:8000/health'); r.raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - qschool_net
 
+  # ─── Celery Worker ──────────────────────────────────────
   celery_worker:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: development
     container_name: qschool_celery_worker
-    restart: always
+    restart: unless-stopped
     environment:
-      # asyncpg driver prefix bắt buộc cho SQLAlchemy async
       - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-qschool}
-      # psycopg2 sync driver — dùng cho Celery on_failure DB update (sync context, không có async loop)
       - SYNC_DATABASE_URL=postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-qschool}
       - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/1
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - SECRET_KEY=${SECRET_KEY:-CHANGE_ME_IN_PRODUCTION_USE_OPENSSL_RAND_HEX_32}
+      - DEBUG=true
+      # vLLM AI Inference (uncomment khi có GPU server)
+      # - VLLM_API_URL=http://vllm:8000/v1
+      # - VLLM_API_KEY=${VLLM_API_KEY:-dev_key}
+      # - VLLM_MODEL_NAME=${VLLM_MODEL_NAME:-Qwen/Qwen2.5-7B-Instruct}
+      # - EMBEDDING_MODEL_NAME=${EMBEDDING_MODEL_NAME:-Qwen/Qwen2.5-Embedding-1.5B}
+      # - EMBEDDING_API_URL=http://vllm:8000/v1
     volumes:
       - ./backend:/app
     depends_on:
-      - db
-      - redis
-    command: celery -A app.core.celery_app worker --loglevel=info
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
+    networks:
+      - qschool_net
 
+  # ─── React Frontend (Vite Dev Server) ───────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: development
     container_name: qschool_frontend
-    restart: always
+    restart: unless-stopped
     ports:
       - "5173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      # VITE_API_URL: browser (host machine) gọi backend qua cổng exposed 8000
-      # Không dùng 'http://backend:8000' vì browser không resolve Docker internal hostname
       - VITE_API_URL=http://localhost:8000/api/v1
     command: npm run dev -- --host 0.0.0.0
+    networks:
+      - qschool_net
 
+  # ─── Adminer (DB Management) ────────────────────────────
   adminer:
-    image: adminer
+    image: adminer:4.8.4
     container_name: qschool_adminer
-    restart: always
+    restart: unless-stopped
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
+    networks:
+      - qschool_net
 
+  # ─── vLLM (GPU AI Inference — uncomment khi có GPU) ─────
   # vllm:
   #   image: vllm/vllm-openai:latest
   #   container_name: qschool_vllm
-  #   restart: always
+  #   restart: unless-stopped
   #   runtime: nvidia
   #   ports:
   #     - "8001:8000"
   #   volumes:
   #     - ~/.cache/huggingface:/root/.cache/huggingface
+  #   environment:
+  #     - VLLM_API_KEY=${VLLM_API_KEY:-dev_key}
   #   command: --model Qwen/Qwen2.5-7B-Instruct --dtype auto --api-key ${VLLM_API_KEY:-dev_key}
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - capabilities: [gpu]
+  #   networks:
+  #     - qschool_net
 
+# ─── Networks ──────────────────────────────────────────────
+networks:
+  qschool_net:
+    driver: bridge
+
+# ─── Volumes ──────────────────────────────────────────────
 volumes:
   postgres_data:
+  redis_data:
+  minio_data:

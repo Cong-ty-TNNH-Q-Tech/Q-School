@@ -1,41 +1,17 @@
-# Python
-__pycache__/
+__pycache__
 *.pyc
 *.pyo
-*.egg-info/
-dist/
-build/
-.eggs/
-*.egg
-
-# Virtual environments
-.venv/
-venv/
-env/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Git
-.git/
+.git
 .gitignore
-
-# Docker
-Dockerfile
-docker-compose*.yml
-
-# Tests & docs (không cần trong production image)
-tests/
-docs/
-*.md
-
-# Environment files (secrets — KHÔNG bao giờ copy vào image)
 .env
 .env.*
-
-# OS
-.DS_Store
-Thumbs.db
+!.env.example
+*.md
+tests/
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.vscode/
+.idea/
