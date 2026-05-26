@@ -12,7 +12,7 @@ from typing import Any
 from app.application.ports.outbound.generated_asset_repository import (
     GeneratedAssetRepository,
 )
-from app.core.exceptions import NotFoundException, ValidationException
+from app.domain.exceptions import AssetNotFoundError, AssetValidationError
 from app.domain.models.ai import GeneratedAsset
 
 VALID_ASSET_TYPES = frozenset(
@@ -89,7 +89,7 @@ class GeneratedAssetUseCase:
 
     def _validate_asset_type(self, asset_type: str) -> None:
         if asset_type not in VALID_ASSET_TYPES:
-            raise ValidationException(
+            raise AssetValidationError(
                 f"asset_type '{asset_type}' không hợp lệ. "
                 f"Các giá trị cho phép: {sorted(VALID_ASSET_TYPES)}"
             )
@@ -165,11 +165,36 @@ class GeneratedAssetUseCase:
         }
         return prompts.get(asset_type, "Bạn là trợ lý AI giáo dục chuyên nghiệp.")
 
+    def _sanitize_value(self, value: Any) -> Any:
+        if isinstance(value, dict):
+            return {k: self._sanitize_value(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [self._sanitize_value(v) for v in value]
+        if not isinstance(value, str):
+            return value
+
+        # Loại bỏ ký tự xuống dòng phá định dạng
+        cleaned = value.replace("\n", " ").replace("\r", " ")
+
+        # Các từ khóa ngăn chặn Prompt Injection
+        dangerous_keywords = [
+            "ignore previous", "ignore instruction", "ignore all",
+            "system prompt", "override prompt", "acting as", "roleplay",
+            "bỏ qua hướng dẫn", "bỏ qua câu lệnh", "thiết lập lại hệ thống",
+            "cài đặt lại"
+        ]
+        for kw in dangerous_keywords:
+            import re
+            cleaned = re.sub(re.escape(kw), "[REDACTED]", cleaned, flags=re.IGNORECASE)
+
+        return cleaned.strip()
+
     def _build_prompt(self, asset_type: str, params: dict[str, Any]) -> str:
-        """Chuyển input_params thành prompt text."""
+        """Chuyển input_params thành prompt text (đã sanitize)."""
         lines = [f"Loại nội dung: {asset_type.upper()}", "Thông tin đầu vào:"]
         for key, value in params.items():
-            lines.append(f"- {key}: {value}")
+            sanitized_value = self._sanitize_value(value)
+            lines.append(f"- {key}: {sanitized_value}")
         return "\n".join(lines)
 
     # ── Public methods ────────────────────────────────────────────────────────
@@ -187,7 +212,7 @@ class GeneratedAssetUseCase:
         3. Lưu kết quả vào DB
         """
         self._validate_asset_type(asset_type)
-        output_content = await self._call_llm(asset_type, input_params)
+        output_content = await self.execute_generation(asset_type, input_params)
         asset = await self._repo.create(
             creator_id=creator_id,
             asset_type=asset_type,
@@ -196,15 +221,43 @@ class GeneratedAssetUseCase:
         )
         return GeneratedAssetDTO.from_orm(asset)
 
+    async def pre_create_asset(
+        self,
+        creator_id: uuid.UUID,
+        asset_type: str,
+        input_params: dict[str, Any],
+    ) -> GeneratedAssetDTO:
+        """
+        Pre-create Generated Asset record in DB with empty output content.
+        """
+        self._validate_asset_type(asset_type)
+        asset = await self._repo.create(
+            creator_id=creator_id,
+            asset_type=asset_type,
+            input_params=input_params,
+            output_content={},
+        )
+        return GeneratedAssetDTO.from_orm(asset)
+
+    async def execute_generation(
+        self,
+        asset_type: str,
+        input_params: dict[str, Any],
+    ) -> dict[str, Any]:
+        """
+        Gọi LLM để sinh nội dung (được dùng bởi background Celery task).
+        """
+        return await self._call_llm(asset_type, input_params)
+
     async def get_asset(
         self, asset_id: uuid.UUID, requester_id: uuid.UUID
     ) -> GeneratedAssetDTO:
         """Lấy asset theo ID. Chỉ creator mới được xem."""
         asset = await self._repo.get_by_id(asset_id)
         if not asset:
-            raise NotFoundException(f"Không tìm thấy asset với id={asset_id}.")
+            raise AssetNotFoundError(f"Không tìm thấy asset với id={asset_id}.")
         if asset.creator_id != requester_id:
-            raise NotFoundException(
+            raise AssetNotFoundError(
                 f"Không tìm thấy asset với id={asset_id}."
             )  # Ẩn 403 → trả 404 để không lộ existence
         return GeneratedAssetDTO.from_orm(asset)

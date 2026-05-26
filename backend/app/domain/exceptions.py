@@ -122,3 +122,19 @@ class DocumentNotReadyError(DomainException):
     """Tài liệu chưa được xử lý xong (đang parsing)."""
 
     pass
+
+
+# ──────────────────────────────────────────────
+# Generated Assets
+# ──────────────────────────────────────────────
+class AssetNotFoundError(DomainException):
+    """Không tìm thấy generated asset."""
+
+    pass
+
+
+class AssetValidationError(DomainException):
+    """Tham số asset hoặc loại asset không hợp lệ."""
+
+    pass
+

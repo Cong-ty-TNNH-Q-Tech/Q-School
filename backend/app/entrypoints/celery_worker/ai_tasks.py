@@ -196,3 +196,93 @@ def parse_document(self, document_id: str) -> dict:
     except Exception as exc:
         logger.error("[parse_document] FAIL document_id=%s error=%s", document_id, exc)
         raise self.retry(exc=exc)
+
+
+async def _run_generate_asset_async(
+    asset_id: str,
+    creator_id: str,
+    asset_type: str,
+    input_params: dict,
+) -> dict:
+    import uuid
+    from app.core.database import AsyncSessionFactory
+    from app.adapters.database.generated_asset_repository import SQLAlchemyGeneratedAssetRepository
+    from app.application.use_cases.generated_asset_use_case import GeneratedAssetUseCase
+    from openai import AsyncOpenAI
+    from app.core.config import settings
+
+    async with AsyncSessionFactory() as session:
+        try:
+            repo = SQLAlchemyGeneratedAssetRepository(session)
+            # Khởi tạo OpenAI client
+            llm = AsyncOpenAI(
+                api_key=settings.VLLM_API_KEY,
+                base_url=settings.VLLM_API_URL,
+            )
+
+            use_case = GeneratedAssetUseCase(repo=repo, llm_client=llm)
+
+            # Gọi logic sinh prompt + gọi LLM
+            output_content = await use_case.execute_generation(asset_type, input_params)
+
+            # Cập nhật asset trong DB
+            asset = await repo.get_by_id(uuid.UUID(asset_id))
+            if asset:
+                asset.output_content = output_content
+                await session.commit()
+
+            return {"status": "success", "asset_id": asset_id}
+        except Exception as exc:
+            await session.rollback()
+            logger.error("[generate_asset] Async run failed: %s", exc)
+            raise exc
+
+
+async def _update_asset_error_async(asset_id: str, error_msg: str) -> None:
+    import uuid
+    from app.core.database import AsyncSessionFactory
+    from app.adapters.database.generated_asset_repository import SQLAlchemyGeneratedAssetRepository
+
+    async with AsyncSessionFactory() as session:
+        try:
+            repo = SQLAlchemyGeneratedAssetRepository(session)
+            asset = await repo.get_by_id(uuid.UUID(asset_id))
+            if asset:
+                asset.output_content = {"error": f"AI generation failed: {error_msg}"}
+                await session.commit()
+        except Exception as db_err:
+            await session.rollback()
+            logger.error("[generate_asset] Failed to write error to DB: %s", db_err)
+
+
+@celery_app.task(
+    bind=True,
+    base=AIBaseTask,
+    name="ai_tasks.generate_asset",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def generate_asset_task(
+    self,
+    asset_id: str,
+    creator_id: str,
+    asset_type: str,
+    input_params: dict,
+) -> dict:
+    """
+    Background task: Sinh nội dung AI cho Generated Asset và cập nhật vào DB.
+    """
+    logger.info("[generate_asset] START asset_id=%s", asset_id)
+    import asyncio
+    try:
+        return asyncio.run(
+            _run_generate_asset_async(asset_id, creator_id, asset_type, input_params)
+        )
+    except Exception as exc:
+        logger.error("[generate_asset] Task failed, writing error to DB: %s", exc)
+        try:
+            asyncio.run(_update_asset_error_async(asset_id, str(exc)))
+        except Exception as db_err:
+            logger.error("[generate_asset] Error handling failed: %s", db_err)
+        raise self.retry(exc=exc)
+

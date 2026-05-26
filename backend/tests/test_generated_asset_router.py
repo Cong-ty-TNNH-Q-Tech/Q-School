@@ -6,7 +6,7 @@ Override require_active_subscription + get_use_case bằng mock.
 
 import uuid
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import FastAPI
@@ -72,15 +72,21 @@ def mock_uc() -> AsyncMock:
 
 
 @pytest.fixture
-def authed_client(asset_app: FastAPI, mock_uc: AsyncMock) -> TestClient:
+def authed_client(asset_app: FastAPI, mock_uc: AsyncMock, monkeypatch) -> TestClient:
     """Client với AIUserDep + CurrentUserDep + UseCase đều bị mock."""
     asset_app.dependency_overrides[require_active_subscription] = lambda: AI_USER
     asset_app.dependency_overrides[get_current_user] = lambda: AI_USER
     asset_app.dependency_overrides[get_db] = lambda: AsyncMock()
     asset_app.dependency_overrides[get_use_case] = lambda: mock_uc
+    
+    # Mock celery task .delay to avoid hitting real Redis/Celery broker in router tests
+    from app.entrypoints.celery_worker.ai_tasks import generate_asset_task
+    monkeypatch.setattr(generate_asset_task, "delay", MagicMock())
+    
     with TestClient(asset_app, raise_server_exceptions=True) as c:
         yield c
     asset_app.dependency_overrides.clear()
+
 
 
 @pytest.fixture
@@ -95,26 +101,26 @@ def anon_client(asset_app: FastAPI) -> TestClient:
 
 
 class TestPostGeneratedAssets:
-    def test_create_returns_201(self, authed_client: TestClient, mock_uc: AsyncMock):
-        mock_uc.generate_asset.return_value = _dto("email")
+    def test_create_returns_202(self, authed_client: TestClient, mock_uc: AsyncMock):
+        mock_uc.pre_create_asset.return_value = _dto("email")
         resp = authed_client.post(
             "/api/v1/generated-assets",
             json={"asset_type": "email", "input_params": {"student_name": "Minh"}},
         )
-        assert resp.status_code == 201
+        assert resp.status_code == 202
         body = resp.json()
         assert body["status"] == "success"
         assert body["data"]["asset_type"] == "email"
 
-    def test_create_iep_returns_201(
+    def test_create_iep_returns_202(
         self, authed_client: TestClient, mock_uc: AsyncMock
     ):
-        mock_uc.generate_asset.return_value = _dto("iep")
+        mock_uc.pre_create_asset.return_value = _dto("iep")
         resp = authed_client.post(
             "/api/v1/generated-assets",
             json={"asset_type": "iep", "input_params": {}},
         )
-        assert resp.status_code == 201
+        assert resp.status_code == 202
 
     def test_create_missing_asset_type_returns_422(self, authed_client: TestClient):
         resp = authed_client.post(
@@ -141,7 +147,7 @@ class TestPostGeneratedAssets:
         self, authed_client: TestClient, mock_uc: AsyncMock
     ):
         dto = _dto("behavior_intervention")
-        mock_uc.generate_asset.return_value = dto
+        mock_uc.pre_create_asset.return_value = dto
         authed_client.post(
             "/api/v1/generated-assets",
             json={
@@ -149,7 +155,7 @@ class TestPostGeneratedAssets:
                 "input_params": {"student": "An", "behavior": "disruptive"},
             },
         )
-        mock_uc.generate_asset.assert_called_once_with(
+        mock_uc.pre_create_asset.assert_called_once_with(
             creator_id=AI_USER.id,
             asset_type="behavior_intervention",
             input_params={"student": "An", "behavior": "disruptive"},
@@ -158,12 +164,30 @@ class TestPostGeneratedAssets:
     def test_create_empty_input_params_allowed(
         self, authed_client: TestClient, mock_uc: AsyncMock
     ):
-        mock_uc.generate_asset.return_value = _dto("report_comment")
+        mock_uc.pre_create_asset.return_value = _dto("report_comment")
         resp = authed_client.post(
             "/api/v1/generated-assets",
             json={"asset_type": "report_comment"},
         )
-        assert resp.status_code == 201
+        assert resp.status_code == 202
+
+    def test_create_rate_limited_returns_429(
+        self, authed_client: TestClient, monkeypatch
+    ):
+        from app.core.exceptions import TooManyRequestsException
+
+        async def mock_check_rate_limit(*args, **kwargs):
+            raise TooManyRequestsException("Rate limit exceeded")
+
+        import app.entrypoints.api_v1.routers.generated_assets as router_module
+        monkeypatch.setattr(router_module, "check_rate_limit", mock_check_rate_limit)
+
+        resp = authed_client.post(
+            "/api/v1/generated-assets",
+            json={"asset_type": "email", "input_params": {"student_name": "Minh"}},
+        )
+        assert resp.status_code == 429
+        assert resp.json()["error_code"] == 4290
 
 
 # ── GET /generated-assets ─────────────────────────────────────────────────────
@@ -244,9 +268,9 @@ class TestGetGeneratedAssetDetail:
     def test_get_not_found_returns_404(
         self, authed_client: TestClient, mock_uc: AsyncMock
     ):
-        from app.core.exceptions import NotFoundException
+        from app.domain.exceptions import AssetNotFoundError
 
-        mock_uc.get_asset.side_effect = NotFoundException("Không tìm thấy")
+        mock_uc.get_asset.side_effect = AssetNotFoundError("Không tìm thấy")
         # asset_app đã có register_exception_handlers → trả 404 đúng chuẩn
         resp = authed_client.get(f"/api/v1/generated-assets/{uuid.uuid4()}")
         assert resp.status_code == 404
