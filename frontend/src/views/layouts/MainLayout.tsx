@@ -35,6 +35,9 @@ export default function MainLayout() {
             <Link to="/ai-chat" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
               AI Assistant
             </Link>
+            <Link to="/dashboard/flashcards" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
+              Flashcards
+            </Link>
           </nav>
         </aside>
 
