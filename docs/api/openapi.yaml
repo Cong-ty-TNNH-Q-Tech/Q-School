@@ -26,6 +26,9 @@ components:
         status:
           type: string
           example: error
+        data:
+          type: "null"
+          example: null
         message:
           type: string
           example: "Invalid input parameters"
@@ -65,13 +68,23 @@ components:
           
     PaginationMeta:
       type: object
+      description: "Cursor-based pagination metadata (AGENTS.md: CAM su dung offset pagination)"
       properties:
-        current_page:
-          type: integer
-        total_pages:
-          type: integer
-        total_items:
-          type: integer
+        next_cursor_created_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: "ISO datetime cua record cuoi cung. Null neu khong con du lieu."
+          example: "2024-01-15T10:30:00.123456+00:00"
+        next_cursor_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: "UUID cua record cuoi cung (tiebreaker khi nhieu records cung created_at)"
+        has_more:
+          type: boolean
+          description: "True neu con du lieu phia sau cursor"
+          example: true
 
     # ----------------------------------------
     # CORE DOMAIN SCHEMAS
@@ -91,18 +104,34 @@ components:
           enum: [teacher, student, admin]
         is_active:
           type: boolean
+        created_at:
+          type: string
+          format: date-time
           
     ProfileResponse:
       type: object
       properties:
+        user_id:
+          type: string
+          format: uuid
         full_name:
           type: string
+          nullable: true
         avatar_url:
           type: string
+          nullable: true
         school_name:
           type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
         points:
           type: integer
+          example: 0
+        updated_at:
+          type: string
+          format: date-time
 
     ClassStudentResponse:
       type: object
@@ -175,6 +204,81 @@ components:
         due_date:
           type: string
           format: date-time
+
+    # ----------------------------------------
+    # LESSON SCHEMAS
+    # ----------------------------------------
+    CreateLessonRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          maxLength: 500
+          example: "Bai 1: Gioi thieu Python"
+        subject:
+          type: string
+          maxLength: 100
+          nullable: true
+        grade_level:
+          type: string
+          maxLength: 20
+          nullable: true
+        content:
+          type: object
+          nullable: true
+          description: "Noi dung giao an dang JSONB (sections, objectives, activities)"
+
+    UpdateLessonRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+          nullable: true
+        subject:
+          type: string
+          maxLength: 100
+          nullable: true
+        grade_level:
+          type: string
+          maxLength: 20
+          nullable: true
+        content:
+          type: object
+          nullable: true
+
+    LessonResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        subject:
+          type: string
+          nullable: true
+        grade_level:
+          type: string
+          nullable: true
+        content:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        teacher_name:
+          type: string
+          nullable: true
+          description: "Username cua giao vien (eager-loaded)"
 
     QuizDetailResponse:
       type: object
@@ -290,22 +394,15 @@ components:
   # COMMON PARAMETERS
   # ----------------------------------------
   parameters:
-    PageParam:
-      name: page
-      in: query
-      description: Tới trang số mấy
-      required: false
-      schema:
-        type: integer
-        default: 1
     LimitParam:
       name: limit
       in: query
-      description: Số dòng trên 1 trang
+      description: So dong toi da tra ve moi request
       required: false
       schema:
         type: integer
         default: 20
+        maximum: 100
     CursorParam:
       name: cursor
       in: query
@@ -330,7 +427,8 @@ paths:
   # ==========================================
   /auth/login:
     post:
-      summary: Đăng nhập cấp Token
+      summary: Dang nhap cap Token
+      description: "Dang nhap bang username (hoac email) + password. Tra ve access_token (15 phut) va refresh_token (7 ngay)."
       tags: [Authentication]
       security: []
       requestBody:
@@ -343,11 +441,12 @@ paths:
               properties:
                 username:
                   type: string
+                  description: "Username hoac email"
                 password:
                   type: string
       responses:
         '200':
-          description: OK
+          description: Dang nhap thanh cong
           content:
             application/json:
               schema:
@@ -359,14 +458,112 @@ paths:
                   data:
                     type: object
                     properties:
-                      access_token:
-                        type: string
-                      refresh_token:
-                        type: string
-                      token_type:
-                        type: string
+                      user:
+                        allOf:
+                          - $ref: '#/components/schemas/UserResponse'
+                          - type: object
+                            properties:
+                              profile:
+                                $ref: '#/components/schemas/ProfileResponse'
+                      tokens:
+                        type: object
+                        properties:
+                          access_token:
+                            type: string
+                          refresh_token:
+                            type: string
+                          token_type:
+                            type: string
+                            example: bearer
+                          expires_in:
+                            type: integer
+                            description: "So giay token con hieu luc"
+                            example: 900
+                  message:
+                    type: string
+                    example: "Dang nhap thanh cong"
         '401':
-          description: Sai mật khẩu
+          description: Sai mat khau hoac tai khoan bi khoa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /auth/register:
+    post:
+      summary: Dang ky tai khoan moi
+      description: "Tao tai khoan hoc sinh hoac giao vien moi. Tra ve tokens ngay sau khi dang ky."
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 50
+                  pattern: "^[a-zA-Z0-9_-]+$"
+                  description: "Chi cho phep chu cai, so, _, -"
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                role:
+                  type: string
+                  enum: [student, teacher]
+                  default: student
+      responses:
+        '201':
+          description: Dang ky thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        allOf:
+                          - $ref: '#/components/schemas/UserResponse'
+                          - type: object
+                            properties:
+                              profile:
+                                $ref: '#/components/schemas/ProfileResponse'
+                      tokens:
+                        type: object
+                        properties:
+                          access_token:
+                            type: string
+                          refresh_token:
+                            type: string
+                          token_type:
+                            type: string
+                            example: bearer
+                          expires_in:
+                            type: integer
+                            example: 900
+                  message:
+                    type: string
+                    example: "Dang ky thanh cong"
+        '409':
+          description: Email hoac username da ton tai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '422':
+          description: Du lieu khong hop le
           content:
             application/json:
               schema:
@@ -374,8 +571,10 @@ paths:
 
   /auth/refresh:
     post:
-      summary: Làm mới Access Token bằng Refresh Token (Chống văng app)
+      summary: Lam moi Access Token bang Refresh Token
+      description: "Dung refresh_token de lay access_token moi. Tranh user phai login lai."
       tags: [Authentication]
+      security: []
       requestBody:
         required: true
         content:
@@ -388,7 +587,7 @@ paths:
                   type: string
       responses:
         '200':
-          description: Token mới được cấp phát
+          description: Token moi duoc cap phat
           content:
             application/json:
               schema:
@@ -404,6 +603,17 @@ paths:
                         type: string
                       token_type:
                         type: string
+                        example: bearer
+                      expires_in:
+                        type: integer
+                        description: "So giay token con hieu luc"
+                        example: 900
+        '401':
+          description: Refresh token khong hop le hoac het han
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
 
   /auth/logout:
     post:
@@ -424,10 +634,11 @@ paths:
                     type: string
                     example: "Logged out successfully"
 
-  /users/me:
+  /auth/me:
     get:
-      summary: Lấy thông tin cá nhân
-      tags: [Users]
+      summary: Lay thong tin ca nhan
+      description: "Tra ve thong tin day du cua user dang dang nhap, bao gom Profile."
+      tags: [Authentication]
       responses:
         '200':
           description: OK
@@ -800,7 +1011,7 @@ paths:
           schema:
             type: string
             format: uuid
-        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/CursorParam'
         - $ref: '#/components/parameters/LimitParam'
       responses:
         '200':
@@ -852,6 +1063,199 @@ paths:
                       assignment_id:
                         type: string
                         format: uuid
+
+  # ==========================================
+  # GROUP 2b: LESSON CRUD
+  # ==========================================
+  /lessons:
+    post:
+      summary: Tao bai giang moi
+      description: "Tao bai giang moi. Chi giao vien va admin moi duoc tao."
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLessonRequest'
+      responses:
+        '201':
+          description: Tao thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+                  message:
+                    type: string
+                    example: "Tao bai giang thanh cong"
+        '401':
+          description: Chua xac thuc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Khong co quyen (khong phai teacher/admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    get:
+      summary: Danh sach bai giang cua giao vien dang dang nhap
+      description: "Lay danh sach tat ca bai giang do giao vien dang dang nhap tao."
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LessonResponse'
+        '401':
+          description: Chua xac thuc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /lessons/{lesson_id}:
+    get:
+      summary: Chi tiet bai giang
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lesson_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+        '404':
+          description: Khong tim thay bai giang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    patch:
+      summary: Cap nhat bai giang (partial update)
+      description: "Teacher chi duoc sua bai giang do minh tao. Admin bypass."
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lesson_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLessonRequest'
+      responses:
+        '200':
+          description: Cap nhat thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+                  message:
+                    type: string
+                    example: "Cap nhat bai giang thanh cong"
+        '403':
+          description: Khong co quyen (khong phai owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Khong tim thay bai giang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    delete:
+      summary: Soft delete bai giang
+      description: "Soft delete bai giang. Teacher chi duoc xoa bai giang cua minh. Admin bypass."
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lesson_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Xoa thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: "null"
+                  message:
+                    type: string
+                    example: "Xoa bai giang thanh cong"
+        '403':
+          description: Khong co quyen (khong phai owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Khong tim thay bai giang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
 
   /lesson-generation-tasks:
     post:
@@ -1258,7 +1662,7 @@ paths:
       summary: Lấy danh sách tài liệu RAG đã tải lên
       tags: [AI Workspace]
       parameters:
-        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/CursorParam'
         - $ref: '#/components/parameters/LimitParam'
       responses:
         '200':

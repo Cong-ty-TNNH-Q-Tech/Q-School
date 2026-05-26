@@ -18,6 +18,7 @@ Tài liệu này cung cấp bộ quy chuẩn (Guidelines) bắt buộc dành cho
 - Luôn giữ tâm thế **Scale & Stability**: Mọi dòng code phải được tối ưu cho hàng nghìn người dùng cùng lúc.
 - **Security-First**: Không bao giờ hardcode API Keys, cấu hình Database. Sử dụng biến môi trường (Environment Variables).
 - Chức năng liên quan đến AI **LUÔN LUÔN** phải có Rate Limiting (`HTTP 429`) và kiểm tra quyền gói cước (`HTTP 402`).
+- **Không sử dụng Emoji** trong giao diện (UI). Thay thế bằng **SVG icon** hoặc icon từ thư viện (Lucide, Radix Icons) để đảm bảo tính nhất quán và chuyên nghiệp trên mọi nền tảng.
 
 ---
 

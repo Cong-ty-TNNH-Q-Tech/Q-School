@@ -21,6 +21,11 @@ from app.entrypoints.api_v1.schemas.class_ import (
     ClassDetailOut,
     ClassStudentOut,
 )
+from app.entrypoints.api_v1.schemas.lesson import (
+    CreateLessonRequest,
+    UpdateLessonRequest,
+    LessonOut,
+)
 
 __all__ = [
     # Base
@@ -41,4 +46,8 @@ __all__ = [
     "ClassOut",
     "ClassDetailOut",
     "ClassStudentOut",
+    # Lesson
+    "CreateLessonRequest",
+    "UpdateLessonRequest",
+    "LessonOut",
 ]

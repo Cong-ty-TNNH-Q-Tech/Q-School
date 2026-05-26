@@ -8,7 +8,7 @@ export default function Dashboard() {
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Dashboard</h2>
         <p className="text-muted-foreground">
-          Welcome back, {user?.name || 'Guest'}! Here is an overview of your AI Workspace.
+          Welcome back, {user?.profile?.full_name || user?.username || 'Guest'}! Here is an overview of your AI Workspace.
         </p>
       </div>
 

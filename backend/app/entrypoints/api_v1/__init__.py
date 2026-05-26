@@ -15,8 +15,7 @@ from app.entrypoints.api_v1.auth import router as auth_router
 
 # ── Group 2: EdTech Core ────────────────────────
 from app.entrypoints.api_v1.classes import router as classes_router
-
-# from app.entrypoints.api_v1.lessons import router as lessons_router
+from app.entrypoints.api_v1.lessons import router as lessons_router
 
 # ── Group 3: Student Tracking ──────────────────
 # from app.entrypoints.api_v1.quizzes import router as quizzes_router
@@ -42,7 +41,7 @@ api_v1_router.include_router(auth_router, prefix="/auth", tags=["Authentication"
 
 # Uncomment khi member implement từng nhóm:
 api_v1_router.include_router(classes_router, prefix="/classes", tags=["Classes"])
-# api_v1_router.include_router(lessons_router, prefix="/lessons", tags=["Lessons"])
+api_v1_router.include_router(lessons_router, prefix="/lessons", tags=["Lessons"])
 # api_v1_router.include_router(quizzes_router, prefix="/quizzes", tags=["Student Tracking"])
 # api_v1_router.include_router(essays_router, prefix="/essays", tags=["Student Tracking"])
 # api_v1_router.include_router(flashcards_router, prefix="/flashcard-sets", tags=["Student Tracking"])

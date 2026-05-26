@@ -1,28 +1,11 @@
-# Dependencies (sẽ được npm install trong container)
-node_modules/
-
-# Build output
-dist/
-
-# IDE
-.vscode/
-.idea/
-
-# Git
-.git/
+node_modules
+.git
 .gitignore
-
-# Docker
-Dockerfile
-docker-compose*.yml
-
-# Environment files
+dist
+*.md
 .env
 .env.*
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Docs
-*.md
+!.env.example
+.vscode/
+.idea/
+coverage/

@@ -27,6 +27,7 @@ const MOCK_USERS: Array<User & { password: string }> = [
       school_name: 'Trường THPT Nguyễn Du',
       bio: 'Giáo viên Toán với 10 năm kinh nghiệm',
       points: 150,
+      updated_at: new Date().toISOString(),
     },
   },
   {
@@ -44,6 +45,7 @@ const MOCK_USERS: Array<User & { password: string }> = [
       school_name: 'Trường THPT Nguyễn Du',
       bio: null,
       points: 320,
+      updated_at: new Date().toISOString(),
     },
   },
 ]
@@ -71,12 +73,14 @@ export const mockLogin = async (req: LoginRequest): Promise<LoginResponse> => {
     }
   }
 
-  const { password: _, ...safeUser } = user
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: _password, ...safeUser } = user
 
   return {
     user: safeUser,
     tokens: {
       access_token: `mock_token_${safeUser.id}_${Date.now()}`,
+      refresh_token: `mock_refresh_${safeUser.id}_${Date.now()}`,
       token_type: 'bearer',
       expires_in: 900, // 15 phút
     },
@@ -86,6 +90,7 @@ export const mockLogin = async (req: LoginRequest): Promise<LoginResponse> => {
 export const mockGetCurrentUser = async (userId: string): Promise<User> => {
   const user = MOCK_USERS.find((u) => u.id === userId)
   if (!user) throw new Error('User not found')
-  const { password: _, ...safeUser } = user
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: _password, ...safeUser } = user
   return safeUser
 }

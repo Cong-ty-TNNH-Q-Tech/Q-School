@@ -1,14 +1,16 @@
 """
 Database Adapters — Concrete SQLAlchemy Repository implementations.
-Member thêm export mới vào đây khi implement Repository.
+Member them export moi vao day khi implement Repository.
 """
 
 from app.adapters.database.base import BaseRepository
 from app.adapters.database.user_repository import UserSQLAlchemyRepository
 from app.adapters.database.class_repository import ClassSQLAlchemyRepository
+from app.adapters.database.lesson_repository import LessonSQLAlchemyRepository
 
 __all__ = [
     "BaseRepository",
     "UserSQLAlchemyRepository",
     "ClassSQLAlchemyRepository",
+    "LessonSQLAlchemyRepository",
 ]

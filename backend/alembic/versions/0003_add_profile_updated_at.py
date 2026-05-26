@@ -14,7 +14,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0003_add_profile_updated_at"
-down_revision: Union[str, None] = "0002_fix_vector_column_and_constraints"
+down_revision: Union[str, None] = "0002_fix_vector_constraints"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
