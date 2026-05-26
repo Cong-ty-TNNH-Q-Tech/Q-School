@@ -58,6 +58,7 @@ export const FlashcardMockService = {
     });
   },
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   submitReview: async (_flashcardId: string, _confidenceLevel: 1 | 2 | 3 | 4 | 5): Promise<{ status: string; data: Record<string, unknown> }> => {
     return new Promise((resolve) => {
       setTimeout(() => {
