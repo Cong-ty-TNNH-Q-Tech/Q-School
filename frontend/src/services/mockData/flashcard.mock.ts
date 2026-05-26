@@ -1,4 +1,4 @@
-import type { FlashcardSet, Flashcard, FlashcardReview } from '@/models/quiz';
+import type { FlashcardSet, Flashcard } from '@/models/quiz';
 
 export const mockFlashcardSets: FlashcardSet[] = [
   {
@@ -58,7 +58,7 @@ export const FlashcardMockService = {
     });
   },
 
-  submitReview: async (flashcardId: string, confidenceLevel: 1 | 2 | 3 | 4 | 5): Promise<{ status: string; data: any }> => {
+  submitReview: async (_flashcardId: string, _confidenceLevel: 1 | 2 | 3 | 4 | 5): Promise<{ status: string; data: Record<string, unknown> }> => {
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve({
