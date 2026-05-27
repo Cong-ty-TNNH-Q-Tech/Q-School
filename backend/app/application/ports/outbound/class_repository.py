@@ -6,6 +6,7 @@ Principle (ISP — Interface Segregation):
   get_students() bị loại khỏi đây vì UseCase dùng class_.students đã eager-loaded,
   không gọi get_students() qua interface. Nếu cần, gọi trực tiếp trên concrete class.
 """
+
 from abc import ABC, abstractmethod
 from uuid import UUID
 
@@ -35,7 +36,7 @@ class IClassRepository(ABC):
 
     @abstractmethod
     async def remove_student(self, class_id: UUID, student_id: UUID) -> None: ...
+
     # NOTE: get_students() diện hình không cần trong interface vì ClassUseCase
     # dùng class_.students đã eager-loaded bửi get_by_id().
     # ISP: Interface chỉ có những gì client (UseCase) thực sự cần.
-

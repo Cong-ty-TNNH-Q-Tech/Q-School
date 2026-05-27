@@ -8,6 +8,7 @@ Pattern chuẩn cho mọi AI Task:
     3. Set AITask.status = 'completed' + lưu result_payload
     4. Nếu lỗi: Set AITask.status = 'failed' + lưu error trong result_payload
 """
+
 import logging
 from celery import Task
 from app.core.celery_app import celery_app
@@ -21,6 +22,7 @@ class AIBaseTask(Task):
     Tự động update AITask.status trong DB khi task thất bại.
     Member implement task cụ thể bằng cách kế thừa class này.
     """
+
     abstract = True
 
     def _update_task_status_sync(
@@ -39,7 +41,9 @@ class AIBaseTask(Task):
                     Truyền vào qua kwargs['ai_task_id'] khi enqueue task.
         """
         if not task_db_id:
-            logger.warning("_update_task_status_sync: không có ai_task_id, bỏ qua DB update")
+            logger.warning(
+                "_update_task_status_sync: không có ai_task_id, bỏ qua DB update"
+            )
             return
 
         try:
@@ -52,6 +56,7 @@ class AIBaseTask(Task):
                 result_payload = None
                 if error_message:
                     import json
+
                     result_payload = json.dumps({"error": error_message})
 
                 conn.execute(
@@ -76,7 +81,10 @@ class AIBaseTask(Task):
         """
         logger.error(
             "AI Task FAILED | celery_task_id=%s | ai_task_id=%s | error=%s",
-            task_id, kwargs.get("ai_task_id"), str(exc), exc_info=einfo
+            task_id,
+            kwargs.get("ai_task_id"),
+            str(exc),
+            exc_info=einfo,
         )
         # Update DB — task bị stuck 'processing' nếu không có dòng này
         self._update_task_status_sync(
@@ -92,7 +100,8 @@ class AIBaseTask(Task):
         """
         logger.info(
             "AI Task SUCCESS | celery_task_id=%s | ai_task_id=%s",
-            task_id, kwargs.get("ai_task_id")
+            task_id,
+            kwargs.get("ai_task_id"),
         )
 
 
@@ -118,7 +127,11 @@ def process_essay_grading(
         5. Parse kết quả AI -> ai_feedback JSONB
         6. Update EssaySubmission.score + AITask.status = 'completed'
     """
-    logger.info("[essay_grading] START submission=%s ai_task_id=%s", essay_submission_id, ai_task_id)
+    logger.info(
+        "[essay_grading] START submission=%s ai_task_id=%s",
+        essay_submission_id,
+        ai_task_id,
+    )
     try:
         # TODO: Implement khi AI pipeline sẵn sàng.
         # QUAN TRọNG: Kiểm tra idempotency trước khi chạy:
@@ -126,7 +139,9 @@ def process_essay_grading(
         #   if result.status == 'completed': return {"status": "already_completed"}
         return {"status": "not_implemented", "task_id": self.request.id}
     except Exception as exc:
-        logger.error("[essay_grading] FAIL submission=%s error=%s", essay_submission_id, exc)
+        logger.error(
+            "[essay_grading] FAIL submission=%s error=%s", essay_submission_id, exc
+        )
         raise self.retry(exc=exc)
 
 
@@ -181,3 +196,93 @@ def parse_document(self, document_id: str) -> dict:
     except Exception as exc:
         logger.error("[parse_document] FAIL document_id=%s error=%s", document_id, exc)
         raise self.retry(exc=exc)
+
+
+async def _run_generate_asset_async(
+    asset_id: str,
+    creator_id: str,
+    asset_type: str,
+    input_params: dict,
+) -> dict:
+    import uuid
+    from app.core.database import AsyncSessionFactory
+    from app.adapters.database.generated_asset_repository import SQLAlchemyGeneratedAssetRepository
+    from app.application.use_cases.generated_asset_use_case import GeneratedAssetUseCase
+    from openai import AsyncOpenAI
+    from app.core.config import settings
+
+    async with AsyncSessionFactory() as session:
+        try:
+            repo = SQLAlchemyGeneratedAssetRepository(session)
+            # Khởi tạo OpenAI client
+            llm = AsyncOpenAI(
+                api_key=settings.VLLM_API_KEY,
+                base_url=settings.VLLM_API_URL,
+            )
+
+            use_case = GeneratedAssetUseCase(repo=repo, llm_client=llm)
+
+            # Gọi logic sinh prompt + gọi LLM
+            output_content = await use_case.execute_generation(asset_type, input_params)
+
+            # Cập nhật asset trong DB
+            asset = await repo.get_by_id(uuid.UUID(asset_id))
+            if asset:
+                asset.output_content = output_content
+                await session.commit()
+
+            return {"status": "success", "asset_id": asset_id}
+        except Exception as exc:
+            await session.rollback()
+            logger.error("[generate_asset] Async run failed: %s", exc)
+            raise exc
+
+
+async def _update_asset_error_async(asset_id: str, error_msg: str) -> None:
+    import uuid
+    from app.core.database import AsyncSessionFactory
+    from app.adapters.database.generated_asset_repository import SQLAlchemyGeneratedAssetRepository
+
+    async with AsyncSessionFactory() as session:
+        try:
+            repo = SQLAlchemyGeneratedAssetRepository(session)
+            asset = await repo.get_by_id(uuid.UUID(asset_id))
+            if asset:
+                asset.output_content = {"error": f"AI generation failed: {error_msg}"}
+                await session.commit()
+        except Exception as db_err:
+            await session.rollback()
+            logger.error("[generate_asset] Failed to write error to DB: %s", db_err)
+
+
+@celery_app.task(
+    bind=True,
+    base=AIBaseTask,
+    name="ai_tasks.generate_asset",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def generate_asset_task(
+    self,
+    asset_id: str,
+    creator_id: str,
+    asset_type: str,
+    input_params: dict,
+) -> dict:
+    """
+    Background task: Sinh nội dung AI cho Generated Asset và cập nhật vào DB.
+    """
+    logger.info("[generate_asset] START asset_id=%s", asset_id)
+    import asyncio
+    try:
+        return asyncio.run(
+            _run_generate_asset_async(asset_id, creator_id, asset_type, input_params)
+        )
+    except Exception as exc:
+        logger.error("[generate_asset] Task failed, writing error to DB: %s", exc)
+        try:
+            asyncio.run(_update_asset_error_async(asset_id, str(exc)))
+        except Exception as db_err:
+            logger.error("[generate_asset] Error handling failed: %s", db_err)
+        raise self.retry(exc=exc)
+
