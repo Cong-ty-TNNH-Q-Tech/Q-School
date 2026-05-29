@@ -8,6 +8,7 @@ Test Strategy:
   - Test enrollment flow (enroll, remove, list students)
   - Test authorization (teacher ownership, role checks)
 """
+
 import uuid
 
 import pytest
@@ -529,8 +530,6 @@ async def test_update_class_empty_body(client: AsyncClient, teacher: User):
     assert response.status_code == 422
 
 
-
-
 async def test_update_class_all_null_fields(client: AsyncClient, teacher: User):
     """PATCH voi tat ca field = null -> 422 (bug regression guard).
 
@@ -552,6 +551,7 @@ async def test_update_class_all_null_fields(client: AsyncClient, teacher: User):
         headers=_auth_headers(teacher),
     )
     assert response.status_code == 422
+
 
 async def test_student_can_get_class_detail(
     client: AsyncClient,

@@ -2,6 +2,7 @@
 Core Configuration — Load tất cả biến môi trường từ .env bằng pydantic-settings.
 Không hardcode bất kỳ giá trị nhạy cảm nào tại đây.
 """
+
 from functools import lru_cache
 from typing import List
 from pydantic import field_validator, model_validator
@@ -56,9 +57,13 @@ class Settings(BaseSettings):
     # ──────────────────────────────────────────────
     # Redis & Celery
     # ──────────────────────────────────────────────
-    REDIS_URL: str = "redis://localhost:6379/0"           # App sử dụng (future: rate limiting)
-    CELERY_BROKER_URL: str = "redis://localhost:6379/1"    # Celery task queue (DB 1, tách biệt)
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2" # Celery results (DB 2, tách biệt)
+    REDIS_URL: str = "redis://localhost:6379/0"  # App sử dụng (future: rate limiting)
+    CELERY_BROKER_URL: str = (
+        "redis://localhost:6379/1"  # Celery task queue (DB 1, tách biệt)
+    )
+    CELERY_RESULT_BACKEND: str = (
+        "redis://localhost:6379/2"  # Celery results (DB 2, tách biệt)
+    )
 
     # ──────────────────────────────────────────────
     # JWT Security
@@ -117,8 +122,13 @@ class Settings(BaseSettings):
             )
 
         # Fallback: Nếu DEBUG=False nhưng APP_ENV chưa set — vẫn guard
-        if not self.DEBUG and self.APP_ENV == "development" and self.SECRET_KEY == _DEFAULT_KEY:
+        if (
+            not self.DEBUG
+            and self.APP_ENV == "development"
+            and self.SECRET_KEY == _DEFAULT_KEY
+        ):
             import warnings
+
             warnings.warn(
                 "Running with DEBUG=False and default SECRET_KEY. "
                 "Set APP_ENV=production or use a real SECRET_KEY.",

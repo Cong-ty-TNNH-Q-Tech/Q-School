@@ -1,11 +1,21 @@
 """
 User & Profile ORM Models — Group 1: System Core & Authentication
 """
+
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, String, Text, Integer, ForeignKey, DateTime, CheckConstraint, func
+from sqlalchemy import (
+    Boolean,
+    String,
+    Text,
+    Integer,
+    ForeignKey,
+    DateTime,
+    CheckConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,23 +33,30 @@ class User(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
     Bảng Users — Tài khoản hệ thống.
     role: 'student' | 'teacher' | 'admin'
     """
+
     __tablename__ = "users"
     __table_args__ = (
         CheckConstraint(
-            "role IN ('student', 'teacher', 'admin')",
-            name="ck_users_role"
+            "role IN ('student', 'teacher', 'admin')", name="ck_users_role"
         ),
     )
 
-    username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    username: Mapped[str] = mapped_column(
+        String(50), unique=True, nullable=False, index=True
+    )
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False, index=True
+    )
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="student")
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     # Relationships
     profile: Mapped["Profile"] = relationship(
-        "Profile", back_populates="user", uselist=False, cascade="all, delete-orphan",
+        "Profile",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
         lazy="selectin",  # Eager-load profile để tránh MissingGreenlet khi Pydantic serialize
     )
     managed_classes: Mapped[list["Class"]] = relationship(
@@ -67,6 +84,7 @@ class Profile(Base):
     NOTE: Không dùng TimestampMixin vì Profile không có created_at riêng
     (thời gian tạo tính theo Users.created_at). Chỉ có updated_at.
     """
+
     __tablename__ = "profiles"
 
     user_id: Mapped[uuid.UUID] = mapped_column(
@@ -78,7 +96,9 @@ class Profile(Base):
     avatar_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     school_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
-    points: Mapped[int] = mapped_column(Integer, nullable=False, default=0, comment="Gamification points")
+    points: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, comment="Gamification points"
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

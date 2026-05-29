@@ -4,6 +4,7 @@ Class Pydantic Schemas — Request/Response models cho Class endpoints.
 
 NOTE: Dùng model_validate() (Pydantic v2) thay vì from_orm() (deprecated).
 """
+
 import uuid
 from datetime import datetime
 
@@ -15,6 +16,7 @@ from pydantic import BaseModel, field_validator, model_validator
 # ──────────────────────────────────────────────
 class CreateClassRequest(BaseModel):
     """POST /classes — Tạo lớp học mới."""
+
     name: str
     grade_level: str | None = None
     subject: str | None = None
@@ -51,6 +53,7 @@ class CreateClassRequest(BaseModel):
 
 class UpdateClassRequest(BaseModel):
     """PATCH /classes/{id} — Cập nhật thông tin lớp học (partial update)."""
+
     name: str | None = None
     grade_level: str | None = None
     subject: str | None = None
@@ -110,6 +113,7 @@ class UpdateClassRequest(BaseModel):
 
 class EnrollStudentRequest(BaseModel):
     """POST /classes/{id}/students — Thêm học sinh vào lớp."""
+
     student_id: uuid.UUID
 
 
@@ -118,6 +122,7 @@ class EnrollStudentRequest(BaseModel):
 # ──────────────────────────────────────────────
 class ClassStudentOut(BaseModel):
     """Thông tin học sinh trong lớp (từ bảng ClassStudent)."""
+
     student_id: uuid.UUID
     joined_at: datetime
 
@@ -133,6 +138,7 @@ class ClassOut(BaseModel):
     Thông tin lớp học đầy đủ.
     Dùng cho: tất cả GET /classes endpoints.
     """
+
     id: uuid.UUID
     teacher_id: uuid.UUID | None
     name: str
@@ -152,4 +158,5 @@ class ClassDetailOut(ClassOut):
     Thông tin lớp học chi tiết — bao gồm danh sách học sinh.
     Dùng cho: GET /classes/{id}.
     """
+
     students: list[ClassStudentOut] = []

@@ -1,6 +1,7 @@
 """
 Outbound Port — Repository Interface cho Quiz, Question, Attempt.
 """
+
 from abc import ABC, abstractmethod
 from uuid import UUID
 
@@ -30,7 +31,9 @@ class IQuizAttemptRepository(ABC):
     async def get_by_id(self, attempt_id: UUID) -> QuizAttempt | None: ...
 
     @abstractmethod
-    async def create(self, student_id: UUID, quiz_id: UUID, **kwargs) -> QuizAttempt: ...
+    async def create(
+        self, student_id: UUID, quiz_id: UUID, **kwargs
+    ) -> QuizAttempt: ...
 
     @abstractmethod
     async def complete(self, attempt: QuizAttempt, score: float) -> QuizAttempt: ...

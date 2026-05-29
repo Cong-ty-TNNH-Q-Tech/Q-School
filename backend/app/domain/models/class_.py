@@ -1,6 +1,7 @@
 """
 Class & ClassStudent ORM Models — Lớp học và quan hệ Học sinh/Lớp
 """
+
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -22,12 +23,13 @@ class Class(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
     Bảng Classes — Lớp học do Giáo viên quản lý.
     Một lớp thuộc về một giáo viên, có nhiều học sinh qua bảng trung gian.
     """
+
     __tablename__ = "classes"
 
     teacher_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="SET NULL"),
-        nullable=True,   # nullable=True để SET NULL hoạt động khi giáo viên bị xóa
+        nullable=True,  # nullable=True để SET NULL hoạt động khi giáo viên bị xóa
         index=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -54,6 +56,7 @@ class ClassStudent(Base):
     Bảng CLASS_STUDENTS — Bảng trung gian M-N giữa Class và User (Student).
     Composite PK: (class_id, student_id)
     """
+
     __tablename__ = "class_students"
     # Composite PK (class_id, student_id) — PostgreSQL tự tạo index cho (class_id, student_id)
     # Nhưng cần thêm index riêng cho student_id để query ngược lại (học sinh này đang học lớp nào)

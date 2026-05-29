@@ -2,6 +2,7 @@
 Ports — Top-level barrel file.
 Import tất cả ports từ một chỗ duy nhất.
 """
+
 from app.application.ports.inbound import IAuthUseCase, IAIChatUseCase
 from app.application.ports.outbound import (
     IUserRepository,

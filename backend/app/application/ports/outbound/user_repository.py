@@ -3,6 +3,7 @@ Outbound Port — Repository Interface cho User.
 Use Cases phụ thuộc vào interface này, KHÔNG phụ thuộc vào SQLAlchemy cụ thể.
 Adapter (adapters/database/user_repository.py) sẽ implement interface này.
 """
+
 from abc import ABC, abstractmethod
 from uuid import UUID
 
@@ -22,7 +23,9 @@ class IUserRepository(ABC):
     async def get_by_username(self, username: str) -> User | None: ...
 
     @abstractmethod
-    async def create(self, username: str, email: str, password_hash: str, role: str) -> User: ...
+    async def create(
+        self, username: str, email: str, password_hash: str, role: str
+    ) -> User: ...
 
     @abstractmethod
     async def update(self, user: User, **kwargs) -> User: ...

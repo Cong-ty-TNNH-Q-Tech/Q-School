@@ -361,10 +361,34 @@ components:
       properties:
         asset_type:
           type: string
-          enum: [email, iep, behavior_intervention, report_comment]
+          enum: [lesson_plan, quiz, email, iep, behavior_intervention, report_comment]
         input_params:
           type: object
           description: "Thông số đầu vào dạng JSON (VD: Tên học sinh, lỗi vi phạm)"
+
+    GeneratedAssetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        creator_id:
+          type: string
+          format: uuid
+        asset_type:
+          type: string
+          enum: [lesson_plan, quiz, email, iep, behavior_intervention, report_comment]
+        input_params:
+          type: object
+        output_content:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
 
   # ----------------------------------------
   # COMMON PARAMETERS
@@ -1457,8 +1481,10 @@ paths:
   # ==========================================
   /generated-assets:
     post:
-      summary: Nhờ AI soạn Email / IEP / Nhận xét sổ liên lạc
+      summary: Nhờ AI soạn Email / IEP / Nhận xét sổ liên lạc / Giáo án / Trắc nghiệm (Bất đồng bộ)
       tags: [AI Workspace]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1466,8 +1492,8 @@ paths:
             schema:
               $ref: '#/components/schemas/AssetGenerationRequest'
       responses:
-        '200':
-          description: Đã sinh văn bản thành công
+        '202':
+          description: Tác vụ đã được đưa vào Hàng đợi
           content:
             application/json:
               schema:
@@ -1477,20 +1503,126 @@ paths:
                     type: string
                     example: success
                   data:
-                    type: object
-                    properties:
-                      asset_id:
-                        type: string
-                        format: uuid
-                      output_content:
-                        type: object
-                        description: "Nội dung văn bản AI sinh ra"
+                    $ref: '#/components/schemas/GeneratedAssetResponse'
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '402':
+          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequiredError'
         '429':
-          description: Quá tải hệ thống AI
+          description: Quá tải hệ thống AI hoặc vượt quá giới hạn lượt dùng
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TooManyRequestsError'
+    get:
+      summary: Danh sách assets của user (cursor pagination)
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cursor_created_at
+          in: query
+          description: ISO datetime string của created_at của record cuối trang trước
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: cursor_id
+          in: query
+          description: UUID của record cuối trang trước (tiebreaker)
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          description: Số dòng trên 1 trang
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          description: Danh sách generated assets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GeneratedAssetResponse'
+                  next_cursor_created_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  next_cursor_id:
+                    type: string
+                    format: uuid
+                    nullable: true
+                  has_more:
+                    type: boolean
+                    example: false
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /generated-assets/{asset_id}:
+    get:
+      summary: Chi tiết một Generated Asset
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Chi tiết generated asset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/GeneratedAssetResponse'
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy asset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
 
   /documents:
     post:
