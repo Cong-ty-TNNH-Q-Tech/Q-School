@@ -3,6 +3,8 @@ import MainLayout from '@/views/layouts/MainLayout'
 import Dashboard from '@/views/pages/dashboard/Dashboard'
 import Login from '@/views/pages/auth/Login'
 import LandingPage from '@/views/pages/landing/LandingPage'
+import FlashcardSetList from '@/views/pages/flashcards/FlashcardSetList'
+import FlashcardStudy from '@/views/pages/flashcards/FlashcardStudy'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -32,6 +34,9 @@ export default function App() {
         }
       >
         <Route index element={<Dashboard />} />
+        {/* Flashcards */}
+        <Route path="flashcards" element={<FlashcardSetList />} />
+        <Route path="flashcards/:setId" element={<FlashcardStudy />} />
         {/* Add more protected routes here */}
       </Route>
     </Routes>
