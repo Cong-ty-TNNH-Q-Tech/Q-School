@@ -10,6 +10,7 @@ export default function FlashcardStudy() {
   const navigate = useNavigate();
   
   const {
+    setTitle,
     currentCard,
     currentIndex,
     totalCards,
@@ -56,7 +57,7 @@ export default function FlashcardStudy() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div className="flex-1 flex justify-between items-end">
-            <h1 className="text-lg font-medium text-gray-900">Biology 101 - Ecosystems</h1> {/* Could get from set details API, hardcoded to match mockup for now */}
+            <h1 className="text-lg font-medium text-gray-900">{setTitle || 'Đang tải...'}</h1>
             <span className="text-sm font-medium text-gray-600">Thẻ {currentIndex + 1} / {totalCards}</span>
           </div>
         </div>

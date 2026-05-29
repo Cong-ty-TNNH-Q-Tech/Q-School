@@ -1,30 +1,11 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { FlashcardSet } from '@/models/quiz';
-import { FlashcardMockService } from '@/services/mockData/flashcard.mock';
+import { useFlashcardSets } from '@/viewmodels/useFlashcardSets';
 import { Button } from '@/components/ui/button';
 import { BookOpen, Calendar } from 'lucide-react';
 
 export default function FlashcardSetList() {
-  const [sets, setSets] = useState<FlashcardSet[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { sets, isLoading } = useFlashcardSets();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchSets = async () => {
-      try {
-        const response = await FlashcardMockService.getFlashcardSets();
-        if (response.status === 'success') {
-          setSets(response.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch flashcard sets:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSets();
-  }, []);
 
   if (isLoading) {
     return <div className="p-8 text-center text-gray-500">Đang tải danh sách bộ thẻ...</div>;

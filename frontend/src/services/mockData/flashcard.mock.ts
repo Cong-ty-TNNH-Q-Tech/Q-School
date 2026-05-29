@@ -46,6 +46,18 @@ export const FlashcardMockService = {
     });
   },
 
+  getFlashcardSet: async (setId: string): Promise<{ status: string; data: FlashcardSet | null }> => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const set = mockFlashcardSets.find(s => s.id === setId) || null;
+        resolve({
+          status: 'success',
+          data: set
+        });
+      }, 500);
+    });
+  },
+
   getCardsForReview: async (setId: string): Promise<{ status: string; data: Flashcard[] }> => {
     return new Promise((resolve) => {
       setTimeout(() => {

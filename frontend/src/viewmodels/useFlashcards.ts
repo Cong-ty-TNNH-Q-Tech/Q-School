@@ -3,6 +3,7 @@ import type { Flashcard } from '@/models/quiz';
 import { FlashcardMockService } from '@/services/mockData/flashcard.mock';
 
 export function useFlashcards(setId: string) {
+  const [setTitle, setSetTitle] = useState('');
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -14,6 +15,12 @@ export function useFlashcards(setId: string) {
     const fetchCards = async () => {
       setIsLoading(true);
       try {
+        // Fetch set details
+        const setResponse = await FlashcardMockService.getFlashcardSet(setId);
+        if (setResponse.status === 'success' && setResponse.data) {
+          setSetTitle(setResponse.data.title);
+        }
+
         const response = await FlashcardMockService.getCardsForReview(setId);
         if (response.status === 'success') {
           setCards(response.data);
@@ -64,6 +71,7 @@ export function useFlashcards(setId: string) {
   }, [cards, currentIndex, isSubmitting]);
 
   return {
+    setTitle,
     cards,
     currentCard: cards[currentIndex],
     currentIndex,
