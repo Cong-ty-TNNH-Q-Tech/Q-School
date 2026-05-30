@@ -1,6 +1,6 @@
 # FastAPI & Server
 fastapi>=0.136.3
-uvicorn[standard]>=0.47.0
+uvicorn[standard]>=0.48.0
 python-multipart>=0.0.29
 gunicorn>=21.2.0
 
