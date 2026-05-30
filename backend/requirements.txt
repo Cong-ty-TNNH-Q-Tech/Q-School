@@ -18,7 +18,7 @@ httpx>=0.28.1          # Async HTTP client
 
 # Background Jobs
 celery>=5.6.3
-redis>=7.4.0
+redis>=8.0.0
 
 # Security & Validation
 pydantic[email]>=2.13.4
