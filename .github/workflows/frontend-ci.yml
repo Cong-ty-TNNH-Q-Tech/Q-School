@@ -80,7 +80,7 @@ jobs:
           find dist/assets -type f -name "*.css" -exec du -h {} + | sort -rh | head -5
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend-build
           path: frontend/dist/
