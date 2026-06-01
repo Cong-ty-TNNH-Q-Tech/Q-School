@@ -1,1 +1,1 @@
-# Q-School
+# Q-School AI
