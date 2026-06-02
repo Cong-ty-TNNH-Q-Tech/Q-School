@@ -56,7 +56,7 @@ export default function ClassDetail() {
       await addStudent(id, newStudentId)
       setIsAddStudentOpen(false)
       setNewStudentId('')
-    } catch (err) {
+    } catch {
       alert('Không thể thêm học sinh này. ID có thể đã tồn tại.')
     }
   }

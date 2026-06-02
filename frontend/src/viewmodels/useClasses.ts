@@ -40,8 +40,8 @@ export const useClasses = create<ClassesState>((set, get) => ({
     try {
       const data = await mockGetClasses(teacherId)
       set({ classes: data })
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi lấy danh sách lớp học' })
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || 'Lỗi khi lấy danh sách lớp học' })
     } finally {
       set({ isLoading: false })
     }
@@ -52,8 +52,8 @@ export const useClasses = create<ClassesState>((set, get) => ({
     try {
       const cls = await mockGetClassById(id)
       set({ selectedClass: cls })
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi lấy thông tin lớp học' })
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || 'Lỗi khi lấy thông tin lớp học' })
     } finally {
       set({ isLoading: false })
     }
@@ -64,8 +64,8 @@ export const useClasses = create<ClassesState>((set, get) => ({
     try {
       const newCls = await mockCreateClass(req, teacherId)
       set({ classes: [newCls, ...get().classes] })
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi tạo lớp học' })
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || 'Lỗi khi tạo lớp học' })
       throw err
     } finally {
       set({ isLoading: false })
@@ -80,8 +80,8 @@ export const useClasses = create<ClassesState>((set, get) => ({
         classes: get().classes.map((c) => (c.id === id ? updatedCls : c)),
         selectedClass: get().selectedClass?.id === id ? updatedCls : get().selectedClass
       })
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi cập nhật lớp học' })
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || 'Lỗi khi cập nhật lớp học' })
       throw err
     } finally {
       set({ isLoading: false })
@@ -93,8 +93,8 @@ export const useClasses = create<ClassesState>((set, get) => ({
     try {
       await mockDeleteClass(id)
       set({ classes: get().classes.filter((c) => c.id !== id) })
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi xóa lớp học' })
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || 'Lỗi khi xóa lớp học' })
       throw err
     } finally {
       set({ isLoading: false })
@@ -106,8 +106,8 @@ export const useClasses = create<ClassesState>((set, get) => ({
     try {
       const students = await mockGetClassStudents(classId)
       set({ classStudents: students })
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi lấy danh sách học sinh' })
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || 'Lỗi khi lấy danh sách học sinh' })
     } finally {
       set({ isLoading: false })
     }
@@ -123,8 +123,8 @@ export const useClasses = create<ClassesState>((set, get) => ({
       if (cls && cls.id === classId) {
         set({ selectedClass: { ...cls, student_count: (cls.student_count || 0) + 1 } })
       }
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi thêm học sinh' })
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || 'Lỗi khi thêm học sinh' })
       throw err
     } finally {
       set({ isLoading: false })
@@ -143,8 +143,8 @@ export const useClasses = create<ClassesState>((set, get) => ({
       if (cls && cls.id === classId) {
         set({ selectedClass: { ...cls, student_count: Math.max(0, (cls.student_count || 0) - 1) } })
       }
-    } catch (err: any) {
-      set({ error: err.message || 'Lỗi khi xóa học sinh' })
+    } catch (err: unknown) {
+      set({ error: (err as Error).message || 'Lỗi khi xóa học sinh' })
       throw err
     } finally {
       set({ isLoading: false })
