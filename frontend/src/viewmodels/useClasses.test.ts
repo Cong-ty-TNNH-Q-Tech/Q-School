@@ -75,7 +75,7 @@ describe('useClasses ViewModel', () => {
 
   it('deleteClass removes a class from the list', async () => {
     useClasses.setState({ classes: [dummyClass] })
-    vi.mocked(mockAPI.mockDeleteClass).mockResolvedValue(true as any)
+    vi.mocked(mockAPI.mockDeleteClass).mockResolvedValue(undefined)
     const { result } = renderHook(() => useClasses())
 
     await act(async () => {
