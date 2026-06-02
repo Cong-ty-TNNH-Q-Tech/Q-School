@@ -3,6 +3,8 @@ import MainLayout from '@/views/layouts/MainLayout'
 import Dashboard from '@/views/pages/dashboard/Dashboard'
 import Login from '@/views/pages/auth/Login'
 import LandingPage from '@/views/pages/landing/LandingPage'
+import ClassList from '@/views/pages/classes/ClassList'
+import ClassDetail from '@/views/pages/classes/ClassDetail'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -32,7 +34,10 @@ export default function App() {
         }
       >
         <Route index element={<Dashboard />} />
-        {/* Add more protected routes here */}
+        <Route path="classes">
+          <Route index element={<ClassList />} />
+          <Route path=":id" element={<ClassDetail />} />
+        </Route>
       </Route>
     </Routes>
   )

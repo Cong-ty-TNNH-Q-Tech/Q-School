@@ -29,8 +29,8 @@ export default function MainLayout() {
             <Link to="/" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
               Dashboard
             </Link>
-            <Link to="/classes" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
-              Classes
+            <Link to="/dashboard/classes" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
+              Class Management
             </Link>
             <Link to="/ai-chat" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
               AI Assistant
