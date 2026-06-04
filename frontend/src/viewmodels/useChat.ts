@@ -1,27 +1,19 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import type { ChatSession, ChatMessage } from '@/models/chat';
 import { streamMockChatResponse } from '@/services/sseClient';
 
 export function useChat() {
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
-  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({});
+  const defaultSessionId = 'mock-session-1';
+  
+  const [sessions, setSessions] = useState<ChatSession[]>(() => [{
+    id: defaultSessionId,
+    user_id: 'user-1',
+    title: 'Trò chuyện mới',
+    created_at: new Date().toISOString()
+  }]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(defaultSessionId);
+  const [messages, setMessages] = useState<Record<string, ChatMessage[]>>({ [defaultSessionId]: [] });
   const [isStreaming, setIsStreaming] = useState(false);
-
-  // Khởi tạo một mock session mặc định
-  useEffect(() => {
-    if (sessions.length === 0) {
-      const defaultSessionId = 'mock-session-1';
-      setSessions([{
-        id: defaultSessionId,
-        user_id: 'user-1',
-        title: 'Trò chuyện mới',
-        created_at: new Date().toISOString()
-      }]);
-      setActiveSessionId(defaultSessionId);
-      setMessages({ [defaultSessionId]: [] });
-    }
-  }, [sessions.length]);
 
   const activeMessages = activeSessionId ? (messages[activeSessionId] || []) : [];
 
