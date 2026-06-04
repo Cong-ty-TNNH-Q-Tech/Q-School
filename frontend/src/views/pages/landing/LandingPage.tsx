@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { HeroSection } from './sections/HeroSection'
 import { FeaturesSection } from './sections/FeaturesSection'
 import { StatsSection } from './sections/StatsSection'
@@ -12,6 +13,7 @@ import './landing.css'
 
 export default function LandingPage() {
   const navigate = useNavigate()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -35,10 +37,18 @@ export default function LandingPage() {
             <a href="#testimonials">Đánh giá</a>
           </div>
           <div className="nav-actions">
-            <button className="btn-ghost" onClick={() => navigate('/login')}>Đăng nhập</button>
-            <button className="btn-primary-glow" onClick={() => navigate('/login')}>
-              Dùng thử miễn phí
-            </button>
+            {isAuthenticated ? (
+              <button className="btn-primary-glow" onClick={() => navigate('/dashboard')}>
+                Vào Dashboard
+              </button>
+            ) : (
+              <>
+                <button className="btn-ghost" onClick={() => navigate('/login')}>Đăng nhập</button>
+                <button className="btn-primary-glow" onClick={() => navigate('/login')}>
+                  Dùng thử miễn phí
+                </button>
+              </>
+            )}
           </div>
         </div>
       </nav>
