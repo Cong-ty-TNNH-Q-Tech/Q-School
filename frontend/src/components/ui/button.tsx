@@ -10,8 +10,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        default: "bg-[#5441E7] text-white shadow hover:bg-[#5441E7]/90", // Q-School Primary purple
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
@@ -20,6 +19,12 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Spaced Repetition Colors
+        confidence1: "bg-red-500 text-white shadow-sm hover:bg-red-600",
+        confidence2: "bg-orange-500 text-white shadow-sm hover:bg-orange-600",
+        confidence3: "bg-yellow-500 text-white shadow-sm hover:bg-yellow-600",
+        confidence4: "bg-green-400 text-white shadow-sm hover:bg-green-500",
+        confidence5: "bg-green-600 text-white shadow-sm hover:bg-green-700",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -54,5 +59,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   }
 )
 Button.displayName = "Button"
+
 
 export { Button, buttonVariants }

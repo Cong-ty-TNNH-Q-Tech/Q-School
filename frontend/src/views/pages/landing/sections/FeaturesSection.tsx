@@ -1,3 +1,6 @@
+import { useNavigate } from 'react-router-dom'
+import { useAuthStore } from '@/stores/useAuthStore'
+
 const features = [
   {
     icon: (
@@ -8,6 +11,7 @@ const features = [
     color: 'var(--feat-violet)',
     title: 'Trợ lý AI Chat',
     desc: 'Hỏi đáp tức thì với AI được tinh chỉnh riêng cho giáo dục Việt Nam. Hỗ trợ SSE streaming, phản hồi mượt mà như đang chat với giáo viên thật.',
+    link: null, // No page yet
   },
   {
     icon: (
@@ -20,6 +24,7 @@ const features = [
     color: 'var(--feat-blue)',
     title: 'Sinh giáo án tự động',
     desc: 'AI tạo giáo án chi tiết theo chuẩn MOET chỉ trong vài giây. Tùy chỉnh theo môn học, khối lớp và phương pháp giảng dạy.',
+    link: null, // No page yet
   },
   {
     icon: (
@@ -31,6 +36,7 @@ const features = [
     color: 'var(--feat-cyan)',
     title: 'Quiz thông minh',
     desc: 'Hệ thống đề thi đa dạng: trắc nghiệm, tự luận, ghép cặp. AI tự động chấm điểm và phân tích điểm yếu từng học sinh.',
+    link: null, // No page yet
   },
   {
     icon: (
@@ -42,6 +48,7 @@ const features = [
     color: 'var(--feat-emerald)',
     title: 'Flashcard & Ôn tập',
     desc: 'Thuật toán lặp lại cách quãng (Spaced Repetition) giúp ghi nhớ bền vững. AI tự tạo bộ flashcard từ nội dung bài học.',
+    link: '/dashboard/flashcards',
   },
   {
     icon: (
@@ -52,6 +59,7 @@ const features = [
     color: 'var(--feat-amber)',
     title: 'Phân tích học tập',
     desc: 'Dashboard trực quan hiển thị tiến độ, điểm mạnh — yếu và đề xuất cải thiện. Giáo viên quản lý lớp học dễ dàng hơn bao giờ hết.',
+    link: null, // No page yet
   },
   {
     icon: (
@@ -63,10 +71,24 @@ const features = [
     color: 'var(--feat-rose)',
     title: 'Quản lý lớp học',
     desc: 'Hệ thống quản lý học sinh, giáo viên, phụ huynh toàn diện. Tích hợp giao bài tập, thông báo và IEP cho học sinh đặc biệt.',
+    link: null, // No page yet
   },
 ]
 
 export function FeaturesSection() {
+  const navigate = useNavigate()
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+
+  const handleFeatureClick = (link: string | null) => {
+    if (!link) return;
+    
+    if (isAuthenticated) {
+      navigate(link)
+    } else {
+      navigate('/login')
+    }
+  }
+
   return (
     <section className="features-section" id="features">
       <div className="section-container">
@@ -83,7 +105,12 @@ export function FeaturesSection() {
 
         <div className="features-grid">
           {features.map((f) => (
-            <div className="feature-card" key={f.title}>
+            <div
+              className="feature-card"
+              key={f.title}
+              onClick={() => handleFeatureClick(f.link)}
+              style={{ cursor: f.link ? 'pointer' : 'default' }}
+            >
               <div className="feature-icon" style={{ '--fc': f.color } as React.CSSProperties}>
                 {f.icon}
               </div>
