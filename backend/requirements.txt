@@ -5,7 +5,7 @@ python-multipart>=0.0.29
 gunicorn>=21.2.0
 
 # Database (PostgreSQL + pgvector)
-SQLAlchemy>=2.0.49
+SQLAlchemy>=2.0.50
 alembic>=1.18.4
 asyncpg>=0.31.0
 psycopg2-binary>=2.9.12
@@ -25,13 +25,13 @@ pydantic[email]>=2.13.4
 pydantic-settings>=2.0.3  # Load .env vào Settings class
 passlib[bcrypt]>=1.7.4
 bcrypt>=4.0.0,<5.0.0           # passlib compat — bcrypt 4.x cần truncate_error=False
-python-jose[cryptography]>=3.3.0
+python-jose[cryptography]>=3.5.0
 
 # Utils
 python-dotenv>=1.2.2
 
 # Testing (dev/ci only — không cần trên production)
-pytest>=7.4.0
+pytest>=9.0.3
 pytest-asyncio>=1.3.0
 httpx>=0.28.1
 anyio>=4.13.0           # Backend cho pytest-asyncio
