@@ -38,6 +38,9 @@ export default function MainLayout() {
             <Link to="/dashboard/flashcards" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
               Flashcards
             </Link>
+            <Link to="/dashboard/documents" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
+              AI Knowledge Base
+            </Link>
           </nav>
         </aside>
 
