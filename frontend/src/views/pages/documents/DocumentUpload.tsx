@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react'
-import { UploadCloud, FileType, CheckCircle2, X } from 'lucide-react'
+import { useState, useRef } from 'react'
+import { UploadCloud, FileType, X } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -90,7 +90,7 @@ export function DocumentUpload({ open, onOpenChange, onUploadComplete }: Documen
           onOpenChange(false)
         }, 500)
       }
-    } catch (err) {
+    } catch {
       setError('Đã xảy ra lỗi khi tải file lên')
     } finally {
       setIsUploading(false)

@@ -13,7 +13,7 @@ export function useDocuments() {
       if (response.status === 'success') {
         setDocuments(response.data)
       }
-    } catch (err) {
+    } catch {
       setError('Lỗi tải danh sách tài liệu')
     } finally {
       setLoading(false)
@@ -21,16 +21,17 @@ export function useDocuments() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchDocuments()
   }, [fetchDocuments])
 
   // Polling logic: if any document is "parsing", poll every 5 seconds
   useEffect(() => {
     const hasParsing = documents.some((doc) => doc.status === 'parsing')
-    let interval: NodeJS.Timeout
+    let interval: number
 
     if (hasParsing) {
-      interval = setInterval(() => {
+      interval = window.setInterval(() => {
         fetchDocuments()
       }, 5000)
     }

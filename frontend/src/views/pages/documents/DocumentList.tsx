@@ -1,4 +1,3 @@
-import React from 'react'
 import { FileText, FileImage, FileCode, CheckCircle2, Loader2, AlertCircle, MoreHorizontal } from 'lucide-react'
 import type { Document } from '@/models/document'
 import { Badge } from '@/components/ui/badge'
