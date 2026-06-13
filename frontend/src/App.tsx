@@ -9,6 +9,7 @@ import ClassList from '@/views/pages/classes/ClassList'
 import ClassDetail from '@/views/pages/classes/ClassDetail'
 import ChatPage from '@/views/pages/chat/ChatPage'
 import KnowledgeBasePage from '@/views/pages/documents'
+import WorksheetGenerator from '@/views/pages/dashboard/WorksheetGenerator'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -53,6 +54,9 @@ export default function App() {
 
         {/* Documents / Knowledge Base */}
         <Route path="documents" element={<KnowledgeBasePage />} />
+        
+        {/* Worksheet Generator */}
+        <Route path="worksheet" element={<WorksheetGenerator />} />
       </Route>
     </Routes>
   )
