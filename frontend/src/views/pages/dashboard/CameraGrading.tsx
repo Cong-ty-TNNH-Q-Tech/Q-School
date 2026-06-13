@@ -10,10 +10,28 @@ import {
   Save
 } from 'lucide-react'
 
+interface ErrorDetail {
+  error: string;
+  correction: string;
+  type: string;
+}
+
+interface Feedback {
+  positive: string;
+  errors: ErrorDetail[];
+  advice: string;
+}
+
+interface GradingResult {
+  score: number;
+  ocrText: string;
+  feedback: Feedback;
+}
+
 export default function CameraGrading() {
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [result, setResult] = useState<any>(null)
+  const [result, setResult] = useState<GradingResult | null>(null)
   const [activeTab, setActiveTab] = useState<'ocr' | 'grading'>('grading')
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,7 +216,7 @@ export default function CameraGrading() {
                   <AlertCircle className="w-5 h-5 text-rose-500" /> Lỗi phát hiện
                 </h3>
                 <div className="space-y-3">
-                  {result.feedback.errors.map((err: any, idx: number) => (
+                  {result.feedback.errors.map((err: ErrorDetail, idx: number) => (
                     <div key={idx} className="flex items-start gap-4 p-3 bg-rose-50 border border-rose-100 rounded-xl">
                       <div className="px-2 py-1 bg-rose-200 text-rose-700 text-xs font-bold rounded">
                         {err.type}
@@ -252,7 +270,7 @@ export default function CameraGrading() {
   )
 }
 
-function MessageSquare(props: any) {
+function MessageSquare(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

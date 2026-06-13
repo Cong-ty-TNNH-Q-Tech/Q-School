@@ -6,7 +6,6 @@ import {
   Languages, 
   Plus, 
   X,
-  User,
   GraduationCap,
   MessageSquareText,
   ChevronDown,
