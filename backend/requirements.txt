@@ -31,7 +31,7 @@ python-jose[cryptography]>=3.5.0
 python-dotenv>=1.2.2
 
 # Testing (dev/ci only — không cần trên production)
-pytest>=9.0.3
+pytest>=9.1.0
 pytest-asyncio>=1.3.0
 httpx>=0.28.1
 anyio>=4.13.0           # Backend cho pytest-asyncio
