@@ -10,6 +10,8 @@ import ClassDetail from '@/views/pages/classes/ClassDetail'
 import ChatPage from '@/views/pages/chat/ChatPage'
 import KnowledgeBasePage from '@/views/pages/documents'
 import WorksheetGenerator from '@/views/pages/dashboard/WorksheetGenerator'
+import CameraGrading from '@/views/pages/dashboard/CameraGrading'
+import ReportComments from '@/views/pages/dashboard/ReportComments'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -57,6 +59,12 @@ export default function App() {
         
         {/* Worksheet Generator */}
         <Route path="worksheet" element={<WorksheetGenerator />} />
+        
+        {/* OCR Grading */}
+        <Route path="grading" element={<CameraGrading />} />
+        
+        {/* Report Comments */}
+        <Route path="comments" element={<ReportComments />} />
       </Route>
     </Routes>
   )

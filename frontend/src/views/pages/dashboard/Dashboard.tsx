@@ -32,7 +32,7 @@ export default function Dashboard() {
       color: "text-purple-600",
       bgColor: "bg-purple-100 dark:bg-purple-900/30",
       gradient: "from-purple-500 to-pink-400",
-      link: "#"
+      link: "/dashboard/grading"
     },
     {
       title: "Nhận Xét Sổ Liên Lạc",
@@ -41,7 +41,7 @@ export default function Dashboard() {
       color: "text-emerald-600",
       bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
       gradient: "from-emerald-500 to-teal-400",
-      link: "#"
+      link: "/dashboard/comments"
     }
   ]
 
