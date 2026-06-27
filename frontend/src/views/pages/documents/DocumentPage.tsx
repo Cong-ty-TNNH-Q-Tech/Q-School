@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Document } from '@/models/document';
-import { getDocumentsMock } from '@/services/mockData/document.mock';
 import DocumentList from './DocumentList';
 import { DocumentUpload } from './DocumentUpload';
 import { useDocuments } from '@/viewmodels/useDocuments';

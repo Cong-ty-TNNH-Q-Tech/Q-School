@@ -1,5 +1,3 @@
-import { useEffect } from 'react';
-import type { Document, DocumentStatus } from '@/models/document';
 import type { Document, DocumentStatus } from '@/models/document';
 import { FileText, Image as ImageIcon, File, Loader2, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
