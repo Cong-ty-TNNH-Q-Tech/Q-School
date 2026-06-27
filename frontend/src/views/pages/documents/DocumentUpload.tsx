@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { mockUploadDocument } from '@/services/mockData/document.mock'
+import { uploadDocumentMock } from '@/services/mockData/document.mock'
 import type { Document } from '@/models/document'
 
 interface DocumentUploadProps {
@@ -82,14 +82,12 @@ export function DocumentUpload({ open, onOpenChange, onUploadComplete }: Documen
     setError(null)
 
     try {
-      const response = await mockUploadDocument(selectedFile, (p) => setProgress(p))
-      if (response.status === 'success') {
-        onUploadComplete(response.data)
-        setTimeout(() => {
-          handleReset()
-          onOpenChange(false)
-        }, 500)
-      }
+      const newDoc = await uploadDocumentMock(selectedFile, (p: number) => setProgress(p))
+      onUploadComplete(newDoc)
+      setTimeout(() => {
+        handleReset()
+        onOpenChange(false)
+      }, 500)
     } catch {
       setError('Đã xảy ra lỗi khi tải file lên')
     } finally {
