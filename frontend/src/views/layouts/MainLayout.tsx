@@ -32,7 +32,7 @@ export default function MainLayout() {
             <Link to="/dashboard/classes" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
               Class Management
             </Link>
-            <Link to="/ai-chat" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
+            <Link to="/dashboard/chat" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
               AI Assistant
             </Link>
             <Link to="/dashboard/flashcards" className="p-2 hover:bg-accent rounded-md text-sm font-medium">
