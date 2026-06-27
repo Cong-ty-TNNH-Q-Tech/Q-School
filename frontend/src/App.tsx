@@ -8,6 +8,7 @@ import FlashcardStudy from '@/views/pages/flashcards/FlashcardStudy'
 import ClassList from '@/views/pages/classes/ClassList'
 import ClassDetail from '@/views/pages/classes/ClassDetail'
 import ChatPage from '@/views/pages/chat/ChatPage'
+import DocumentPage from '@/views/pages/documents/DocumentPage'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -49,6 +50,9 @@ export default function App() {
         
         {/* AI Chat */}
         <Route path="chat" element={<ChatPage />} />
+        
+        {/* AI Documents */}
+        <Route path="documents" element={<DocumentPage />} />
       </Route>
     </Routes>
   )
