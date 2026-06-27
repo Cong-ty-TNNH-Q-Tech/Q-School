@@ -1,47 +1,14 @@
 import { useEffect } from 'react';
 import type { Document, DocumentStatus } from '@/models/document';
-import { pollDocumentStatusMock } from '@/services/mockData/document.mock';
+import type { Document, DocumentStatus } from '@/models/document';
 import { FileText, Image as ImageIcon, File, Loader2, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
 interface DocumentListProps {
   documents: Document[];
-  setDocuments: React.Dispatch<React.SetStateAction<Document[]>>;
 }
 
-export default function DocumentList({ documents, setDocuments }: DocumentListProps) {
+export default function DocumentList({ documents }: DocumentListProps) {
   
-  // Polling mechanism
-  useEffect(() => {
-    // Find documents that need polling (pending or parsing)
-    const docsToPoll = documents.filter(d => d.status === 'pending' || d.status === 'parsing');
-    
-    if (docsToPoll.length === 0) return;
-
-    const pollInterval = setInterval(async () => {
-      const updatedDocs = await Promise.all(
-        docsToPoll.map(doc => pollDocumentStatusMock(doc.id))
-      );
-
-      setDocuments(prevDocs => {
-        const newDocs = [...prevDocs];
-        let hasChanges = false;
-        
-        updatedDocs.forEach(updatedDoc => {
-          if (!updatedDoc) return;
-          const index = newDocs.findIndex(d => d.id === updatedDoc.id);
-          if (index !== -1 && newDocs[index].status !== updatedDoc.status) {
-            newDocs[index] = updatedDoc;
-            hasChanges = true;
-          }
-        });
-        
-        return hasChanges ? newDocs : prevDocs;
-      });
-    }, 5000); // Poll every 5 seconds
-
-    return () => clearInterval(pollInterval);
-  }, [documents, setDocuments]);
-
   const getFileIcon = (format?: string) => {
     if (!format) return <File className="w-5 h-5 text-gray-400" />;
     if (format.includes('PDF')) return <FileText className="w-5 h-5 text-red-500" />;
