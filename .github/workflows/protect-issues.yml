@@ -1,0 +1,61 @@
+name: Protect Issues
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  reopen-if-manual-close:
+    name: Reopen Manually Closed Issues
+    runs-on: ubuntu-latest
+    # Chỉ chạy nếu issue bị đóng thủ công (không phải bot hay system)
+    if: github.event.sender.type == 'User'
+    permissions:
+      issues: write
+
+    steps:
+      - name: Check if closed via a merged PR
+        id: check_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Tìm tất cả PR đã merge có "closes/fixes/resolves #<issue>" trong body
+          LINKED_MERGED_PR=$(gh pr list \
+            --repo "$REPO" \
+            --state merged \
+            --json number,body,closingIssuesReferences \
+            --jq --arg issue "$ISSUE_NUMBER" '
+              .[] | select(
+                .closingIssuesReferences[]?.number == ($issue | tonumber)
+              ) | .number
+            ' 2>/dev/null | head -1)
+
+          if [ -n "$LINKED_MERGED_PR" ]; then
+            echo "linked_pr=$LINKED_MERGED_PR" >> "$GITHUB_OUTPUT"
+            echo "closed_via_pr=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "closed_via_pr=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Reopen issue if closed manually
+        if: steps.check_pr.outputs.closed_via_pr == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          ACTOR: ${{ github.event.sender.login }}
+        run: |
+          # Reopen issue
+          gh issue reopen "$ISSUE_NUMBER" --repo "$REPO"
+
+          # Comment giải thích lý do
+          gh issue comment "$ISSUE_NUMBER" --repo "$REPO" --body \
+            "**Issue được mở lại tự động.**
+
+            Issue này bị đóng thủ công bởi **@${ACTOR}** nhưng chưa được liên kết với bất kỳ Pull Request nào đã merge.
+
+            > **Quy tắc dự án:** Issue chỉ được đóng khi có PR merge vào \`main\` với từ khóa \`closes #${ISSUE_NUMBER}\`, \`fixes #${ISSUE_NUMBER}\`, hoặc \`resolves #${ISSUE_NUMBER}\` trong mô tả PR.
+
+            Nếu muốn đóng issue này vì lý do hợp lệ khác, hãy thêm label \`wontfix\` hoặc \`invalid\` và liên hệ maintainer."
