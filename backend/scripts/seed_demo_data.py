@@ -24,9 +24,10 @@ from app.core.database import engine
 
 async def seed_admin_user():
     """Tạo Admin user mặc định nếu chưa tồn tại."""
-    from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    admin_password = pwd_context.hash("admin123")
+    from pwdlib import PasswordHash
+    from pwdlib.hashers.bcrypt import BcryptHasher
+    pwd_hasher = PasswordHash((BcryptHasher(),))
+    admin_password = pwd_hasher.hash("admin123")
 
     async with engine.begin() as conn:
         # Check if admin exists
@@ -55,9 +56,10 @@ async def seed_admin_user():
 
 async def seed_demo_teacher():
     """Tạo Teacher demo nếu chưa tồn tại."""
-    from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    teacher_password = pwd_context.hash("teacher123")
+    from pwdlib import PasswordHash
+    from pwdlib.hashers.bcrypt import BcryptHasher
+    pwd_hasher = PasswordHash((BcryptHasher(),))
+    teacher_password = pwd_hasher.hash("teacher123")
 
     async with engine.begin() as conn:
         result = await conn.execute(
@@ -83,9 +85,10 @@ async def seed_demo_teacher():
 
 async def seed_demo_student():
     """Tạo Student demo nếu chưa tồn tại."""
-    from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    student_password = pwd_context.hash("student123")
+    from pwdlib import PasswordHash
+    from pwdlib.hashers.bcrypt import BcryptHasher
+    pwd_hasher = PasswordHash((BcryptHasher(),))
+    student_password = pwd_hasher.hash("student123")
 
     async with engine.begin() as conn:
         result = await conn.execute(
