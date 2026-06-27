@@ -19,21 +19,28 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
-          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
         run: |
-          # Tìm tất cả PR đã merge có "closes/fixes/resolves #<issue>" trong body
-          LINKED_MERGED_PR=$(gh pr list \
-            --repo "$REPO" \
-            --state merged \
-            --json number,body,closingIssuesReferences \
-            --jq --arg issue "$ISSUE_NUMBER" '
-              .[] | select(
-                .closingIssuesReferences[]?.number == ($issue | tonumber)
-              ) | .number
-            ' 2>/dev/null | head -1)
+          CLOSER_TYPE=$(gh api graphql -F owner="$OWNER" -F name="$REPO" -F number=$ISSUE_NUMBER -f query='
+            query($owner: String!, $name: String!, $number: Int!) {
+              repository(owner: $owner, name: $name) {
+                issue(number: $number) {
+                  timelineItems(last: 1, itemTypes: CLOSED_EVENT) {
+                    nodes {
+                      ... on ClosedEvent {
+                        closer {
+                          __typename
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ' --jq '.data.repository.issue.timelineItems.nodes[0].closer.__typename' 2>/dev/null)
 
-          if [ -n "$LINKED_MERGED_PR" ]; then
-            echo "linked_pr=$LINKED_MERGED_PR" >> "$GITHUB_OUTPUT"
+          if [ "$CLOSER_TYPE" = "PullRequest" ] || [ "$CLOSER_TYPE" = "Commit" ]; then
             echo "closed_via_pr=true" >> "$GITHUB_OUTPUT"
           else
             echo "closed_via_pr=false" >> "$GITHUB_OUTPUT"
