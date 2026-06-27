@@ -7,28 +7,39 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, TypedDict
 
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+from pwdlib import PasswordHash
+from pwdlib.hashers.bcrypt import BcryptHasher
 
 from app.core.config import settings
 
 # ──────────────────────────────────────────────
-# Password hashing (bcrypt)
-# ──────────────────────────────────────────────
-_pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto",
-    bcrypt__truncate_error=False,  # bcrypt>=4.0 compat: suppress 72-byte truncation error
-)
+# Password hashing (bcrypt via pwdlib)
+# pwdlib là replacement hiện đại cho passlib (unmaintained), tương thích bcrypt v5+
+_pwd_hasher = PasswordHash((BcryptHasher(),))
+
+BCRYPT_MAX_BYTES = 72  # bcrypt hard limit
 
 
 def hash_password(plain_password: str) -> str:
-    """Mã hóa mật khẩu bằng bcrypt."""
-    return _pwd_context.hash(plain_password)
+    """Mã hóa mật khẩu bằng bcrypt.
+
+    bcrypt có giới hạn 72 bytes — nếu password dài hơn, truncate trước khi hash
+    để đảm bảo hành vi nhất quán (bcrypt v5 raise ValueError thay vì silent truncate).
+    """
+    password_bytes = plain_password.encode("utf-8")
+    if len(password_bytes) > BCRYPT_MAX_BYTES:
+        password_bytes = password_bytes[:BCRYPT_MAX_BYTES]
+        plain_password = password_bytes.decode("utf-8", errors="ignore")
+    return _pwd_hasher.hash(plain_password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Kiểm tra mật khẩu plaintext khớp với hash hay không."""
-    return _pwd_context.verify(plain_password, hashed_password)
+    password_bytes = plain_password.encode("utf-8")
+    if len(password_bytes) > BCRYPT_MAX_BYTES:
+        password_bytes = password_bytes[:BCRYPT_MAX_BYTES]
+        plain_password = password_bytes.decode("utf-8", errors="ignore")
+    return _pwd_hasher.verify(plain_password, hashed_password)
 
 
 # ──────────────────────────────────────────────
