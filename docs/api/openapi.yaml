@@ -346,14 +346,18 @@ components:
 
     EssaySubmissionRequest:
       type: object
-      required: [rubric_id, content]
+      required: [rubric_id]
       properties:
         rubric_id:
           type: string
           format: uuid
         content:
           type: string
-          description: "Bài làm tự luận của học sinh"
+          description: "Bài làm tự luận của học sinh (nhập text thủ công)"
+        image_url:
+          type: string
+          format: uri
+          description: "URL ảnh bài thi giấy để hệ thống tự động chạy OCR và bóc tách chữ"
 
     AssetGenerationRequest:
       type: object
