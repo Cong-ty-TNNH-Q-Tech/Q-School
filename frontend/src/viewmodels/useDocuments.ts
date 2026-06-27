@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Document } from '@/models/document'
-import { mockGetDocuments } from '@/services/mockData/document.mock'
+import { getDocumentsMock } from '@/services/mockData/document.mock'
 
 export function useDocuments() {
   const [documents, setDocuments] = useState<Document[]>([])
@@ -9,10 +9,8 @@ export function useDocuments() {
 
   const fetchDocuments = useCallback(async () => {
     try {
-      const response = await mockGetDocuments()
-      if (response.status === 'success') {
-        setDocuments(response.data)
-      }
+      const data = await getDocumentsMock()
+      setDocuments(data)
     } catch {
       setError('Lỗi tải danh sách tài liệu')
     } finally {
