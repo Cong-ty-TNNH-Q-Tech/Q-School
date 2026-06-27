@@ -4,31 +4,12 @@ import { Button } from '@/components/ui/button';
 import type { Document } from '@/models/document';
 import { getDocumentsMock } from '@/services/mockData/document.mock';
 import DocumentList from './DocumentList';
-import DocumentUpload from './DocumentUpload';
+import { DocumentUpload } from './DocumentUpload';
+import { useDocuments } from '@/viewmodels/useDocuments';
 
 export default function DocumentPage() {
-  const [documents, setDocuments] = useState<Document[]>([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchDocs = async () => {
-      try {
-        const data = await getDocumentsMock();
-        setDocuments(data);
-      } catch (error) {
-        console.error("Error fetching documents:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchDocs();
-  }, []);
-
-  const handleUploadSuccess = (newDoc: Document) => {
-    setDocuments(prev => [newDoc, ...prev]);
-  };
+  const { documents, loading, error, addDocument } = useDocuments();
 
   return (
     <div className="w-full max-w-6xl mx-auto py-8 px-4">
@@ -49,18 +30,24 @@ export default function DocumentPage() {
         </Button>
       </div>
 
-      {isLoading ? (
+      {error && (
+        <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-100">
+          {error}
+        </div>
+      )}
+
+      {loading ? (
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
       ) : (
-        <DocumentList documents={documents} setDocuments={setDocuments} />
+        <DocumentList documents={documents} />
       )}
 
       <DocumentUpload 
-        isOpen={isUploadOpen} 
-        onClose={() => setIsUploadOpen(false)} 
-        onUploadSuccess={handleUploadSuccess}
+        open={isUploadOpen} 
+        onOpenChange={setIsUploadOpen} 
+        onUploadComplete={addDocument}
       />
     </div>
   );
