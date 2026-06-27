@@ -389,34 +389,6 @@ components:
           type: string
           format: date-time
 
-    CameraGradingResponse:
-      type: object
-      properties:
-        ocr_text:
-          type: string
-          description: "Văn bản bóc tách từ ảnh"
-        score:
-          type: number
-          description: "Điểm số do AI chấm"
-        feedback:
-          type: object
-          properties:
-            positive:
-              type: string
-            advice:
-              type: string
-            errors:
-              type: array
-              items:
-                type: object
-                properties:
-                  type:
-                    type: string
-                  error:
-                    type: string
-                  correction:
-                    type: string
-
 
   # ----------------------------------------
   # COMMON PARAMETERS
@@ -1507,66 +1479,6 @@ paths:
   # ==========================================
   # GROUP 4: AI WORKSPACE & RAG (SSE included)
   # ==========================================
-  /ai/ocr-grade:
-    post:
-      summary: Chấm Điểm Camera (OCR + AI Grading)
-      tags: [AI Workspace]
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [image]
-              properties:
-                image:
-                  type: string
-                  format: binary
-                  description: "Ảnh chụp bài thi giấy"
-                rubric_id:
-                  type: string
-                  format: uuid
-                  description: "ID của Rubric (tiêu chí chấm) nếu có"
-      responses:
-        '200':
-          description: Chấm điểm thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/CameraGradingResponse'
-        '400':
-          description: Ảnh không hợp lệ hoặc không đọc được chữ
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '401':
-          description: Chưa đăng nhập
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '402':
-          description: Hết lượt sử dụng, yêu cầu nâng cấp gói (Enterprise Edition)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaymentRequiredError'
-        '429':
-          description: Quá tải hệ thống AI hoặc vượt giới hạn lượt dùng
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TooManyRequestsError'
-
   /generated-assets:
     post:
       summary: Nhờ AI soạn Email / IEP / Nhận xét sổ liên lạc / Giáo án / Trắc nghiệm (Bất đồng bộ)
