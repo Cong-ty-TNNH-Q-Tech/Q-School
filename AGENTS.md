@@ -67,7 +67,8 @@ Dự án tuyệt đối tuân thủ mô hình **Hexagonal Architecture** (Ports 
 
 1. **Quy tắc đọc tài liệu:** Bất cứ khi nào tạo API mới, AI Agent phải cập nhật vào `docs/api/openapi.yaml` **TRƯỚC**, sau đó mới tiến hành viết code Backend/Frontend.
 2. **Quy tắc định dạng Git Commit:** `<type>(<scope>): <description>` (Ví dụ: `feat(ai-chat): implement SSE streaming for Qwen model`).
-3. **Mọi dữ liệu nhạy cảm (User Data):** Bắt buộc phải triển khai cơ chế **Soft Delete** (`deleted_at`). Không dùng lệnh `DELETE` thẳng vào CSDL.
+3. **Quy tắc quản lý Issue:** Issue chỉ được phép đóng thông qua việc merge Pull Request. Bắt buộc phải chứa từ khóa liên kết (`closes #<id>`, `fixes #<id>`, hoặc `resolves #<id>`) trong mô tả của PR. Nghiêm cấm đóng Issue thủ công nếu chưa có code hoàn thiện (hệ thống CI sẽ tự động reopen các issue vi phạm).
+4. **Mọi dữ liệu nhạy cảm (User Data):** Bắt buộc phải triển khai cơ chế **Soft Delete** (`deleted_at`). Không dùng lệnh `DELETE` thẳng vào CSDL.
 
 ---
 
