@@ -1,5 +1,3 @@
-version: '3.8'
-
 # ══════════════════════════════════════════════════════════
 # Q-School AI — Docker Compose (Full-Stack Local Development)
 # Usage:
@@ -54,7 +52,7 @@ services:
 
   # ─── MinIO (S3-compatible Object Storage) ────────────────
   minio:
-    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    image: minio/minio:latest
     container_name: qschool_minio
     restart: unless-stopped
     ports:
@@ -77,7 +75,7 @@ services:
 
   # ─── MinIO Init (tạo bucket tự động) ─────────────────────
   minio-init:
-    image: minio/mc:RELEASE.2025-04-16T18-13-36Z
+    image: minio/mc:latest
     container_name: qschool_minio_init
     depends_on:
       minio:
@@ -192,7 +190,7 @@ services:
 
   # ─── Adminer (DB Management) ────────────────────────────
   adminer:
-    image: adminer:4.8.4
+    image: adminer:latest
     container_name: qschool_adminer
     restart: unless-stopped
     ports:
