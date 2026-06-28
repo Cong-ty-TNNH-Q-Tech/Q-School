@@ -64,7 +64,7 @@ export const uploadEssayImageMock = async (
 // ============================================================
 // [MOCK] State lưu trữ submissions
 // ============================================================
-let mockSubmissions: EssaySubmission[] = []
+const mockSubmissions: EssaySubmission[] = []
 
 // ============================================================
 // [MOCK] Submit essay

@@ -9,6 +9,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { useEssaySubmission } from '@/viewmodels/useEssaySubmission'
 import ImageDropzone from './ImageDropzone'
 
+// NOTE — Interface hiển thị AI Feedback, dùng để cast từ Record<string, unknown>
+// TODO:BACKEND — Khi Backend xác định schema chính thức, chuyển vào models/quiz.ts
+interface AiFeedbackDisplay {
+  summary?: string
+  strengths?: string[]
+  weaknesses?: string[]
+  details?: Array<{ criterion: string; score: number; comment: string }>
+}
+
 export default function EssaySubmissionPage() {
   const {
     rubrics,
@@ -114,7 +123,7 @@ export default function EssaySubmissionPage() {
                     <div className="space-y-6 text-left w-full">
                       <div className="bg-muted/30 rounded-lg p-6 border">
                         <h4 className="font-semibold text-lg mb-2">Nhận xét tổng quan</h4>
-                        <p className="text-foreground/80">{(submission.ai_feedback as any).summary}</p>
+                        <p className="text-foreground/80">{(submission.ai_feedback as AiFeedbackDisplay).summary}</p>
                       </div>
 
                       <div className="grid md:grid-cols-2 gap-4">
@@ -123,7 +132,7 @@ export default function EssaySubmissionPage() {
                             Điểm mạnh
                           </h4>
                           <ul className="list-disc pl-5 space-y-1 text-green-800/80">
-                            {(submission.ai_feedback as any).strengths?.map((s: string, i: number) => (
+                            {(submission.ai_feedback as AiFeedbackDisplay).strengths?.map((s: string, i: number) => (
                               <li key={i}>{s}</li>
                             ))}
                           </ul>
@@ -133,7 +142,7 @@ export default function EssaySubmissionPage() {
                             Cần cải thiện
                           </h4>
                           <ul className="list-disc pl-5 space-y-1 text-orange-800/80">
-                            {(submission.ai_feedback as any).weaknesses?.map((w: string, i: number) => (
+                            {(submission.ai_feedback as AiFeedbackDisplay).weaknesses?.map((w: string, i: number) => (
                               <li key={i}>{w}</li>
                             ))}
                           </ul>

@@ -21,8 +21,8 @@ export function useEssaySubmission() {
     try {
       const data = await getRubricsMock()
       setRubrics(data)
-    } catch (err: any) {
-      setError(err.message || "Không thể tải danh sách tiêu chí")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Không thể tải danh sách tiêu chí")
     } finally {
       setLoadingRubrics(false)
     }
@@ -37,8 +37,8 @@ export function useEssaySubmission() {
         setUploadProgress(progress)
       })
       setUploadedImageUrl(url)
-    } catch (err: any) {
-      setError(err.message || "Upload ảnh thất bại")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Upload ảnh thất bại")
     } finally {
       setUploading(false)
       setUploadProgress(0)
@@ -55,8 +55,8 @@ export function useEssaySubmission() {
     try {
       const result = await submitEssayMock(request)
       setSubmission(result)
-    } catch (err: any) {
-      setError(err.message || "Nộp bài thất bại")
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Nộp bài thất bại")
     } finally {
       setSubmitting(false)
     }
@@ -90,7 +90,7 @@ export function useEssaySubmission() {
     }, 3000)
 
     return () => clearInterval(interval)
-  }, [submission?.id, submission?.status])
+  }, [submission])
 
   return {
     rubrics,
