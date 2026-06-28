@@ -1913,3 +1913,81 @@ paths:
                   status:
                     type: string
                     example: success
+
+  # ==========================================
+  # GROUP 4: AI WORKSPACE (Chat & RAG)
+  # ==========================================
+  /chat/sessions:
+    post:
+      summary: Tạo mới một AI Chat Session
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                ai_persona:
+                  type: string
+      responses:
+        '201':
+          description: OK
+    get:
+      summary: Lấy danh sách Chat Session
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/CursorParam'
+      responses:
+        '200':
+          description: OK
+          
+  /chat/sessions/{session_id}/messages:
+    get:
+      summary: Lấy danh sách Messages trong Session
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/CursorParam'
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Gửi tin nhắn và nhận stream SSE
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Stream SSE (text/event-stream)
