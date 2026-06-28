@@ -23,7 +23,7 @@ redis>=8.0.0
 # Security & Validation
 pydantic[email]>=2.13.4
 pydantic-settings>=2.14.2  # Load .env vào Settings class
-pwdlib[bcrypt]>=0.2.1          # passlib replacement — tương thích bcrypt v5+
+pwdlib[bcrypt]>=0.3.0          # passlib replacement — tương thích bcrypt v5+
 bcrypt>=5.0.0,<6.0.0          # bcrypt v5: enforce 72-byte limit (security improvement)
 python-jose[cryptography]>=3.5.0
 
