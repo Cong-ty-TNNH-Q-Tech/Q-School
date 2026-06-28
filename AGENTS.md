@@ -32,6 +32,9 @@ Dự án tuyệt đối tuân thủ mô hình **Hexagonal Architecture** (Ports 
 
 ### 3.1. Xử lý AI (AI Processing Rules)
 - **Streaming:** Chỉ sử dụng **Server-Sent Events (SSE)** thông qua `StreamingResponse` để stream kết quả AI. **Tuyệt đối KHÔNG sử dụng WebSockets** do vấn đề thiếu ổn định khi qua Load Balancer.
+- **Streaming Cancellation & Database Logging:** Khi dùng `StreamingResponse` (SSE), nếu client ngắt kết nối giữa chừng, FastAPI sẽ ném ngoại lệ `asyncio.CancelledError`. Để đảm bảo dữ liệu (log tin nhắn, lịch sử sinh nội dung) không bị mất trắng do DB session bị rollback, BẮT BUỘC:
+  1. Phải gọi `commit()` cho các dữ liệu đầu vào (VD: câu hỏi của User) TRƯỚC khi bắt đầu trả stream.
+  2. Tại khối `finally` (nơi lưu kết quả AI sinh ra vào DB), phải bọc logic lưu DB bằng `with anyio.CancelScope(shield=True):` để bảo vệ task lưu dữ liệu không bị hủy theo request.
 - **Background Tasks:** Các tác vụ AI nặng (Chấm điểm tự luận, Sinh giáo án) phải được đẩy vào Queue (Celery/Redis). Router trả về HTTP 202 ngay lập tức.
 - **Vector Search (RAG):** Mọi lệnh tìm kiếm nội dung (Embeddings) phải tận dụng **HNSW Index** của pgvector.
 
