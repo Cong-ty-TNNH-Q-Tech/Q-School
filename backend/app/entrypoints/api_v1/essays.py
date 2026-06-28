@@ -1,0 +1,72 @@
+import uuid
+
+from fastapi import APIRouter, Depends, status
+
+from app.core.dependencies import DbDep, CurrentUserDep
+from app.adapters.database.essay_repository import EssayRepository
+from app.adapters.database.ai_repository import SQLAlchemyAITaskRepository
+from app.application.use_cases.essay_use_case import EssayUseCase
+from app.entrypoints.api_v1.schemas.essay import (
+    EssaySubmissionRequest,
+    EssaySubmissionResponse,
+    EssaySubmissionAcceptedResponse,
+)
+
+router = APIRouter()
+
+def get_essay_use_case(db: DbDep) -> EssayUseCase:
+    essay_repo = EssayRepository(db)
+    ai_task_repo = SQLAlchemyAITaskRepository(db)
+    return EssayUseCase(essay_repo=essay_repo, ai_task_repo=ai_task_repo)
+
+@router.post(
+    "",
+    response_model=EssaySubmissionAcceptedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Nộp bài tự luận (Essay)",
+)
+async def submit_essay(
+    request: EssaySubmissionRequest,
+    current_user: CurrentUserDep,
+    use_case: EssayUseCase = Depends(get_essay_use_case),
+):
+    """
+    Học sinh nộp bài văn tự luận.
+    Bài sẽ được đưa vào queue (Celery) để AI chấm điểm.
+    Trả về mã 202 Accepted.
+    """
+    submission, ai_task_id = await use_case.submit_essay(
+        student=current_user,
+        teacher_id=request.teacher_id,
+        content=request.content,
+        rubric_id=request.rubric_id
+    )
+    return EssaySubmissionAcceptedResponse(
+        submission_id=submission.id, ai_task_id=ai_task_id
+    )
+
+@router.get(
+    "/{submission_id}",
+    response_model=EssaySubmissionResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Lấy kết quả bài tự luận",
+)
+async def get_essay_submission(
+    submission_id: uuid.UUID,
+    current_user: CurrentUserDep,
+    use_case: EssayUseCase = Depends(get_essay_use_case),
+):
+    """
+    Lấy thông tin bài tự luận cùng với điểm và phản hồi của AI.
+    """
+    from app.domain.exceptions import AppException
+    
+    submission = await use_case.get_essay(submission_id)
+    if not submission:
+        raise AppException("Bài nộp không tồn tại", status_code=404)
+        
+    # Security: Chỉ người nộp hoặc giáo viên liên quan mới được xem
+    if current_user.role == "student" and submission.student_id != current_user.id:
+        raise AppException("Bạn không có quyền xem bài này", status_code=403)
+        
+    return submission

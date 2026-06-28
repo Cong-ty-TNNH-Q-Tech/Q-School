@@ -1913,3 +1913,90 @@ paths:
                   status:
                     type: string
                     example: success
+
+  # ==========================================
+  # GROUP 6: QUIZZES AND ESSAYS
+  # ==========================================
+  /quizzes/{id}/attempts:
+    post:
+      summary: B?t d?u làm bài Quiz
+      tags: [Student Tracking]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Created
+    get:
+      summary: L?y l?ch s? làm bài Quiz
+      tags: [Student Tracking]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          
+  /quizzes/{id}/attempts/{attempt_id}/submit:
+    post:
+      summary: N?p bài Quiz
+      tags: [Student Tracking]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: attempt_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuizAttemptRequest'
+      responses:
+        '200':
+          description: OK
+
+  /essays:
+    post:
+      summary: N?p bài t? lu?n
+      tags: [Student Tracking]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EssaySubmissionRequest'
+      responses:
+        '202':
+          description: Accepted
+          
+  /essays/{id}:
+    get:
+      summary: L?y thông tin bài n?p t? lu?n
+      tags: [Student Tracking]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
