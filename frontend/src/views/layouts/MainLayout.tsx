@@ -34,22 +34,26 @@ interface NavItem {
   icon: React.ReactNode
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { label: 'Dashboard', to: '/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
-  { label: 'Lớp học', to: '/classes', icon: <GraduationCap className="h-4 w-4" /> },
-  { label: 'Bài học', to: '/lessons', icon: <BookOpen className="h-4 w-4" /> },
-  { label: 'Bài kiểm tra', to: '/quizzes', icon: <ClipboardCheck className="h-4 w-4" /> },
-  { label: 'AI Chat', to: '/chat', icon: <MessageSquare className="h-4 w-4" /> },
-  { label: 'Flashcards', to: '/flashcards', icon: <Layers className="h-4 w-4" /> },
-  { label: 'Tài liệu', to: '/documents', icon: <FileText className="h-4 w-4" /> },
-  { label: 'Bài tự luận', to: '/essays/submit', icon: <PenLine className="h-4 w-4" /> },
-]
+
 
 export default function MainLayout() {
   const { user, logout } = useAuthStore()
   const navigate = useNavigate()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const dashboardLink = user?.role === 'teacher' ? '/teacher/dashboard' : '/student/dashboard'
+
+  const NAV_ITEMS: NavItem[] = [
+    { label: 'Dashboard', to: dashboardLink, icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Lớp học', to: '/classes', icon: <GraduationCap className="h-4 w-4" /> },
+    { label: 'Bài học', to: '/lessons', icon: <BookOpen className="h-4 w-4" /> },
+    { label: 'Bài kiểm tra', to: '/quizzes', icon: <ClipboardCheck className="h-4 w-4" /> },
+    { label: 'AI Chat', to: '/chat', icon: <MessageSquare className="h-4 w-4" /> },
+    { label: 'Flashcards', to: '/flashcards', icon: <Layers className="h-4 w-4" /> },
+    { label: 'Tài liệu', to: '/documents', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Bài tự luận', to: '/essays/submit', icon: <PenLine className="h-4 w-4" /> },
+  ]
 
   const displayName = user?.profile?.full_name || user?.username || 'Guest'
   const initials = displayName
@@ -77,7 +81,7 @@ export default function MainLayout() {
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <NavLink to="/dashboard" className="font-bold text-lg tracking-tight">
+          <NavLink to={dashboardLink} className="font-bold text-lg tracking-tight">
             Q-School AI
           </NavLink>
         </div>

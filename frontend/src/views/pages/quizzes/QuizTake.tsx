@@ -111,7 +111,14 @@ export default function QuizTake() {
               Câu tiếp
             </Button>
           ) : (
-            <Button>Nộp bài</Button>
+            <Button
+              onClick={() => {
+                alert('Nộp bài thành công!')
+                window.location.href = `/quizzes/${id}`
+              }}
+            >
+              Nộp bài
+            </Button>
           )}
         </CardFooter>
       </Card>

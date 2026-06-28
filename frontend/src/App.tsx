@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import MainLayout from '@/views/layouts/MainLayout'
-import Dashboard from '@/views/pages/dashboard/Dashboard'
+import TeacherDashboard from '@/views/pages/teacher/dashboard/TeacherDashboard'
+import StudentDashboard from '@/views/pages/student/dashboard/StudentDashboard'
 import Login from '@/views/pages/auth/Login'
 import LandingPage from '@/views/pages/landing/LandingPage'
 import FlashcardSetList from '@/views/pages/flashcards/FlashcardSetList'
@@ -49,7 +50,8 @@ export default function App() {
           </ProtectedRoute>
         }
       >
-        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="teacher/dashboard" element={<TeacherDashboard />} />
+        <Route path="student/dashboard" element={<StudentDashboard />} />
         <Route path="classes" element={<ClassList />} />
         <Route path="classes/:id" element={<ClassDetail />} />
         <Route path="lessons" element={<LessonList />} />
