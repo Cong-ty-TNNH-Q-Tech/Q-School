@@ -105,6 +105,92 @@ class AIBaseTask(Task):
         )
 
 
+async def _run_process_essay_grading_async(essay_submission_id: str, user_id: str, ai_task_id: str | None) -> dict:
+    import json
+    import uuid
+    from app.core.database import AsyncSessionFactory
+    from app.adapters.database.essay_repository import SQLAlchemyEssaySubmissionRepository
+    from app.adapters.llm_client.llm_factory import get_llm_service
+    from sqlalchemy import text
+
+    async with AsyncSessionFactory() as session:
+        try:
+            # Idempotency check if ai_task_id is provided
+            if ai_task_id:
+                stmt = text("SELECT status FROM ai_tasks WHERE id = :id")
+                result = await session.execute(stmt, {"id": ai_task_id})
+                row = result.fetchone()
+                if row and row[0] == "completed":
+                    return {"status": "already_completed"}
+                
+                # Update status to processing
+                update_stmt = text("UPDATE ai_tasks SET status = 'processing', updated_at = now() WHERE id = :id")
+                await session.execute(update_stmt, {"id": ai_task_id})
+                await session.commit()
+
+            repo = SQLAlchemyEssaySubmissionRepository(session)
+            submission = await repo.get_by_id(uuid.UUID(essay_submission_id))
+            if not submission:
+                raise ValueError(f"EssaySubmission {essay_submission_id} not found")
+
+            rubric = submission.rubric
+            if not rubric:
+                raise ValueError("Submission has no associated rubric")
+
+            # Prepare grading prompt
+            criteria_str = json.dumps(rubric.criteria_matrix, ensure_ascii=False, indent=2)
+            prompt = (
+                "You are an expert teacher grading a student's essay based on a specific rubric.\n"
+                f"Rubric Title: {rubric.title}\n"
+                f"Criteria Matrix:\n{criteria_str}\n\n"
+                f"Student Essay Content:\n{submission.content}\n\n"
+                "Task: Grade the essay according to the criteria matrix. For each criterion, provide detailed feedback and a score.\n"
+                "Then, provide a final total score.\n"
+                "You MUST respond with ONLY a valid JSON object in the exact format below, with no markdown formatting, no comments, and no extra text:\n"
+                "{\n"
+                '  "criteria_feedback": { "criterion_name": "feedback string" },\n'
+                '  "score": 8.5,\n'
+                '  "general_comment": "overall feedback"\n'
+                "}"
+            )
+
+            llm = get_llm_service()
+            response_text = await llm.generate(prompt, temperature=0.1)
+
+            # Parse the response
+            # Clean up response in case it's wrapped in markdown
+            if response_text.startswith("```json"):
+                response_text = response_text.replace("```json", "", 1)
+            if response_text.endswith("```"):
+                response_text = response_text.rsplit("```", 1)[0]
+            
+            try:
+                ai_feedback = json.loads(response_text.strip())
+            except json.JSONDecodeError as e:
+                logger.error(f"Failed to parse LLM response: {response_text}")
+                raise ValueError(f"LLM did not return valid JSON: {e}")
+
+            score = float(ai_feedback.get("score", 0.0))
+            
+            await repo.update_feedback(submission, ai_feedback, score)
+            
+            # Update AITask to completed
+            if ai_task_id:
+                result_payload = json.dumps({"score": score})
+                complete_stmt = text(
+                    "UPDATE ai_tasks SET status = 'completed', result_payload = :payload, "
+                    "updated_at = now(), completed_at = now() WHERE id = :id"
+                )
+                await session.execute(complete_stmt, {"payload": result_payload, "id": ai_task_id})
+
+            await session.commit()
+            return {"status": "success", "score": score}
+
+        except Exception as exc:
+            await session.rollback()
+            raise exc
+
+
 @celery_app.task(
     bind=True,
     base=AIBaseTask,
@@ -117,27 +203,17 @@ def process_essay_grading(
 ) -> dict:
     """
     Background task: Chấm điểm bài văn tự luận bằng AI.
-    ai_task_id: UUID của AITask record trong DB (dùng cho on_failure DB update)
-
-    Flow dự kiến (TODO member implement):
-        1. Kiểm tra idempotency: nếu AITask.status == 'completed', return luôn
-        2. Update AITask.status = 'processing'
-        3. Load EssaySubmission + Rubric từ DB
-        4. Gọi ILLMService.generate() với nội dung + rubric
-        5. Parse kết quả AI -> ai_feedback JSONB
-        6. Update EssaySubmission.score + AITask.status = 'completed'
     """
     logger.info(
         "[essay_grading] START submission=%s ai_task_id=%s",
         essay_submission_id,
         ai_task_id,
     )
+    import asyncio
     try:
-        # TODO: Implement khi AI pipeline sẵn sàng.
-        # QUAN TRọNG: Kiểm tra idempotency trước khi chạy:
-        #   result = db.execute("SELECT status FROM ai_tasks WHERE id = :id", {"id": ai_task_id})
-        #   if result.status == 'completed': return {"status": "already_completed"}
-        return {"status": "not_implemented", "task_id": self.request.id}
+        return asyncio.run(
+            _run_process_essay_grading_async(essay_submission_id, user_id, ai_task_id)
+        )
     except Exception as exc:
         logger.error(
             "[essay_grading] FAIL submission=%s error=%s", essay_submission_id, exc
