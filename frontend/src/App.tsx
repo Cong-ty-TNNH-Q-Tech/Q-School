@@ -18,6 +18,7 @@ import Profile from '@/views/pages/profile/Profile'
 import Register from '@/views/pages/auth/Register'
 import ForgotPassword from '@/views/pages/auth/ForgotPassword'
 import NotFound from '@/views/pages/errors/NotFound'
+import EssaySubmissionPage from '@/views/pages/essays/EssaySubmission'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="flashcards" element={<FlashcardSetList />} />
         <Route path="flashcards/:setId" element={<FlashcardStudy />} />
         <Route path="documents" element={<DocumentPage />} />
+        <Route path="essays/submit" element={<EssaySubmissionPage />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
