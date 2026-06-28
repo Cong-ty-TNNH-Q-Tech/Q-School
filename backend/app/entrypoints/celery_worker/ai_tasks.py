@@ -178,7 +178,113 @@ def generate_lesson_plan(self, ai_task_id: str, prompt_params: dict) -> dict:
     max_retries=2,
     default_retry_delay=30,
 )
-def parse_document(self, document_id: str) -> dict:
+async def _run_parse_document_async(document_id: str, ai_task_id: str | None) -> dict:
+    import uuid
+    import io
+    import asyncio
+    from app.core.database import AsyncSessionFactory
+    from app.adapters.database.document_repository import DocumentSQLAlchemyRepository
+    from app.adapters.storage.r2_adapter import R2StorageAdapter
+    from app.adapters.llm_client.llm_factory import get_llm_service
+    from app.domain.models.ai import DocumentChunk
+    from sqlalchemy import text
+
+    async with AsyncSessionFactory() as session:
+        try:
+            if ai_task_id:
+                stmt = text("SELECT status FROM ai_tasks WHERE id = :id")
+                result = await session.execute(stmt, {"id": ai_task_id})
+                row = result.fetchone()
+                if row and row[0] == "completed":
+                    return {"status": "already_completed"}
+
+                update_stmt = text("UPDATE ai_tasks SET status = 'processing', updated_at = now() WHERE id = :id")
+                await session.execute(update_stmt, {"id": ai_task_id})
+                await session.commit()
+
+            repo = DocumentSQLAlchemyRepository(session)
+            doc = await repo.get_by_id(uuid.UUID(document_id))
+            if not doc:
+                raise ValueError(f"Document {document_id} not found")
+
+            if doc.status == "ready":
+                return {"status": "already_parsed"}
+
+            doc.status = "parsing"
+            await session.commit()
+
+            storage = R2StorageAdapter()
+            file_bytes = await storage.download(doc.s3_url)
+
+            # Parsing
+            text_content = ""
+            if doc.file_type == "pdf":
+                from pypdf import PdfReader
+                reader = PdfReader(io.BytesIO(file_bytes))
+                for page in reader.pages:
+                    text_content += page.extract_text() + "\n"
+            elif doc.file_type == "docx":
+                import docx
+                d = docx.Document(io.BytesIO(file_bytes))
+                text_content = "\n".join([para.text for para in d.paragraphs])
+            else:
+                text_content = "Image parsing not supported yet."
+
+            # Splitting text into chunks
+            chunk_size = 1000
+            chunks = [text_content[i:i+chunk_size] for i in range(0, len(text_content), chunk_size) if text_content[i:i+chunk_size].strip()]
+
+            llm = get_llm_service()
+            
+            # Use Semaphore to limit concurrent requests to vLLM
+            sem = asyncio.Semaphore(5)
+            async def bounded_embed(text_chunk):
+                async with sem:
+                    return await llm.embed(text_chunk)
+            
+            tasks = [bounded_embed(chunk) for chunk in chunks]
+            embeddings = await asyncio.gather(*tasks)
+
+            for idx, (chunk_text, embedding) in enumerate(zip(chunks, embeddings)):
+                db_chunk = DocumentChunk(
+                    document_id=doc.id,
+                    chunk_text=chunk_text,
+                    embedding_vector=embedding,
+                    chunk_index=idx
+                )
+                session.add(db_chunk)
+
+            doc.status = "ready"
+            await session.commit()
+
+            if ai_task_id:
+                complete_stmt = text(
+                    "UPDATE ai_tasks SET status = 'completed', result_payload = '{}'::jsonb, "
+                    "updated_at = now(), completed_at = now() WHERE id = :id"
+                )
+                await session.execute(complete_stmt, {"id": ai_task_id})
+                await session.commit()
+
+            return {"status": "success", "chunks_count": len(chunks)}
+
+        except Exception as exc:
+            await session.rollback()
+            try:
+                error_stmt = text("UPDATE documents SET status = 'error', updated_at = now() WHERE id = :id")
+                await session.execute(error_stmt, {"id": document_id})
+                await session.commit()
+            except Exception as e2:
+                logger.error("Failed to set document %s to error: %s", document_id, e2)
+            raise exc
+
+@celery_app.task(
+    bind=True,
+    base=AIBaseTask,
+    name="ai_tasks.parse_document",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def parse_document(self, document_id: str, *, ai_task_id: str | None = None) -> dict:
     """
     Background task: Parse PDF và tạo vector embeddings cho RAG.
 
@@ -189,10 +295,10 @@ def parse_document(self, document_id: str) -> dict:
         4. Lưu DocumentChunk records vào DB
         5. Update Document.status = 'ready'
     """
-    logger.info("[parse_document] START document_id=%s", document_id)
+    logger.info("[parse_document] START document_id=%s ai_task_id=%s", document_id, ai_task_id)
+    import asyncio
     try:
-        # TODO: Implement khi AI pipeline sẵn sàng
-        return {"status": "not_implemented", "task_id": self.request.id}
+        return asyncio.run(_run_parse_document_async(document_id, ai_task_id))
     except Exception as exc:
         logger.error("[parse_document] FAIL document_id=%s error=%s", document_id, exc)
         raise self.retry(exc=exc)

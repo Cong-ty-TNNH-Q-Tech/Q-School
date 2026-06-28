@@ -76,6 +76,23 @@ class R2StorageAdapter(IStorageService):
             logger.error(f"Lỗi khi upload {filename} lên Storage: {e}")
             raise Exception(f"Storage upload error: {str(e)}")
 
+    async def download(self, file_url: str) -> bytes:
+        """
+        Tải file từ storage và trả về mảng bytes.
+        """
+        key = self._extract_key_from_url(file_url)
+        try:
+            async with self._get_client() as s3_client:
+                response = await s3_client.get_object(
+                    Bucket=self.bucket_name,
+                    Key=key
+                )
+                body = await response['Body'].read()
+                return body
+        except ClientError as e:
+            logger.error(f"Lỗi khi download {key} từ Storage: {e}")
+            raise Exception(f"Storage download error: {str(e)}")
+
     async def delete(self, file_url: str) -> None:
         """Xóa file khỏi storage theo URL."""
         key = self._extract_key_from_url(file_url)
