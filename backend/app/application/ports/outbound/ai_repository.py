@@ -88,6 +88,11 @@ class IChatRepository(ABC):
         self, session_id: UUID, sender_type: str, content: str
     ) -> ChatMessage: ...
 
+    @abstractmethod
+    async def commit(self) -> None:
+        """Thực hiện commit transaction hiện tại vào DB."""
+        ...
+
 
 class IAITaskRepository(ABC):
     """Abstract Port: Contract cho AI Background Task tracking."""

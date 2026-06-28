@@ -61,10 +61,14 @@ class ChatUseCase:
         Lưu tin nhắn người dùng, gọi LLM, stream từng token về client.
         Sau khi kết thúc stream, lưu tin nhắn của AI vào Database.
         """
-        # 1. Lưu user message
+        import anyio
+        
+        # 1. Lưu user message và COMMIT ngay lập tức.
+        # Đảm bảo tin nhắn user được lưu ngay cả khi stream bị ngắt kết nối giữa chừng.
         await self._chat_repo.add_message(
             session_id=session.id, sender_type="user", content=content
         )
+        await self._chat_repo.commit()
 
         # 2. Lấy lịch sử chat (tối đa 20 tin nhắn gần nhất)
         # Để lấy 20 tin nhắn MỚI NHẤT, phải dùng ascending=False (ORDER BY DESC)
@@ -75,7 +79,6 @@ class ChatUseCase:
         messages = list(reversed(messages))
 
         # 3. Format tin nhắn cho LLM
-        # ascending=True tức là cũ -> mới
         llm_messages = []
         if session.ai_persona:
             llm_messages.append({"role": "system", "content": session.ai_persona})
@@ -93,11 +96,19 @@ class ChatUseCase:
                     full_content.append(chunk)
                     yield chunk
             finally:
-                # Khi stream bị huỷ hoặc kết thúc thành công, lưu vào DB
+                # Khi stream bị huỷ (client disconnect) hoặc kết thúc thành công, lưu DB
                 ai_text = "".join(full_content)
                 if ai_text:
-                    await self._chat_repo.add_message(
-                        session_id=session.id, sender_type="ai", content=ai_text
-                    )
+                    # Sử dụng anyio.CancelScope(shield=True) để bảo vệ DB operation
+                    # không bị huỷ theo khi Request Task bị huỷ
+                    with anyio.CancelScope(shield=True):
+                        try:
+                            await self._chat_repo.add_message(
+                                session_id=session.id, sender_type="ai", content=ai_text
+                            )
+                            await self._chat_repo.commit()
+                        except Exception as e:
+                            import logging
+                            logging.getLogger(__name__).error("Failed to save AI message: %s", e)
 
         return stream_and_save()

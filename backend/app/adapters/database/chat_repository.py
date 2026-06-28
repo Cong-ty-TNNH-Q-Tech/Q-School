@@ -89,3 +89,6 @@ class ChatSQLAlchemyRepository(BaseRepository[ChatSession], IChatRepository):
         )
         await self.db.execute(stmt)
         return message
+
+    async def commit(self) -> None:
+        await self.db.commit()
