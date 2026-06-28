@@ -67,9 +67,12 @@ class ChatUseCase:
         )
 
         # 2. Lấy lịch sử chat (tối đa 20 tin nhắn gần nhất)
+        # Để lấy 20 tin nhắn MỚI NHẤT, phải dùng ascending=False (ORDER BY DESC)
+        # Sau đó đảo ngược list để LLM đọc theo thứ tự thời gian (cũ -> mới)
         messages = await self._chat_repo.get_messages(
-            session_id=session.id, limit=20, ascending=True
+            session_id=session.id, limit=20, ascending=False
         )
+        messages = list(reversed(messages))
 
         # 3. Format tin nhắn cho LLM
         # ascending=True tức là cũ -> mới

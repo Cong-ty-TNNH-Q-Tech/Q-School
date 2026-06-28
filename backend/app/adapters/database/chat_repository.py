@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select, or_, and_
+from sqlalchemy import select, or_, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adapters.database.base import BaseRepository
@@ -77,6 +77,15 @@ class ChatSQLAlchemyRepository(BaseRepository[ChatSession], IChatRepository):
     async def add_message(
         self, session_id: UUID, sender_type: str, content: str
     ) -> ChatMessage:
-        return await self._message_repo.create(
+        message = await self._message_repo.create(
             session_id=session_id, sender_type=sender_type, content=content
         )
+        # Update the session's updated_at so it bubbles to the top of the list
+        from sqlalchemy import update
+        stmt = (
+            update(ChatSession)
+            .where(ChatSession.id == session_id)
+            .values(updated_at=func.now())
+        )
+        await self.db.execute(stmt)
+        return message
