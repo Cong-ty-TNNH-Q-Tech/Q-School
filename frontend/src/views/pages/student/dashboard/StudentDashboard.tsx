@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Award, Library, Clock, CheckCircle, Calendar, PlayCircle } from 'lucide-react';
+import { BookOpen, Award, Library, Clock, PlayCircle } from 'lucide-react';
 import type { Activity } from '@/models/student_dashboard';
 import { useStudentDashboard } from '@/viewmodels/useStudentDashboard';
 

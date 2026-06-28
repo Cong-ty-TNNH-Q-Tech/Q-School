@@ -24,8 +24,9 @@ export const useStudentDashboard = create<StudentDashboardState>((set) => ({
       } else {
         throw new Error(mockStudentDashboardResponse.message || 'Failed to fetch dashboard data');
       }
-    } catch (error: any) {
-      set({ error: error.message || 'An error occurred', isLoading: false });
+    } catch (error: unknown) {
+      const err = error as Error;
+      set({ error: err.message || 'An error occurred', isLoading: false });
     }
   },
 }));
