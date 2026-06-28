@@ -72,7 +72,7 @@ export interface Rubric {
 // NOTE — ERD chưa có cột image_url và status, FE thêm trước cho UX
 // TODO:BACKEND — Cần migration thêm image_url, status vào bảng essay_submissions
 
-export type EssaySubmissionStatus = 'pending' | 'processing' | 'graded' | 'failed'
+export type EssaySubmissionStatus = 'pending' | 'processing' | 'completed' | 'failed'
 
 export interface EssaySubmission {
   id: string
