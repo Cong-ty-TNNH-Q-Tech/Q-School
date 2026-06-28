@@ -25,7 +25,7 @@ export default function FlashcardSetList() {
           <div 
             key={set.id} 
             className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full"
-            onClick={() => navigate(`/dashboard/flashcards/${set.id}`)}
+            onClick={() => navigate(`/flashcards/${set.id}`)}
           >
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2">{set.title}</h3>
