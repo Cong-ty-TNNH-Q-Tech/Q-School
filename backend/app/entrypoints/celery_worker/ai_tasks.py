@@ -178,7 +178,7 @@ async def _run_process_essay_grading_async(essay_submission_id: str, user_id: st
             if ai_task_id:
                 result_payload = json.dumps({"score": score})
                 complete_stmt = text(
-                    "UPDATE ai_tasks SET status = 'completed', result_payload = :payload, "
+                    "UPDATE ai_tasks SET status = 'completed', result_payload = :payload::jsonb, "
                     "updated_at = now(), completed_at = now() WHERE id = :id"
                 )
                 await session.execute(complete_stmt, {"payload": result_payload, "id": ai_task_id})
