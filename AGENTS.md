@@ -17,6 +17,7 @@ Tài liệu này cung cấp bộ quy chuẩn (Guidelines) bắt buộc dành cho
 ## 2. Nguyên tắc chung (General Guidelines)
 - Luôn giữ tâm thế **Scale & Stability**: Mọi dòng code phải được tối ưu cho hàng nghìn người dùng cùng lúc.
 - **Security-First**: Không bao giờ hardcode API Keys, cấu hình Database. Sử dụng biến môi trường (Environment Variables).
+- **Logging Standards**: Tuyệt đối KHÔNG sử dụng `print()`. Mọi module phải sử dụng thư viện `logging` chuẩn của Python (`logger = logging.getLogger(__name__)`). Ghi log ở đúng cấp độ (INFO, WARNING, ERROR). Mọi Exception đều phải được log kèm thông tin lỗi rõ ràng để tracking bug trên môi trường Production.
 - Chức năng liên quan đến AI **LUÔN LUÔN** phải có Rate Limiting (`HTTP 429`) và kiểm tra quyền gói cước (`HTTP 402`).
 - **Không sử dụng Emoji** trong giao diện (UI). Thay thế bằng **SVG icon** hoặc icon từ thư viện (Lucide, Radix Icons) để đảm bảo tính nhất quán và chuyên nghiệp trên mọi nền tảng.
 
