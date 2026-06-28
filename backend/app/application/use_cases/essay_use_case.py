@@ -1,6 +1,6 @@
 import uuid
 
-from app.application.ports.outbound.quiz_repository import IEssaySubmissionRepository
+from app.application.ports.outbound.essay_repository import IEssaySubmissionRepository
 from app.application.ports.outbound.ai_repository import IAITaskRepository
 from app.domain.models.quiz import EssaySubmission
 from app.domain.models.user import User

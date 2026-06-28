@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adapters.database.base import BaseRepository
-from app.application.ports.outbound.quiz_repository import IEssaySubmissionRepository
+from app.application.ports.outbound.essay_repository import IEssaySubmissionRepository
 from app.domain.models.quiz import EssaySubmission
 
 
