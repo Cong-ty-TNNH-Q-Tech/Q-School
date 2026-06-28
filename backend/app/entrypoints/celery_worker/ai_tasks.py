@@ -286,14 +286,15 @@ async def _run_parse_document_async(document_id: str, ai_task_id: str | None) ->
 )
 def parse_document(self, document_id: str, *, ai_task_id: str | None = None) -> dict:
     """
-    Background task: Parse PDF và tạo vector embeddings cho RAG.
+    Background task: Parse PDF/DOCX và tạo vector embeddings cho RAG.
 
-    Flow dự kiến:
-        1. Download file từ S3/R2 qua IStorageService
-        2. Cắt nhỏ thành chunks
-        3. Gọi ILLMService.embed() cho từng chunk
-        4. Lưu DocumentChunk records vào DB
-        5. Update Document.status = 'ready'
+    Flow thực tế:
+        1. Download file từ S3/R2 qua IStorageService (R2StorageAdapter)
+        2. Parse file thành văn bản (dùng pypdf/python-docx)
+        3. Cắt nhỏ văn bản thành chunks (1000 chars)
+        4. Gọi ILLMService.embed() song song cho từng chunk (có giới hạn concurrent)
+        5. Lưu DocumentChunk records vào PostgreSQL (pgvector)
+        6. Update Document.status = 'ready' (hoặc 'error' nếu thất bại)
     """
     logger.info("[parse_document] START document_id=%s ai_task_id=%s", document_id, ai_task_id)
     import asyncio
