@@ -1,6 +1,6 @@
 import { useAuthStore } from '@/stores/useAuthStore'
 
-export default function Dashboard() {
+export default function TeacherDashboard() {
   const user = useAuthStore((state) => state.user)
 
   return (
