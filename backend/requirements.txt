@@ -13,6 +13,7 @@ pgvector>=0.4.2
 
 # Storage & AI
 boto3>=1.43.36         # Cho Cloudflare R2 / MinIO / S3
+aioboto3>=13.1.0       # Async client cho boto3
 openai>=2.44.0          # Giao tiếp với vLLM server (OpenAI-compatible API)
 httpx>=0.28.1          # Async HTTP client
 
