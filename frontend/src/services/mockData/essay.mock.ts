@@ -21,9 +21,9 @@ export const MOCK_RUBRICS: Rubric[] = [
   }
 ]
 
-export const getRubricsMock = async (): Promise<Rubric[]> => {
+export const getRubricsMock = async (): Promise<{ status: string, data: Rubric[] }> => {
   return new Promise((resolve) => {
-    setTimeout(() => resolve([...MOCK_RUBRICS]), 300)
+    setTimeout(() => resolve({ status: 'success', data: [...MOCK_RUBRICS] }), 300)
   })
 }
 
@@ -34,7 +34,7 @@ export const getRubricsMock = async (): Promise<Rubric[]> => {
 export const uploadEssayImageMock = async (
   file: File,
   onProgress?: (progress: number) => void
-): Promise<string> => {
+): Promise<{ status: string, data: { url: string } }> => {
   return new Promise((resolve, reject) => {
     // Validate file size (10MB)
     if (file.size > 10 * 1024 * 1024) {
@@ -53,7 +53,7 @@ export const uploadEssayImageMock = async (
         
         // Mock S3 URL
         const mockUrl = `https://mock-s3-bucket.qschool.vn/essays/${Date.now()}_${file.name}`
-        setTimeout(() => resolve(mockUrl), 200);
+        setTimeout(() => resolve({ status: 'success', data: { url: mockUrl } }), 200);
       } else {
         if (onProgress) onProgress(Math.floor(progress));
       }
@@ -72,7 +72,7 @@ const mockSubmissions: EssaySubmission[] = []
 // Request: EssaySubmissionRequest
 // Response: EssaySubmission (status: 'pending')
 // ============================================================
-export const submitEssayMock = async (request: EssaySubmissionRequest): Promise<EssaySubmission> => {
+export const submitEssayMock = async (request: EssaySubmissionRequest): Promise<{ status: string, data: EssaySubmission }> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (!request.rubric_id) {
@@ -99,7 +99,7 @@ export const submitEssayMock = async (request: EssaySubmissionRequest): Promise<
       }
 
       mockSubmissions.push(newSubmission)
-      resolve(newSubmission)
+      resolve({ status: 'success', data: newSubmission })
     }, 500)
   })
 }
@@ -109,21 +109,21 @@ export const submitEssayMock = async (request: EssaySubmissionRequest): Promise<
 // TODO:BACKEND — Replace with: GET /api/v1/essays/{id}/status
 // NOTE — Mỗi lần gọi sẽ simulate tiến 1 bước trong pipeline
 // ============================================================
-export const pollEssayStatusMock = async (id: string): Promise<EssaySubmission | null> => {
+export const pollEssayStatusMock = async (id: string): Promise<{ status: string, data: EssaySubmission | null }> => {
   return new Promise(resolve => {
     setTimeout(() => {
       const subIndex = mockSubmissions.findIndex(s => s.id === id)
-      if (subIndex === -1) return resolve(null)
+      if (subIndex === -1) return resolve({ status: 'success', data: null })
       
       const sub = mockSubmissions[subIndex]
       
-      // Simulate state transitions: pending -> processing -> graded
+      // Simulate state transitions: pending -> processing -> completed
       if (sub.status === 'pending') {
         mockSubmissions[subIndex] = { ...sub, status: 'processing' }
       } else if (sub.status === 'processing') {
         mockSubmissions[subIndex] = { 
           ...sub, 
-          status: 'graded',
+          status: 'completed',
           score: Math.floor(Math.random() * 3) + 7, // 7-9 points
           ai_feedback: {
             summary: "Bài viết có bố cục rõ ràng, lập luận chặt chẽ.",
@@ -137,7 +137,7 @@ export const pollEssayStatusMock = async (id: string): Promise<EssaySubmission |
         }
       }
       
-      resolve({ ...mockSubmissions[subIndex] })
+      resolve({ status: 'success', data: { ...mockSubmissions[subIndex] } })
     }, 300)
   })
 }

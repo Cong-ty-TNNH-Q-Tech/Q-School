@@ -1913,3 +1913,108 @@ paths:
                   status:
                     type: string
                     example: success
+
+  # ==========================================
+  # GROUP 6: ESSAYS & UPLOADS
+  # ==========================================
+  
+  /essays/submit:
+    post:
+      summary: Gửi bài tự luận
+      tags: [Essays]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EssaySubmissionRequest'
+      responses:
+        '202':
+          description: Accepted (Processing in background)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      submission_id:
+                        type: string
+                        format: uuid
+
+  /essays/{id}/status:
+    get:
+      summary: Kiểm tra trạng thái chấm bài AI
+      tags: [Essays]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Trạng thái bài chấm
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [pending, processing, completed, failed]
+                      ai_feedback:
+                        type: object
+                        nullable: true
+                      score:
+                        type: number
+                        nullable: true
+
+  /uploads/image:
+    post:
+      summary: Upload ảnh bài viết
+      tags: [Uploads]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Upload thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri

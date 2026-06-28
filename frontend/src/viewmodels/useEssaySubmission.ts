@@ -19,8 +19,8 @@ export function useEssaySubmission() {
     setLoadingRubrics(true)
     setError(null)
     try {
-      const data = await getRubricsMock()
-      setRubrics(data)
+      const response = await getRubricsMock()
+      setRubrics(response.data)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Không thể tải danh sách tiêu chí")
     } finally {
@@ -33,10 +33,10 @@ export function useEssaySubmission() {
     setUploadProgress(0)
     setError(null)
     try {
-      const url = await uploadEssayImageMock(file, (progress) => {
+      const response = await uploadEssayImageMock(file, (progress) => {
         setUploadProgress(progress)
       })
-      setUploadedImageUrl(url)
+      setUploadedImageUrl(response.data.url)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Upload ảnh thất bại")
     } finally {
@@ -53,8 +53,8 @@ export function useEssaySubmission() {
     setSubmitting(true)
     setError(null)
     try {
-      const result = await submitEssayMock(request)
-      setSubmission(result)
+      const response = await submitEssayMock(request)
+      setSubmission(response.data)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Nộp bài thất bại")
     } finally {
@@ -69,28 +69,50 @@ export function useEssaySubmission() {
     setError(null)
   }, [])
 
-  // Polling logic
+  // Polling logic with exponential backoff
   useEffect(() => {
-    if (!submission) return
-    if (submission.status === 'graded' || submission.status === 'failed') return
+    if (!submission?.id) return
+    if (submission.status === 'completed' || submission.status === 'failed') return
 
-    // FIXME — Polling interval nên dùng exponential backoff thay vì fixed 3s
-    const interval = setInterval(async () => {
+    let timeoutId: ReturnType<typeof setTimeout>
+    let isCancelled = false
+    const submissionId = submission.id
+
+    const poll = async (currentDelay: number) => {
+      if (isCancelled) return
+
       try {
-        const updated = await pollEssayStatusMock(submission.id)
+        const response = await pollEssayStatusMock(submissionId)
+        if (isCancelled) return
+        
+        const updated = response.data
         if (updated) {
-          setSubmission(updated)
-          if (updated.status === 'graded' || updated.status === 'failed') {
-            clearInterval(interval)
+          setSubmission((prev) => {
+            if (prev && prev.status === updated.status && prev.score === updated.score) {
+              return prev
+            }
+            return updated
+          })
+          
+          if (updated.status === 'completed' || updated.status === 'failed') {
+            return
           }
         }
       } catch (err) {
         console.error("Polling error", err)
       }
-    }, 3000)
 
-    return () => clearInterval(interval)
-  }, [submission])
+      const nextDelay = Math.min(currentDelay * 2, 15000)
+      timeoutId = setTimeout(() => poll(nextDelay), nextDelay)
+    }
+
+    timeoutId = setTimeout(() => poll(2000), 2000)
+
+    return () => {
+      isCancelled = true
+      clearTimeout(timeoutId)
+    }
+  }, [submission?.id, submission?.status])
 
   return {
     rubrics,
