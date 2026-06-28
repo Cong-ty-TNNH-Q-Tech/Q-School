@@ -26,7 +26,7 @@ class R2StorageAdapter(IStorageService):
         region = 'auto' if 'cloudflarestorage' in (self.endpoint_url or "") else 'us-east-1'
         return self.session.client(
             's3',
-            endpoint_url=self.endpoint_url,
+            endpoint_url=self.endpoint_url if self.endpoint_url else None,
             aws_access_key_id=self.access_key,
             aws_secret_access_key=self.secret_key,
             region_name=region,
