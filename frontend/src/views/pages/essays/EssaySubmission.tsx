@@ -109,7 +109,7 @@ export default function EssaySubmissionPage() {
                 </>
               )}
 
-              {submission.status === 'graded' && (
+              {submission.status === 'completed' && (
                 <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="flex flex-col items-center justify-center mb-8">
                     <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
