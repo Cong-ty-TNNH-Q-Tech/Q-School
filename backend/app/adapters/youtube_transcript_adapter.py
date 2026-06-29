@@ -15,8 +15,9 @@ _whisper_model = None
 def get_whisper_model():
     global _whisper_model
     if _whisper_model is None:
-        logger.info("Đang load Whisper model vào RAM (chỉ chạy 1 lần)...")
-        _whisper_model = WhisperModel("small", device="cpu", compute_type="int8")
+        logger.info("Đang load Whisper model vào bộ nhớ (ưu tiên GPU)...")
+        # device="auto" sẽ tự động dùng CUDA (GPU) nếu có, ngược lại dùng CPU.
+        _whisper_model = WhisperModel("small", device="auto", compute_type="int8")
     return _whisper_model
 
 class YouTubeTranscriptAdapter(IYouTubeTranscriptAdapter):
