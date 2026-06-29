@@ -5,7 +5,7 @@ from typing import Dict, Any
 from app.application.ports.outbound.billing_repository import IBillingRepository
 from app.adapters.payment.factory import PaymentGatewayFactory
 from app.domain.models.billing import PaymentTransaction, PaymentStatus, PaymentProvider
-from app.domain.exceptions import NotFoundError, BadRequestError
+from app.domain.exceptions import PlanNotFoundError, PaymentTransactionNotFoundError, InvalidPaymentWebhookError
 
 logger = logging.getLogger(__name__)
 
@@ -19,10 +19,10 @@ class CreateCheckoutSessionUseCase:
         # 1. Lấy thông tin Plan
         plan = await self.billing_repo.get_plan_by_id(plan_id)
         if not plan:
-            raise NotFoundError("Gói cước không tồn tại")
+            raise PlanNotFoundError("Gói cước không tồn tại")
             
         if not plan.is_active:
-            raise BadRequestError("Gói cước hiện không khả dụng")
+            raise PlanNotFoundError("Gói cước hiện không khả dụng")
 
         # 2. Tạo Transaction (pending)
         transaction = PaymentTransaction(
@@ -66,21 +66,27 @@ class ProcessWebhookUseCase:
         
         # 1. Verify signature
         if not gateway.verify_webhook_signature(payload, signature):
-            raise BadRequestError("Chữ ký Webhook không hợp lệ")
+            raise InvalidPaymentWebhookError("Chữ ký Webhook không hợp lệ")
             
         # 2. Parse event
         event_data = gateway.parse_webhook_event(payload)
         transaction_id_str = event_data.get("transaction_id")
         status = event_data.get("status")
         provider_transaction_id = event_data.get("provider_transaction_id")
+        transfer_amount = event_data.get("transfer_amount", 0)
         
         if not transaction_id_str:
-            raise BadRequestError("Không tìm thấy transaction_id trong payload")
+            raise InvalidPaymentWebhookError("Không tìm thấy transaction_id trong payload")
+            
+        try:
+            transaction_uuid = uuid.UUID(transaction_id_str)
+        except ValueError:
+            raise InvalidPaymentWebhookError(f"transaction_id không hợp lệ: {transaction_id_str}")
             
         # 3. Get transaction
-        transaction = await self.billing_repo.get_transaction_by_id(uuid.UUID(transaction_id_str))
+        transaction = await self.billing_repo.get_transaction_by_id(transaction_uuid)
         if not transaction:
-            raise NotFoundError("Transaction không tồn tại")
+            raise PaymentTransactionNotFoundError("Transaction không tồn tại")
             
         # 4. Idempotency check: Tránh duplicate xử lý
         if transaction.status != PaymentStatus.PENDING:
@@ -88,6 +94,10 @@ class ProcessWebhookUseCase:
             return
             
         # 5. Cập nhật transaction status
+        if status == PaymentStatus.SUCCESS and transfer_amount < transaction.amount:
+            logger.warning(f"Số tiền chuyển ({transfer_amount}) nhỏ hơn yêu cầu ({transaction.amount}) cho transaction {transaction.id}")
+            status = PaymentStatus.FAILED
+
         transaction.status = status
         transaction.provider_transaction_id = provider_transaction_id
         await self.billing_repo.update_transaction(transaction)

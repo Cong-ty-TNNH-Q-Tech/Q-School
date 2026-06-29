@@ -112,6 +112,24 @@ class SubscriptionExpiredError(DomainException):
     pass
 
 
+class PlanNotFoundError(DomainException):
+    """Không tìm thấy gói cước."""
+
+    pass
+
+
+class PaymentTransactionNotFoundError(DomainException):
+    """Không tìm thấy giao dịch thanh toán."""
+
+    pass
+
+
+class InvalidPaymentWebhookError(DomainException):
+    """Webhook thanh toán không hợp lệ (sai chữ ký hoặc thiếu data)."""
+
+    pass
+
+
 class DocumentNotFoundError(DomainException):
     """Không tìm thấy tài liệu."""
 

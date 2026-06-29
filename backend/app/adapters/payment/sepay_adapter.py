@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Dict, Any
 from app.application.ports.outbound.payment_gateway import IPaymentGateway
 from app.domain.models.billing import PaymentStatus
@@ -26,7 +27,8 @@ class SePayPaymentAdapter(IPaymentGateway):
         if not signature:
             return False
         token = signature.split(" ")[-1]
-        return token == self.webhook_token
+        import secrets
+        return secrets.compare_digest(token, self.webhook_token)
 
     def parse_webhook_event(self, payload: bytes) -> Dict[str, Any]:
         """
@@ -35,15 +37,20 @@ class SePayPaymentAdapter(IPaymentGateway):
         """
         event = json.loads(payload)
         
-        # Nội dung chuyển khoản chứa transaction_id
-        transaction_id = event.get("content", "").strip()
+        content = event.get("content", "").strip()
         transfer_type = event.get("transferType", "in")
+        transfer_amount = int(event.get("transferAmount", 0))
         
-        # Nếu không phải là tiền vào, ta đánh fail (tránh update nhầm)
+        # Tìm UUID trong content (hỗ trợ cả có gạch nối và không có gạch nối do một số ngân hàng tự loại bỏ)
+        match = re.search(r"[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}", content)
+        transaction_id = match.group(0) if match else content
+        
+        # Nếu không phải là tiền vào, ta đánh fail
         status = PaymentStatus.SUCCESS if transfer_type == "in" else PaymentStatus.FAILED
         
         return {
             "transaction_id": transaction_id, 
             "status": status,
-            "provider_transaction_id": str(event.get("id"))
+            "provider_transaction_id": str(event.get("id")),
+            "transfer_amount": transfer_amount
         }
