@@ -1375,6 +1375,8 @@ paths:
     post:
       summary: Nộp bài Văn tự luận (AI Tự Động Chấm)
       tags: [Student Tracking]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1382,8 +1384,8 @@ paths:
             schema:
               $ref: '#/components/schemas/EssaySubmissionRequest'
       responses:
-        '200':
-          description: Nộp bài thành công (Có thể Async tùy cấu hình)
+        '202':
+          description: Accepted — Bài đã được ghi nhận, AI sẽ chấm nền (Background Task)
           content:
             application/json:
               schema:
@@ -1398,9 +1400,78 @@ paths:
                       submission_id:
                         type: string
                         format: uuid
+
+  /essays/{id}/status:
+    get:
+      summary: Kiểm tra trạng thái chấm bài AI
+      tags: [Student Tracking]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Trạng thái bài chấm
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [pending, processing, completed, failed]
                       ai_feedback:
                         type: object
-                        description: "Nhận xét chi tiết từ AI"
+                        nullable: true
+                      score:
+                        type: number
+                        nullable: true
+
+  /uploads/image:
+    post:
+      summary: Upload ảnh bài viết (OCR)
+      tags: [Student Tracking]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Upload thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+
 
   /flashcard-sets/{set_id}/reviews:
     get:
@@ -1913,3 +1984,4 @@ paths:
                   status:
                     type: string
                     example: success
+

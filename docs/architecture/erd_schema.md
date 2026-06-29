@@ -136,8 +136,10 @@ erDiagram
         uuid teacher_id FK
         uuid rubric_id FK
         text content "Bài văn của học sinh"
+        string image_url "Ảnh bài viết tay"
         jsonb ai_feedback "Nhận xét chi tiết của AI"
         float score
+        string status "pending, processing, completed, failed"
         timestamp created_at
     }
 
