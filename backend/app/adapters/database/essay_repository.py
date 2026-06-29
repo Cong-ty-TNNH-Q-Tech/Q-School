@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import datetime
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -16,10 +17,23 @@ class SQLAlchemyEssaySubmissionRepository(BaseRepository[EssaySubmission], IEssa
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def list_by_student(self, student_id: UUID, *, limit: int = 20) -> list[EssaySubmission]:
-        stmt = select(EssaySubmission).where(EssaySubmission.student_id == student_id).order_by(desc(EssaySubmission.created_at)).limit(limit)
-        result = await self.db.execute(stmt)
-        return list(result.scalars().all())
+    async def list_by_student(
+        self,
+        student_id: UUID,
+        *,
+        limit: int = 20,
+        cursor_created_at: "datetime | None" = None,
+        cursor_id: UUID | None = None,
+        ascending: bool = False,
+    ) -> list[EssaySubmission]:
+        messages = await self.cursor_paginate(
+            cursor_created_at=cursor_created_at,
+            cursor_id=cursor_id,
+            limit=limit,
+            filters=[EssaySubmission.student_id == student_id],
+            ascending=ascending,
+        )
+        return list(messages)
 
     async def create(self, student_id: UUID, teacher_id: UUID, content: str, **kwargs) -> EssaySubmission:
         submission = EssaySubmission(

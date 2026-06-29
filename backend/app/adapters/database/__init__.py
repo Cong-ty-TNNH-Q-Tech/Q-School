@@ -8,6 +8,7 @@ from app.adapters.database.user_repository import UserSQLAlchemyRepository
 from app.adapters.database.class_repository import ClassSQLAlchemyRepository
 from app.adapters.database.lesson_repository import LessonSQLAlchemyRepository
 from app.adapters.database.essay_repository import SQLAlchemyEssaySubmissionRepository
+from app.adapters.database.ai_task_repository import SQLAlchemyAITaskRepository
 
 __all__ = [
     "BaseRepository",
@@ -15,4 +16,5 @@ __all__ = [
     "ClassSQLAlchemyRepository",
     "LessonSQLAlchemyRepository",
     "SQLAlchemyEssaySubmissionRepository",
+    "SQLAlchemyAITaskRepository",
 ]
