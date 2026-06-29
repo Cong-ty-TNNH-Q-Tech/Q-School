@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLessons } from './useLessons'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -37,22 +37,13 @@ export interface UseLessonFormReturn {
   error: string | null
 }
 
+const DEFAULT_SECTION = { title: '', content: '', duration_minutes: 0 }
+
 export function useLessonForm(lessonId?: string): UseLessonFormReturn {
   const isEditMode = Boolean(lessonId)
   const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const { selectedLesson, fetchLessonDetail, createLesson, updateLesson, isLoading, error } = useLessons()
-
-  // Form State
-  const [title, setTitle] = useState('')
-  const [subject, setSubject] = useState('')
-  const [gradeLevel, setGradeLevel] = useState('')
-  const [objectives, setObjectives] = useState<string[]>([''])
-  const [sections, setSections] = useState<Required<LessonContent>['sections']>([
-    { title: '', content: '', duration_minutes: 0 }
-  ])
-  const [materials, setMaterials] = useState<string[]>([''])
-  const [homework, setHomework] = useState('')
 
   // Load data for edit mode
   useEffect(() => {
@@ -61,22 +52,51 @@ export function useLessonForm(lessonId?: string): UseLessonFormReturn {
     }
   }, [isEditMode, lessonId, fetchLessonDetail])
 
-  // Populate form state when selectedLesson is available
-  useEffect(() => {
+  // Derive initial values from selectedLesson (avoids setState inside effect)
+  const initialValues = useMemo(() => {
     if (isEditMode && selectedLesson) {
-      setTitle(selectedLesson.title)
-      setSubject(selectedLesson.subject || '')
-      setGradeLevel(selectedLesson.grade_level || '')
-      
       const content = selectedLesson.content
-      if (content) {
-        setObjectives(content.objectives?.length ? content.objectives : [''])
-        setSections(content.sections?.length ? content.sections : [{ title: '', content: '', duration_minutes: 0 }])
-        setMaterials(content.materials?.length ? content.materials : [''])
-        setHomework(content.homework || '')
+      return {
+        title: selectedLesson.title,
+        subject: selectedLesson.subject || '',
+        gradeLevel: selectedLesson.grade_level || '',
+        objectives: content?.objectives?.length ? content.objectives : [''],
+        sections: content?.sections?.length ? content.sections : [DEFAULT_SECTION],
+        materials: content?.materials?.length ? content.materials : [''],
+        homework: content?.homework || '',
       }
     }
+    return {
+      title: '',
+      subject: '',
+      gradeLevel: '',
+      objectives: [''],
+      sections: [DEFAULT_SECTION],
+      materials: [''],
+      homework: '',
+    }
   }, [isEditMode, selectedLesson])
+
+  // Form State
+  const [title, setTitle] = useState(initialValues.title)
+  const [subject, setSubject] = useState(initialValues.subject)
+  const [gradeLevel, setGradeLevel] = useState(initialValues.gradeLevel)
+  const [objectives, setObjectives] = useState<string[]>(initialValues.objectives)
+  const [sections, setSections] = useState<Required<LessonContent>['sections']>(initialValues.sections)
+  const [materials, setMaterials] = useState<string[]>(initialValues.materials)
+  const [homework, setHomework] = useState(initialValues.homework)
+
+  // Sync form state when initialValues change (lesson data loaded async)
+  useEffect(() => {
+    setTitle(initialValues.title)
+    setSubject(initialValues.subject)
+    setGradeLevel(initialValues.gradeLevel)
+    setObjectives(initialValues.objectives)
+    setSections(initialValues.sections)
+    setMaterials(initialValues.materials)
+    setHomework(initialValues.homework)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional sync from derived initialValues
+  }, [initialValues])
 
   // Handlers for dynamic lists
   const handleObjectiveChange = (index: number, value: string) => {
@@ -146,9 +166,8 @@ export function useLessonForm(lessonId?: string): UseLessonFormReturn {
         await createLesson(payload, user.id)
         navigate('/lessons')
       }
-    } catch (err) {
-      // Error is already handled by the store, no need to console.error
-      // Component can read the `error` state from this hook
+    } catch {
+      // Error is already handled by the store via error state
     }
   }
 
