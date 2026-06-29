@@ -1,35 +1,60 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import List
-from app.entrypoints.api_v1.schemas.youtube import YouTubeQuestionRequest, YouTubeQuestionResponse
-from app.application.use_cases.youtube_questions_use_case import GenerateVideoQuestionsUseCase
-from app.adapters.youtube_transcript_adapter import YouTubeTranscriptAdapter
-from app.adapters.llm_client.llm_factory import get_llm_service
+from app.entrypoints.api_v1.schemas.youtube import (
+    YouTubeQuestionRequest,
+    YouTubeTaskResponse,
+    YouTubeTaskStatusResponse
+)
 from app.core.dependencies import CurrentUserDep
-
+from celery.result import AsyncResult
 from app.entrypoints.api_v1.schemas.base import ApiResponse
+from app.entrypoints.celery_worker.ai_tasks import generate_youtube_questions_task
 
 router = APIRouter()
 
-def get_youtube_questions_use_case(llm_service = Depends(get_llm_service)) -> GenerateVideoQuestionsUseCase:
-    youtube_adapter = YouTubeTranscriptAdapter()
-    return GenerateVideoQuestionsUseCase(youtube_adapter=youtube_adapter, llm_service=llm_service)
-
-@router.post("/youtube-questions", response_model=ApiResponse[List[YouTubeQuestionResponse]], status_code=status.HTTP_200_OK)
-async def generate_youtube_questions(
+@router.post("/youtube-questions", response_model=ApiResponse[YouTubeTaskResponse], status_code=status.HTTP_202_ACCEPTED)
+async def create_youtube_questions_task(
     request: YouTubeQuestionRequest,
     current_user: CurrentUserDep,
-    use_case: GenerateVideoQuestionsUseCase = Depends(get_youtube_questions_use_case),
 ):
     """
-    Tạo câu hỏi tự động từ video YouTube (UC-FT-014).
-    Yêu cầu:
-    - Video không quá 30 phút.
-    - Video phải có phụ đề (CC).
+    Tạo câu hỏi tự động từ video YouTube (Chạy background task).
+    Trả về Task ID để polling kết quả.
     """
-    try:
-        data = await use_case.execute(url=request.url, question_count=request.question_count)
-        return ApiResponse(data=data, message="Tạo câu hỏi từ video YouTube thành công")
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Lỗi hệ thống khi tạo câu hỏi từ video.")
+    task = generate_youtube_questions_task.delay(url=request.url, question_count=request.question_count)
+    
+    return ApiResponse(
+        data=YouTubeTaskResponse(task_id=task.id), 
+        message="Task đã được đưa vào hàng đợi"
+    )
+
+@router.get("/youtube-questions/{task_id}", response_model=ApiResponse[YouTubeTaskStatusResponse])
+async def get_youtube_questions_status(
+    task_id: str,
+    current_user: CurrentUserDep,
+):
+    """
+    Kiểm tra trạng thái của task tạo câu hỏi từ YouTube.
+    """
+    task_result = AsyncResult(task_id)
+    
+    status_str = "PENDING"
+    result_data = None
+    error_msg = None
+    
+    if task_result.state == 'SUCCESS':
+        status_str = "COMPLETED"
+        result_data = task_result.result
+    elif task_result.state == 'FAILURE':
+        status_str = "FAILED"
+        error_msg = str(task_result.info)
+    elif task_result.state in ['STARTED', 'RETRY']:
+        status_str = "PROCESSING"
+        
+    return ApiResponse(
+        data=YouTubeTaskStatusResponse(
+            task_id=task_id,
+            status=status_str,
+            result=result_data,
+            error=error_msg
+        )
+    )

@@ -13,3 +13,12 @@ class YouTubeQuestionResponse(BaseModel):
 class YouTubeQuestionRequest(BaseModel):
     url: str = Field(..., description="Link video YouTube")
     question_count: int = Field(5, ge=1, le=20, description="Số lượng câu hỏi cần tạo")
+
+class YouTubeTaskResponse(BaseModel):
+    task_id: str = Field(..., description="ID của Celery task đang xử lý")
+
+class YouTubeTaskStatusResponse(BaseModel):
+    task_id: str
+    status: str = Field(..., description="PENDING, PROCESSING, COMPLETED, FAILED")
+    result: List[YouTubeQuestionResponse] | None = None
+    error: str | None = None

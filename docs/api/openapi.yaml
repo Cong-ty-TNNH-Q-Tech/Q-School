@@ -1989,7 +1989,7 @@ paths:
   /ai/youtube-questions:
     post:
       summary: Tạo câu hỏi từ video YouTube (UC-FT-014)
-      description: Tải transcript của video YouTube và dùng AI tạo câu hỏi trắc nghiệm kèm timestamp.
+      description: Đẩy task lấy transcript và dùng AI tạo câu hỏi trắc nghiệm vào Celery queue. Trả về task_id.
       tags: [AI Workspace]
       security:
         - bearerAuth: []
@@ -2010,31 +2010,80 @@ paths:
                   minimum: 1
                   maximum: 20
       responses:
-        '200':
-          description: OK
+        '202':
+          description: Task đã được nhận
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    question_text:
-                      type: string
-                    timestamp:
-                      type: number
-                    answers:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          text:
-                            type: string
-                          is_correct:
-                            type: boolean
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: string
         '400':
-          description: Lỗi đầu vào hoặc video không có transcript
+          description: Lỗi đầu vào
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/StandardError'
+
+  /ai/youtube-questions/{task_id}:
+    get:
+      summary: Lấy kết quả câu hỏi từ video YouTube
+      description: Polling API để lấy trạng thái của task sinh câu hỏi.
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Trạng thái task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: string
+                      status:
+                        type: string
+                        example: "COMPLETED"
+                      result:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            question_text:
+                              type: string
+                            timestamp:
+                              type: number
+                            answers:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  text:
+                                    type: string
+                                  is_correct:
+                                    type: boolean
+                      error:
+                        type: string
+                        nullable: true
