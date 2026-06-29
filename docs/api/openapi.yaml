@@ -1,1339 +1,1339 @@
-openapi: 3.0.3
-info:
-  title: Q-School AI API (Enterprise Edition - Final)
-  description: Robust API documentation for Q-School AI LMS. Fully compliant with Hexagonal Architecture standard responses, token lifecycles, and edge cases.
-  version: 1.2.0
-servers:
-  - url: http://localhost:8000/api/v1
-    description: Local Development Server
-  - url: https://api.qschool.vn/api/v1
-    description: Production Server
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  schemas:
-    # ----------------------------------------
-    # BASE WRAPPERS (Standard Responses)
-    # ----------------------------------------
-    StandardError:
-      type: object
-      properties:
-        status:
-          type: string
-          example: error
-        data:
-          type: "null"
-          example: null
-        message:
-          type: string
-          example: "Invalid input parameters"
-        error_code:
-          type: integer
-          example: 4001
-          
-    TooManyRequestsError:
-      type: object
-      properties:
-        status:
-          type: string
-          example: error
-        message:
-          type: string
-          example: "Rate limit exceeded. Please try again later."
-        error_code:
-          type: integer
-          example: 4290
-        retry_after:
-          type: integer
-          description: Số giây cần chờ trước khi thử lại
-          example: 60
-          
-    PaymentRequiredError:
-      type: object
-      properties:
-        status:
-          type: string
-          example: error
-        message:
-          type: string
-          example: "Payment required. Please upgrade your subscription plan."
-        error_code:
-          type: integer
-          example: 4020
-          
-    PaginationMeta:
-      type: object
-      description: "Cursor-based pagination metadata (AGENTS.md: CAM su dung offset pagination)"
-      properties:
-        next_cursor_created_at:
-          type: string
-          format: date-time
-          nullable: true
-          description: "ISO datetime cua record cuoi cung. Null neu khong con du lieu."
-          example: "2024-01-15T10:30:00.123456+00:00"
-        next_cursor_id:
-          type: string
-          format: uuid
-          nullable: true
-          description: "UUID cua record cuoi cung (tiebreaker khi nhieu records cung created_at)"
-        has_more:
-          type: boolean
-          description: "True neu con du lieu phia sau cursor"
-          example: true
-
-    # ----------------------------------------
-    # CORE DOMAIN SCHEMAS
-    # ----------------------------------------
-    UserResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        username:
-          type: string
-        email:
-          type: string
-        role:
-          type: string
-          enum: [teacher, student, admin]
-        is_active:
-          type: boolean
-        created_at:
-          type: string
-          format: date-time
-          
-    ProfileResponse:
-      type: object
-      properties:
-        user_id:
-          type: string
-          format: uuid
-        full_name:
-          type: string
-          nullable: true
-        avatar_url:
-          type: string
-          nullable: true
-        school_name:
-          type: string
-          nullable: true
-        bio:
-          type: string
-          nullable: true
-        points:
-          type: integer
-          example: 0
-        updated_at:
-          type: string
-          format: date-time
-
-    ClassStudentResponse:
-      type: object
-      description: "Thông tin học sinh trong lớp (từ bảng class_students)"
-      properties:
-        student_id:
-          type: string
-          format: uuid
-        joined_at:
-          type: string
-          format: date-time
-        username:
-          type: string
-          nullable: true
-        email:
-          type: string
-          nullable: true
-
-    ClassResponse:
-      type: object
-      description: "Thông tin lớp học cơ bản"
-      properties:
-        id:
-          type: string
-          format: uuid
-        teacher_id:
-          type: string
-          format: uuid
-          nullable: true
-        name:
-          type: string
-        grade_level:
-          type: string
-          nullable: true
-        subject:
-          type: string
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        student_count:
-          type: integer
-          example: 0
-
-    ClassDetailResponse:
-      allOf:
-        - $ref: '#/components/schemas/ClassResponse'
-        - type: object
-          properties:
-            students:
-              type: array
-              items:
-                $ref: '#/components/schemas/ClassStudentResponse'
-
-    ClassAssignmentResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        resource_type:
-          type: string
-          enum: [lesson, quiz]
-        resource_id:
-          type: string
-          format: uuid
-        due_date:
-          type: string
-          format: date-time
-
-    # ----------------------------------------
-    # LESSON SCHEMAS
-    # ----------------------------------------
-    CreateLessonRequest:
-      type: object
-      required: [title]
-      properties:
-        title:
-          type: string
-          maxLength: 500
-          example: "Bai 1: Gioi thieu Python"
-        subject:
-          type: string
-          maxLength: 100
-          nullable: true
-        grade_level:
-          type: string
-          maxLength: 20
-          nullable: true
-        content:
-          type: object
-          nullable: true
-          description: "Noi dung giao an dang JSONB (sections, objectives, activities)"
-
-    UpdateLessonRequest:
-      type: object
-      properties:
-        title:
-          type: string
-          maxLength: 500
-          nullable: true
-        subject:
-          type: string
-          maxLength: 100
-          nullable: true
-        grade_level:
-          type: string
-          maxLength: 20
-          nullable: true
-        content:
-          type: object
-          nullable: true
-
-    LessonResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        teacher_id:
-          type: string
-          format: uuid
-          nullable: true
-        title:
-          type: string
-        subject:
-          type: string
-          nullable: true
-        grade_level:
-          type: string
-          nullable: true
-        content:
-          type: object
-          nullable: true
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        teacher_name:
-          type: string
-          nullable: true
-          description: "Username cua giao vien (eager-loaded)"
-
-    QuizDetailResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        title:
-          type: string
-        questions:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-                format: uuid
-              content:
-                type: string
-              options:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      format: uuid
-                    text:
-                      type: string
-          description: "Danh sách câu hỏi (Đã ẩn đáp án đúng đối với Học sinh)"
-
-    # ----------------------------------------
-    # REQUEST PAYLOADS
-    # ----------------------------------------
-    AssignResourceRequest:
-      type: object
-      required: [resource_type, resource_id, due_date]
-      properties:
-        resource_type:
-          type: string
-          enum: [lesson, quiz]
-        resource_id:
-          type: string
-          format: uuid
-        due_date:
-          type: string
-          format: date-time
-
-    QuizAttemptRequest:
-      type: object
-      required: [student_answers]
-      properties:
-        student_answers:
-          type: array
-          items:
-            type: object
-            required: [question_id, selected_answer_id]
-            properties:
-              question_id:
-                type: string
-                format: uuid
-              selected_answer_id:
-                type: string
-                format: uuid
-
-    EssaySubmissionRequest:
-      type: object
-      required: [rubric_id]
-      properties:
-        rubric_id:
-          type: string
-          format: uuid
-        content:
-          type: string
-          description: "Bài làm tự luận của học sinh (nhập text thủ công)"
-        image_url:
-          type: string
-          format: uri
-          description: "URL ảnh bài thi giấy để hệ thống tự động chạy OCR và bóc tách chữ"
-
-    AssetGenerationRequest:
-      type: object
-      required: [asset_type, input_params]
-      properties:
-        asset_type:
-          type: string
-          enum: [lesson_plan, quiz, email, iep, behavior_intervention, report_comment]
-        input_params:
-          type: object
-          description: "Thông số đầu vào dạng JSON (VD: Tên học sinh, lỗi vi phạm)"
-
-    GeneratedAssetResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        creator_id:
-          type: string
-          format: uuid
-        asset_type:
-          type: string
-          enum: [lesson_plan, quiz, email, iep, behavior_intervention, report_comment]
-        input_params:
-          type: object
-        output_content:
-          type: object
-        created_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-
-  # ----------------------------------------
-  # COMMON PARAMETERS
-  # ----------------------------------------
-  parameters:
-    LimitParam:
-      name: limit
-      in: query
-      description: So dong toi da tra ve moi request
-      required: false
-      schema:
-        type: integer
-        default: 20
-        maximum: 100
-    CursorParam:
-      name: cursor
-      in: query
-      description: |
-        ISO 8601 datetime string của `created_at` của record cuối cùng đã tải.
-        Ví dụ: `2024-01-15T10:30:00.123456+00:00`
-        
-        **KHÔNG dùng UUID làm cursor** — UUID v4 là random, không sortable theo thời gian.
-        BaseRepository.cursor_paginate() sử dụng `created_at` để phân trang ổn định.
-      required: false
-      schema:
-        type: string
-        format: date-time
-        example: "2024-01-15T10:30:00.123456+00:00"
-
-security:
-  - bearerAuth: []
-
-paths:
-  # ==========================================
-  # GROUP 1: AUTH & USERS (Token Lifecycle)
-  # ==========================================
-  /auth/login:
-    post:
-      summary: Dang nhap cap Token
-      description: "Dang nhap bang username (hoac email) + password. Tra ve access_token (15 phut) va refresh_token (7 ngay)."
-      tags: [Authentication]
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [username, password]
-              properties:
-                username:
-                  type: string
-                  description: "Username hoac email"
-                password:
-                  type: string
-      responses:
-        '200':
-          description: Dang nhap thanh cong
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      user:
-                        allOf:
-                          - $ref: '#/components/schemas/UserResponse'
-                          - type: object
-                            properties:
-                              profile:
-                                $ref: '#/components/schemas/ProfileResponse'
-                      tokens:
-                        type: object
-                        properties:
-                          access_token:
-                            type: string
-                          refresh_token:
-                            type: string
-                          token_type:
-                            type: string
-                            example: bearer
-                          expires_in:
-                            type: integer
-                            description: "So giay token con hieu luc"
-                            example: 900
-                  message:
-                    type: string
-                    example: "Dang nhap thanh cong"
-        '401':
-          description: Sai mat khau hoac tai khoan bi khoa
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-
-  /auth/register:
-    post:
-      summary: Dang ky tai khoan moi
-      description: "Tao tai khoan hoc sinh hoac giao vien moi. Tra ve tokens ngay sau khi dang ky."
-      tags: [Authentication]
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [username, email, password]
-              properties:
-                username:
-                  type: string
-                  minLength: 3
-                  maxLength: 50
-                  pattern: "^[a-zA-Z0-9_-]+$"
-                  description: "Chi cho phep chu cai, so, _, -"
-                email:
-                  type: string
-                  format: email
-                password:
-                  type: string
-                  minLength: 6
-                role:
-                  type: string
-                  enum: [student, teacher]
-                  default: student
-      responses:
-        '201':
-          description: Dang ky thanh cong
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      user:
-                        allOf:
-                          - $ref: '#/components/schemas/UserResponse'
-                          - type: object
-                            properties:
-                              profile:
-                                $ref: '#/components/schemas/ProfileResponse'
-                      tokens:
-                        type: object
-                        properties:
-                          access_token:
-                            type: string
-                          refresh_token:
-                            type: string
-                          token_type:
-                            type: string
-                            example: bearer
-                          expires_in:
-                            type: integer
-                            example: 900
-                  message:
-                    type: string
-                    example: "Dang ky thanh cong"
-        '409':
-          description: Email hoac username da ton tai
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '422':
-          description: Du lieu khong hop le
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-
-  /auth/refresh:
-    post:
-      summary: Lam moi Access Token bang Refresh Token
-      description: "Dung refresh_token de lay access_token moi. Tranh user phai login lai."
-      tags: [Authentication]
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [refresh_token]
-              properties:
-                refresh_token:
-                  type: string
-      responses:
-        '200':
-          description: Token moi duoc cap phat
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      access_token:
-                        type: string
-                      token_type:
-                        type: string
-                        example: bearer
-                      expires_in:
-                        type: integer
-                        description: "So giay token con hieu luc"
-                        example: 900
-        '401':
-          description: Refresh token khong hop le hoac het han
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-
-  /auth/logout:
-    post:
-      summary: Đăng xuất và Revoke Token
-      tags: [Authentication]
-      responses:
-        '200':
-          description: Đăng xuất thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: "Logged out successfully"
-
-  /auth/me:
-    get:
-      summary: Lay thong tin ca nhan
-      description: "Tra ve thong tin day du cua user dang dang nhap, bao gom Profile."
-      tags: [Authentication]
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    allOf:
-                      - $ref: '#/components/schemas/UserResponse'
-                      - type: object
-                        properties:
-                          profile:
-                            $ref: '#/components/schemas/ProfileResponse'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-
-  # ==========================================
-  # GROUP 2: EDTECH CORE (Teacher Operations)
-  # ==========================================
-  /classes:
-    post:
-      summary: Tạo lớp học mới
-      tags: [Classes]
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [name]
-              properties:
-                name:
-                  type: string
-                  maxLength: 255
-                  example: "Lớp Toán 10A"
-                grade_level:
-                  type: string
-                  maxLength: 20
-                  example: "10"
-                  nullable: true
-                subject:
-                  type: string
-                  maxLength: 100
-                  example: "Toán"
-                  nullable: true
-      responses:
-        '201':
-          description: Tạo lớp thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/ClassResponse'
-                  message:
-                    type: string
-                    example: "Tạo lớp học thành công"
-        '401':
-          description: Chưa đăng nhập
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '403':
-          description: Không có quyền (chỉ Teacher/Admin)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '422':
-          description: Dữ liệu không hợp lệ
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-    get:
-      summary: Lấy danh sách Lớp học của giáo viên
-      description: "Giáo viên chỉ xem được lớp do mình tạo. Admin xem lớp của mình."
-      tags: [Classes]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ClassResponse'
-
-  /classes/{class_id}:
-    get:
-      summary: Chi tiết lớp học (bao gồm danh sách học sinh)
-      tags: [Classes]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: class_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/ClassDetailResponse'
-        '401':
-          description: Chưa đăng nhập
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '404':
-          description: Không tìm thấy lớp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-    patch:
-      summary: Cập nhật thông tin lớp học (Partial Update)
-      description: "Teacher chỉ được sửa lớp do mình tạo. Admin bypass."
-      tags: [Classes]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: class_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  maxLength: 255
-                  nullable: true
-                grade_level:
-                  type: string
-                  maxLength: 20
-                  nullable: true
-                subject:
-                  type: string
-                  maxLength: 100
-                  nullable: true
-      responses:
-        '200':
-          description: Cập nhật thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/ClassResponse'
-                  message:
-                    type: string
-                    example: "Cập nhật lớp học thành công"
-        '403':
-          description: Không có quyền (không phải chủ lớp)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '404':
-          description: Không tìm thấy lớp
-    delete:
-      summary: Xóa lớp học (Soft Delete)
-      description: "Teacher chỉ được xóa lớp do mình tạo. Admin bypass. Dữ liệu được soft-deleted, không xóa cứng."
-      tags: [Classes]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: class_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Xóa thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: "Xóa lớp học thành công"
-        '403':
-          description: Không có quyền
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '404':
-          description: Không tìm thấy lớp
-
-  /classes/{class_id}/students:
-    post:
-      summary: Thêm học sinh vào lớp
-      description: "Teacher chỉ được thêm vào lớp của mình. Student phải tồn tại và có role='student'."
-      tags: [Classes]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: class_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [student_id]
-              properties:
-                student_id:
-                  type: string
-                  format: uuid
-      responses:
-        '201':
-          description: Thêm học sinh thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/ClassStudentResponse'
-        '404':
-          description: Không tìm thấy lớp hoặc học sinh không tồn tại
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '409':
-          description: Học sinh đã có trong lớp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-    get:
-      summary: Lấy danh sách học sinh trong lớp
-      tags: [Classes]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: class_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ClassStudentResponse'
-
-  /classes/{class_id}/students/{student_id}:
-    delete:
-      summary: Xóa học sinh khỏi lớp
-      description: "Teacher chỉ được xóa khỏi lớp của mình. Admin bypass."
-      tags: [Classes]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: class_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - name: student_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Xóa thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  message:
-                    type: string
-                    example: "Xóa học sinh khỏi lớp thành công"
-        '404':
-          description: Không tìm thấy lớp hoặc học sinh chưa trong lớp
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-
-  /classes/{class_id}/assignments:
-    get:
-      summary: Lấy danh sách Bài tập của Lớp (Phân trang)
-      tags: [Classes]
-      parameters:
-        - name: class_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - $ref: '#/components/parameters/CursorParam'
-        - $ref: '#/components/parameters/LimitParam'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ClassAssignmentResponse'
-                  meta:
-                    $ref: '#/components/schemas/PaginationMeta'
-    post:
-      summary: Giao bài tập (Lesson/Quiz) cho Lớp
-      tags: [Classes]
-      parameters:
-        - name: class_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AssignResourceRequest'
-      responses:
-        '201':
-          description: Giao bài thành công
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      assignment_id:
-                        type: string
-                        format: uuid
-
-  # ==========================================
-  # GROUP 2b: LESSON CRUD
-  # ==========================================
-  /lessons:
-    post:
-      summary: Tao bai giang moi
-      description: "Tao bai giang moi. Chi giao vien va admin moi duoc tao."
-      tags: [Lessons]
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateLessonRequest'
-      responses:
-        '201':
-          description: Tao thanh cong
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/LessonResponse'
-                  message:
-                    type: string
-                    example: "Tao bai giang thanh cong"
-        '401':
-          description: Chua xac thuc
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '403':
-          description: Khong co quyen (khong phai teacher/admin)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-    get:
-      summary: Danh sach bai giang cua giao vien dang dang nhap
-      description: "Lay danh sach tat ca bai giang do giao vien dang dang nhap tao."
-      tags: [Lessons]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/LessonResponse'
-        '401':
-          description: Chua xac thuc
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-
-  /lessons/{lesson_id}:
-    get:
-      summary: Chi tiet bai giang
-      tags: [Lessons]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: lesson_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/LessonResponse'
-        '404':
-          description: Khong tim thay bai giang
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-    patch:
-      summary: Cap nhat bai giang (partial update)
-      description: "Teacher chi duoc sua bai giang do minh tao. Admin bypass."
-      tags: [Lessons]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: lesson_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateLessonRequest'
-      responses:
-        '200':
-          description: Cap nhat thanh cong
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/LessonResponse'
-                  message:
-                    type: string
-                    example: "Cap nhat bai giang thanh cong"
-        '403':
-          description: Khong co quyen (khong phai owner)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '404':
-          description: Khong tim thay bai giang
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-    delete:
-      summary: Soft delete bai giang
-      description: "Soft delete bai giang. Teacher chi duoc xoa bai giang cua minh. Admin bypass."
-      tags: [Lessons]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: lesson_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Xoa thanh cong
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: "null"
-                  message:
-                    type: string
-                    example: "Xoa bai giang thanh cong"
-        '403':
-          description: Khong co quyen (khong phai owner)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '404':
-          description: Khong tim thay bai giang
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-
-  /lesson-generation-tasks:
-    post:
-      summary: AI Sinh Giáo Án (Async Queue)
-      tags: [EdTech Core]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [prompt, subject, grade_level]
-              properties:
-                prompt:
-                  type: string
-                subject:
-                  type: string
-                grade_level:
-                  type: string
-      responses:
-        '202':
-          description: Tác vụ đã được đưa vào Hàng đợi
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      task_id:
-                        type: string
-                        format: uuid
-                  message:
-                    type: string
-                    example: "AI đang sinh giáo án, vui lòng chờ."
-        '429':
-          description: Quá tải hệ thống AI
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TooManyRequestsError'
-
-  # ==========================================
-  # GROUP 3: STUDENT TRACKING (Quizzes & Submissions)
-  # ==========================================
-  /quizzes/{quiz_id}:
-    get:
-      summary: Lấy nội dung Đề thi Trắc nghiệm (Học sinh)
-      tags: [Student Tracking]
-      parameters:
-        - name: quiz_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Chi tiết đề thi (không bao gồm đáp án đúng)
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/QuizDetailResponse'
-
+openapi: 3.0.3
+info:
+  title: Q-School AI API (Enterprise Edition - Final)
+  description: Robust API documentation for Q-School AI LMS. Fully compliant with Hexagonal Architecture standard responses, token lifecycles, and edge cases.
+  version: 1.2.0
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local Development Server
+  - url: https://api.qschool.vn/api/v1
+    description: Production Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # ----------------------------------------
+    # BASE WRAPPERS (Standard Responses)
+    # ----------------------------------------
+    StandardError:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        data:
+          type: "null"
+          example: null
+        message:
+          type: string
+          example: "Invalid input parameters"
+        error_code:
+          type: integer
+          example: 4001
+          
+    TooManyRequestsError:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: "Rate limit exceeded. Please try again later."
+        error_code:
+          type: integer
+          example: 4290
+        retry_after:
+          type: integer
+          description: Số giây cần chờ trước khi thử lại
+          example: 60
+          
+    PaymentRequiredError:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: "Payment required. Please upgrade your subscription plan."
+        error_code:
+          type: integer
+          example: 4020
+          
+    PaginationMeta:
+      type: object
+      description: "Cursor-based pagination metadata (AGENTS.md: CAM su dung offset pagination)"
+      properties:
+        next_cursor_created_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: "ISO datetime cua record cuoi cung. Null neu khong con du lieu."
+          example: "2024-01-15T10:30:00.123456+00:00"
+        next_cursor_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: "UUID cua record cuoi cung (tiebreaker khi nhieu records cung created_at)"
+        has_more:
+          type: boolean
+          description: "True neu con du lieu phia sau cursor"
+          example: true
+
+    # ----------------------------------------
+    # CORE DOMAIN SCHEMAS
+    # ----------------------------------------
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [teacher, student, admin]
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          
+    ProfileResponse:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        full_name:
+          type: string
+          nullable: true
+        avatar_url:
+          type: string
+          nullable: true
+        school_name:
+          type: string
+          nullable: true
+        bio:
+          type: string
+          nullable: true
+        points:
+          type: integer
+          example: 0
+        updated_at:
+          type: string
+          format: date-time
+
+    ClassStudentResponse:
+      type: object
+      description: "Thông tin học sinh trong lớp (từ bảng class_students)"
+      properties:
+        student_id:
+          type: string
+          format: uuid
+        joined_at:
+          type: string
+          format: date-time
+        username:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+
+    ClassResponse:
+      type: object
+      description: "Thông tin lớp học cơ bản"
+      properties:
+        id:
+          type: string
+          format: uuid
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        grade_level:
+          type: string
+          nullable: true
+        subject:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        student_count:
+          type: integer
+          example: 0
+
+    ClassDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/ClassResponse'
+        - type: object
+          properties:
+            students:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClassStudentResponse'
+
+    ClassAssignmentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        resource_type:
+          type: string
+          enum: [lesson, quiz]
+        resource_id:
+          type: string
+          format: uuid
+        due_date:
+          type: string
+          format: date-time
+
+    # ----------------------------------------
+    # LESSON SCHEMAS
+    # ----------------------------------------
+    CreateLessonRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          maxLength: 500
+          example: "Bai 1: Gioi thieu Python"
+        subject:
+          type: string
+          maxLength: 100
+          nullable: true
+        grade_level:
+          type: string
+          maxLength: 20
+          nullable: true
+        content:
+          type: object
+          nullable: true
+          description: "Noi dung giao an dang JSONB (sections, objectives, activities)"
+
+    UpdateLessonRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+          nullable: true
+        subject:
+          type: string
+          maxLength: 100
+          nullable: true
+        grade_level:
+          type: string
+          maxLength: 20
+          nullable: true
+        content:
+          type: object
+          nullable: true
+
+    LessonResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        teacher_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        subject:
+          type: string
+          nullable: true
+        grade_level:
+          type: string
+          nullable: true
+        content:
+          type: object
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        teacher_name:
+          type: string
+          nullable: true
+          description: "Username cua giao vien (eager-loaded)"
+
+    QuizDetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        questions:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              content:
+                type: string
+              options:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    text:
+                      type: string
+          description: "Danh sách câu hỏi (Đã ẩn đáp án đúng đối với Học sinh)"
+
+    # ----------------------------------------
+    # REQUEST PAYLOADS
+    # ----------------------------------------
+    AssignResourceRequest:
+      type: object
+      required: [resource_type, resource_id, due_date]
+      properties:
+        resource_type:
+          type: string
+          enum: [lesson, quiz]
+        resource_id:
+          type: string
+          format: uuid
+        due_date:
+          type: string
+          format: date-time
+
+    QuizAttemptRequest:
+      type: object
+      required: [student_answers]
+      properties:
+        student_answers:
+          type: array
+          items:
+            type: object
+            required: [question_id, selected_answer_id]
+            properties:
+              question_id:
+                type: string
+                format: uuid
+              selected_answer_id:
+                type: string
+                format: uuid
+
+    EssaySubmissionRequest:
+      type: object
+      required: [rubric_id]
+      properties:
+        rubric_id:
+          type: string
+          format: uuid
+        content:
+          type: string
+          description: "Bài làm tự luận của học sinh (nhập text thủ công)"
+        image_url:
+          type: string
+          format: uri
+          description: "URL ảnh bài thi giấy để hệ thống tự động chạy OCR và bóc tách chữ"
+
+    AssetGenerationRequest:
+      type: object
+      required: [asset_type, input_params]
+      properties:
+        asset_type:
+          type: string
+          enum: [lesson_plan, quiz, email, iep, behavior_intervention, report_comment]
+        input_params:
+          type: object
+          description: "Thông số đầu vào dạng JSON (VD: Tên học sinh, lỗi vi phạm)"
+
+    GeneratedAssetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        creator_id:
+          type: string
+          format: uuid
+        asset_type:
+          type: string
+          enum: [lesson_plan, quiz, email, iep, behavior_intervention, report_comment]
+        input_params:
+          type: object
+        output_content:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+
+  # ----------------------------------------
+  # COMMON PARAMETERS
+  # ----------------------------------------
+  parameters:
+    LimitParam:
+      name: limit
+      in: query
+      description: So dong toi da tra ve moi request
+      required: false
+      schema:
+        type: integer
+        default: 20
+        maximum: 100
+    CursorParam:
+      name: cursor
+      in: query
+      description: |
+        ISO 8601 datetime string của `created_at` của record cuối cùng đã tải.
+        Ví dụ: `2024-01-15T10:30:00.123456+00:00`
+        
+        **KHÔNG dùng UUID làm cursor** — UUID v4 là random, không sortable theo thời gian.
+        BaseRepository.cursor_paginate() sử dụng `created_at` để phân trang ổn định.
+      required: false
+      schema:
+        type: string
+        format: date-time
+        example: "2024-01-15T10:30:00.123456+00:00"
+
+security:
+  - bearerAuth: []
+
+paths:
+  # ==========================================
+  # GROUP 1: AUTH & USERS (Token Lifecycle)
+  # ==========================================
+  /auth/login:
+    post:
+      summary: Dang nhap cap Token
+      description: "Dang nhap bang username (hoac email) + password. Tra ve access_token (15 phut) va refresh_token (7 ngay)."
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  description: "Username hoac email"
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Dang nhap thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        allOf:
+                          - $ref: '#/components/schemas/UserResponse'
+                          - type: object
+                            properties:
+                              profile:
+                                $ref: '#/components/schemas/ProfileResponse'
+                      tokens:
+                        type: object
+                        properties:
+                          access_token:
+                            type: string
+                          refresh_token:
+                            type: string
+                          token_type:
+                            type: string
+                            example: bearer
+                          expires_in:
+                            type: integer
+                            description: "So giay token con hieu luc"
+                            example: 900
+                  message:
+                    type: string
+                    example: "Dang nhap thanh cong"
+        '401':
+          description: Sai mat khau hoac tai khoan bi khoa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /auth/register:
+    post:
+      summary: Dang ky tai khoan moi
+      description: "Tao tai khoan hoc sinh hoac giao vien moi. Tra ve tokens ngay sau khi dang ky."
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, email, password]
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 50
+                  pattern: "^[a-zA-Z0-9_-]+$"
+                  description: "Chi cho phep chu cai, so, _, -"
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                role:
+                  type: string
+                  enum: [student, teacher]
+                  default: student
+      responses:
+        '201':
+          description: Dang ky thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        allOf:
+                          - $ref: '#/components/schemas/UserResponse'
+                          - type: object
+                            properties:
+                              profile:
+                                $ref: '#/components/schemas/ProfileResponse'
+                      tokens:
+                        type: object
+                        properties:
+                          access_token:
+                            type: string
+                          refresh_token:
+                            type: string
+                          token_type:
+                            type: string
+                            example: bearer
+                          expires_in:
+                            type: integer
+                            example: 900
+                  message:
+                    type: string
+                    example: "Dang ky thanh cong"
+        '409':
+          description: Email hoac username da ton tai
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '422':
+          description: Du lieu khong hop le
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /auth/refresh:
+    post:
+      summary: Lam moi Access Token bang Refresh Token
+      description: "Dung refresh_token de lay access_token moi. Tranh user phai login lai."
+      tags: [Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token moi duoc cap phat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                      token_type:
+                        type: string
+                        example: bearer
+                      expires_in:
+                        type: integer
+                        description: "So giay token con hieu luc"
+                        example: 900
+        '401':
+          description: Refresh token khong hop le hoac het han
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /auth/logout:
+    post:
+      summary: Đăng xuất và Revoke Token
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Đăng xuất thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+
+  /auth/me:
+    get:
+      summary: Lay thong tin ca nhan
+      description: "Tra ve thong tin day du cua user dang dang nhap, bao gom Profile."
+      tags: [Authentication]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/UserResponse'
+                      - type: object
+                        properties:
+                          profile:
+                            $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  # ==========================================
+  # GROUP 2: EDTECH CORE (Teacher Operations)
+  # ==========================================
+  /classes:
+    post:
+      summary: Tạo lớp học mới
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  example: "Lớp Toán 10A"
+                grade_level:
+                  type: string
+                  maxLength: 20
+                  example: "10"
+                  nullable: true
+                subject:
+                  type: string
+                  maxLength: 100
+                  example: "Toán"
+                  nullable: true
+      responses:
+        '201':
+          description: Tạo lớp thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/ClassResponse'
+                  message:
+                    type: string
+                    example: "Tạo lớp học thành công"
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Không có quyền (chỉ Teacher/Admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '422':
+          description: Dữ liệu không hợp lệ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    get:
+      summary: Lấy danh sách Lớp học của giáo viên
+      description: "Giáo viên chỉ xem được lớp do mình tạo. Admin xem lớp của mình."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassResponse'
+
+  /classes/{class_id}:
+    get:
+      summary: Chi tiết lớp học (bao gồm danh sách học sinh)
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/ClassDetailResponse'
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy lớp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    patch:
+      summary: Cập nhật thông tin lớp học (Partial Update)
+      description: "Teacher chỉ được sửa lớp do mình tạo. Admin bypass."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  nullable: true
+                grade_level:
+                  type: string
+                  maxLength: 20
+                  nullable: true
+                subject:
+                  type: string
+                  maxLength: 100
+                  nullable: true
+      responses:
+        '200':
+          description: Cập nhật thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/ClassResponse'
+                  message:
+                    type: string
+                    example: "Cập nhật lớp học thành công"
+        '403':
+          description: Không có quyền (không phải chủ lớp)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy lớp
+    delete:
+      summary: Xóa lớp học (Soft Delete)
+      description: "Teacher chỉ được xóa lớp do mình tạo. Admin bypass. Dữ liệu được soft-deleted, không xóa cứng."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Xóa thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Xóa lớp học thành công"
+        '403':
+          description: Không có quyền
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy lớp
+
+  /classes/{class_id}/students:
+    post:
+      summary: Thêm học sinh vào lớp
+      description: "Teacher chỉ được thêm vào lớp của mình. Student phải tồn tại và có role='student'."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_id]
+              properties:
+                student_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Thêm học sinh thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/ClassStudentResponse'
+        '404':
+          description: Không tìm thấy lớp hoặc học sinh không tồn tại
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '409':
+          description: Học sinh đã có trong lớp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    get:
+      summary: Lấy danh sách học sinh trong lớp
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassStudentResponse'
+
+  /classes/{class_id}/students/{student_id}:
+    delete:
+      summary: Xóa học sinh khỏi lớp
+      description: "Teacher chỉ được xóa khỏi lớp của mình. Admin bypass."
+      tags: [Classes]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Xóa thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: "Xóa học sinh khỏi lớp thành công"
+        '404':
+          description: Không tìm thấy lớp hoặc học sinh chưa trong lớp
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /classes/{class_id}/assignments:
+    get:
+      summary: Lấy danh sách Bài tập của Lớp (Phân trang)
+      tags: [Classes]
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/CursorParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClassAssignmentResponse'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+    post:
+      summary: Giao bài tập (Lesson/Quiz) cho Lớp
+      tags: [Classes]
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignResourceRequest'
+      responses:
+        '201':
+          description: Giao bài thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      assignment_id:
+                        type: string
+                        format: uuid
+
+  # ==========================================
+  # GROUP 2b: LESSON CRUD
+  # ==========================================
+  /lessons:
+    post:
+      summary: Tao bai giang moi
+      description: "Tao bai giang moi. Chi giao vien va admin moi duoc tao."
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLessonRequest'
+      responses:
+        '201':
+          description: Tao thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+                  message:
+                    type: string
+                    example: "Tao bai giang thanh cong"
+        '401':
+          description: Chua xac thuc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '403':
+          description: Khong co quyen (khong phai teacher/admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    get:
+      summary: Danh sach bai giang cua giao vien dang dang nhap
+      description: "Lay danh sach tat ca bai giang do giao vien dang dang nhap tao."
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LessonResponse'
+        '401':
+          description: Chua xac thuc
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /lessons/{lesson_id}:
+    get:
+      summary: Chi tiet bai giang
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lesson_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+        '404':
+          description: Khong tim thay bai giang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    patch:
+      summary: Cap nhat bai giang (partial update)
+      description: "Teacher chi duoc sua bai giang do minh tao. Admin bypass."
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lesson_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLessonRequest'
+      responses:
+        '200':
+          description: Cap nhat thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/LessonResponse'
+                  message:
+                    type: string
+                    example: "Cap nhat bai giang thanh cong"
+        '403':
+          description: Khong co quyen (khong phai owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Khong tim thay bai giang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+    delete:
+      summary: Soft delete bai giang
+      description: "Soft delete bai giang. Teacher chi duoc xoa bai giang cua minh. Admin bypass."
+      tags: [Lessons]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: lesson_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Xoa thanh cong
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: "null"
+                  message:
+                    type: string
+                    example: "Xoa bai giang thanh cong"
+        '403':
+          description: Khong co quyen (khong phai owner)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Khong tim thay bai giang
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /lesson-generation-tasks:
+    post:
+      summary: AI Sinh Giáo Án (Async Queue)
+      tags: [EdTech Core]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prompt, subject, grade_level]
+              properties:
+                prompt:
+                  type: string
+                subject:
+                  type: string
+                grade_level:
+                  type: string
+      responses:
+        '202':
+          description: Tác vụ đã được đưa vào Hàng đợi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: string
+                        format: uuid
+                  message:
+                    type: string
+                    example: "AI đang sinh giáo án, vui lòng chờ."
+        '429':
+          description: Quá tải hệ thống AI
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
+
+  # ==========================================
+  # GROUP 3: STUDENT TRACKING (Quizzes & Submissions)
+  # ==========================================
+  /quizzes/{quiz_id}:
+    get:
+      summary: Lấy nội dung Đề thi Trắc nghiệm (Học sinh)
+      tags: [Student Tracking]
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Chi tiết đề thi (không bao gồm đáp án đúng)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/QuizDetailResponse'
+
   /quizzes/{quiz_id}/attempts:
     post:
       summary: Bắt đầu làm bài thi Trắc nghiệm
@@ -1391,9 +1391,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/QuizAttemptResponse'
-                  meta:
-                    $ref: '#/components/schemas/PaginationMeta'
+                      type: object
 
   /quizzes/{quiz_id}/attempts/{attempt_id}/submit:
     post:
@@ -1430,12 +1428,20 @@ paths:
                     type: string
                     example: success
                   data:
-                    $ref: '#/components/schemas/QuizAttemptResponse'
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      score:
+                        type: number
 
   /essays:
     post:
       summary: Nộp bài Văn tự luận (AI Tự Động Chấm)
       tags: [Student Tracking]
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1444,7 +1450,7 @@ paths:
               $ref: '#/components/schemas/EssaySubmissionRequest'
       responses:
         '202':
-          description: Đã nhận bài và đưa vào hàng đợi chấm
+          description: Accepted — Bài đã được ghi nhận, AI sẽ chấm nền (Background Task)
           content:
             application/json:
               schema:
@@ -1463,12 +1469,12 @@ paths:
                         type: string
                         format: uuid
 
-  /essays/{submission_id}:
+  /essays/{id}:
     get:
       summary: Lấy kết quả bài nộp tự luận
       tags: [Student Tracking]
       parameters:
-        - name: submission_id
+        - name: id
           in: path
           required: true
           schema:
@@ -1486,517 +1492,592 @@ paths:
                     type: string
                     example: success
                   data:
-                    $ref: '#/components/schemas/EssaySubmissionResponse'
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      score:
+                        type: number
+                      ai_feedback:
+                        type: object
 
-  /flashcard-sets/{set_id}/reviews:
-    get:
-      summary: Lấy danh sách thẻ bài cần ôn tập hôm nay (Spaced Repetition)
-      tags: [Student Tracking]
-      parameters:
-        - name: set_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Danh sách thẻ
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        flashcard_id:
-                          type: string
-                          format: uuid
-                        front_text:
-                          type: string
-
-  /flashcards/{flashcard_id}/reviews:
-    post:
-      summary: Lưu kết quả ôn tập thẻ bài (Spaced Repetition)
-      tags: [Student Tracking]
-      parameters:
-        - name: flashcard_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [confidence_level]
-              properties:
-                confidence_level:
-                  type: integer
-                  description: "Mức độ tự tin: 1 (Quên sạch) đến 5 (Rất thuộc)"
-                  minimum: 1
-                  maximum: 5
-      responses:
-        '201':
-          description: Đã lưu kết quả ôn tập
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      review_id:
-                        type: string
-                        format: uuid
-                      next_review_at:
-                        type: string
-                        format: date-time
-
-  # ==========================================
-  # GROUP 4: AI WORKSPACE & RAG (SSE included)
-  # ==========================================
-  /generated-assets:
-    post:
-      summary: Nhờ AI soạn Email / IEP / Nhận xét sổ liên lạc / Giáo án / Trắc nghiệm (Bất đồng bộ)
-      tags: [AI Workspace]
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AssetGenerationRequest'
-      responses:
-        '202':
-          description: Tác vụ đã được đưa vào Hàng đợi
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/GeneratedAssetResponse'
-        '401':
-          description: Chưa đăng nhập
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '402':
-          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaymentRequiredError'
-        '429':
-          description: Quá tải hệ thống AI hoặc vượt quá giới hạn lượt dùng
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TooManyRequestsError'
-    get:
-      summary: Danh sách assets của user (cursor pagination)
-      tags: [AI Workspace]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: cursor_created_at
-          in: query
-          description: ISO datetime string của created_at của record cuối trang trước
-          required: false
-          schema:
-            type: string
-            format: date-time
-        - name: cursor_id
-          in: query
-          description: UUID của record cuối trang trước (tiebreaker)
-          required: false
-          schema:
-            type: string
-            format: uuid
-        - name: limit
-          in: query
-          description: Số dòng trên 1 trang
-          required: false
-          schema:
-            type: integer
-            default: 20
-            minimum: 1
-            maximum: 50
-      responses:
-        '200':
-          description: Danh sách generated assets
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/GeneratedAssetResponse'
-                  next_cursor_created_at:
-                    type: string
-                    format: date-time
-                    nullable: true
-                  next_cursor_id:
-                    type: string
-                    format: uuid
-                    nullable: true
-                  has_more:
-                    type: boolean
-                    example: false
-        '401':
-          description: Chưa đăng nhập
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-
-  /generated-assets/{asset_id}:
-    get:
-      summary: Chi tiết một Generated Asset
-      tags: [AI Workspace]
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: asset_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Chi tiết generated asset
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    $ref: '#/components/schemas/GeneratedAssetResponse'
-        '401':
-          description: Chưa đăng nhập
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-        '404':
-          description: Không tìm thấy asset
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/StandardError'
-
-
-  /documents:
-    post:
-      summary: Tải file lên (PDF, Image) để làm RAG
-      tags: [AI Workspace]
-      requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                file:
-                  type: string
-                  format: binary
-                knowledge_base_id:
-                  type: string
-                  format: uuid
-                  description: "Phân loại tài liệu thuộc tệp kiến thức nào"
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      document_id:
-                        type: string
-                        format: uuid
-    get:
-      summary: Lấy danh sách tài liệu RAG đã tải lên
-      tags: [AI Workspace]
-      parameters:
-        - $ref: '#/components/parameters/CursorParam'
-        - $ref: '#/components/parameters/LimitParam'
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        filename:
-                          type: string
-                        status:
-                          type: string
-                          enum: [pending, parsing, ready, error]
-                  meta:
-                    $ref: '#/components/schemas/PaginationMeta'
-
-  /chat/sessions:
-    post:
-      summary: Tạo phòng Chat AI mới (Optional Context Document)
-      tags: [AI Workspace]
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                document_id:
-                  type: string
-                  format: uuid
-      responses:
-        '201':
-          description: Created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      session_id:
-                        type: string
-                        format: uuid
-
-  /chat/sessions/{session_id}/messages:
-    post:
-      summary: Send a message to AI Tutor (Stream SSE)
-      description: |
-        Endpoint này nhận tin nhắn của User và trả về luồng dữ liệu (Stream) từng chữ của AI sử dụng chuẩn Server-Sent Events (SSE). 
-        Frontend đọc luồng này bằng `fetch()` hoặc `EventSource` để hiển thị chữ kiểu gõ phím.
-      tags: [AI Workspace]
-      parameters:
-        - name: session_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [content]
-              properties:
-                content:
-                  type: string
-      responses:
-        '200':
-          description: Event Stream (SSE) trả về từng chunk (mảnh văn bản)
-          content:
-            text/event-stream:
-              schema:
-                type: object
-                description: 'Dữ liệu từng sự kiện SSE. Ví dụ: `data: {"chunk": "Xin", "is_final": false}`'
-        '429':
-          description: Quá tải Server GPU, Rate limit exceeded
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TooManyRequestsError'
-        '402':
-          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaymentRequiredError'
-    get:
-      summary: Lấy lịch sử tin nhắn của một phiên Chat AI
-      tags: [AI Workspace]
-      parameters:
-        - name: session_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - $ref: '#/components/parameters/CursorParam'
-        - $ref: '#/components/parameters/LimitParam'
-      responses:
-        '200':
-          description: Lịch sử hội thoại
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        sender_type:
-                          type: string
-                          enum: [user, ai]
-                        content:
-                          type: string
-                        created_at:
-                          type: string
-                          format: date-time
-                  meta:
-                    $ref: '#/components/schemas/PaginationMeta'
-
-  # ==========================================
-  # GROUP 5: BILLING & SUBSCRIPTIONS
-  # ==========================================
-
-  /billing/plans:
-    get:
-      summary: Lấy danh sách các gói cước (SaaS Tiers)
-      tags: [Billing]
-      security: []
-      responses:
-        '200':
-          description: Danh sách gói cước
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        name:
-                          type: string
-                          example: Pro
-                        price:
-                          type: integer
-                          example: 99000
-                        billing_cycle:
-                          type: string
-                          example: monthly
-                        features:
-                          type: object
-
-  /billing/checkout:
-    post:
-      summary: Khởi tạo luồng thanh toán (Lấy link thanh toán)
-      tags: [Billing]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [plan_id, provider]
-              properties:
-                plan_id:
-                  type: string
-                  format: uuid
-                provider:
-                  type: string
-                  enum: [stripe, vnpay, momo]
-      responses:
-        '200':
-          description: Link checkout thanh toán
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: object
-                    properties:
-                      checkout_url:
-                        type: string
-                        format: uri
-                      transaction_id:
-                        type: string
-                        format: uuid
-
-  /webhooks/payments:
-    post:
-      summary: Endpoint Webhook nhận IPN từ cổng thanh toán (Không yêu cầu Bearer token)
-      tags: [Billing]
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        '200':
-          description: Xác nhận đã nhận Webhook
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-
+  /essays/{id}/status:
+    get:
+      summary: Kiểm tra trạng thái chấm bài AI
+      tags: [Student Tracking]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Trạng thái bài chấm
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        enum: [pending, processing, completed, failed]
+                      ai_feedback:
+                        type: object
+                        nullable: true
+                      score:
+                        type: number
+                        nullable: true
+
+  /uploads/image:
+    post:
+      summary: Upload ảnh bài viết (OCR)
+      tags: [Student Tracking]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Upload thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+
+
+  /flashcard-sets/{set_id}/reviews:
+    get:
+      summary: Lấy danh sách thẻ bài cần ôn tập hôm nay (Spaced Repetition)
+      tags: [Student Tracking]
+      parameters:
+        - name: set_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Danh sách thẻ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        flashcard_id:
+                          type: string
+                          format: uuid
+                        front_text:
+                          type: string
+
+  /flashcards/{flashcard_id}/reviews:
+    post:
+      summary: Lưu kết quả ôn tập thẻ bài (Spaced Repetition)
+      tags: [Student Tracking]
+      parameters:
+        - name: flashcard_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confidence_level]
+              properties:
+                confidence_level:
+                  type: integer
+                  description: "Mức độ tự tin: 1 (Quên sạch) đến 5 (Rất thuộc)"
+                  minimum: 1
+                  maximum: 5
+      responses:
+        '201':
+          description: Đã lưu kết quả ôn tập
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      review_id:
+                        type: string
+                        format: uuid
+                      next_review_at:
+                        type: string
+                        format: date-time
+
+  # ==========================================
+  # GROUP 4: AI WORKSPACE & RAG (SSE included)
+  # ==========================================
+  /generated-assets:
+    post:
+      summary: Nhờ AI soạn Email / IEP / Nhận xét sổ liên lạc / Giáo án / Trắc nghiệm (Bất đồng bộ)
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetGenerationRequest'
+      responses:
+        '202':
+          description: Tác vụ đã được đưa vào Hàng đợi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/GeneratedAssetResponse'
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '402':
+          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequiredError'
+        '429':
+          description: Quá tải hệ thống AI hoặc vượt quá giới hạn lượt dùng
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
+    get:
+      summary: Danh sách assets của user (cursor pagination)
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: cursor_created_at
+          in: query
+          description: ISO datetime string của created_at của record cuối trang trước
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: cursor_id
+          in: query
+          description: UUID của record cuối trang trước (tiebreaker)
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          description: Số dòng trên 1 trang
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          description: Danh sách generated assets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/GeneratedAssetResponse'
+                  next_cursor_created_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  next_cursor_id:
+                    type: string
+                    format: uuid
+                    nullable: true
+                  has_more:
+                    type: boolean
+                    example: false
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /generated-assets/{asset_id}:
+    get:
+      summary: Chi tiết một Generated Asset
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: asset_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Chi tiết generated asset
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    $ref: '#/components/schemas/GeneratedAssetResponse'
+        '401':
+          description: Chưa đăng nhập
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+        '404':
+          description: Không tìm thấy asset
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+
+  /documents:
+    post:
+      summary: Tải file lên (PDF, Image) để làm RAG
+      tags: [AI Workspace]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                knowledge_base_id:
+                  type: string
+                  format: uuid
+                  description: "Phân loại tài liệu thuộc tệp kiến thức nào"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      document_id:
+                        type: string
+                        format: uuid
+    get:
+      summary: Lấy danh sách tài liệu RAG đã tải lên
+      tags: [AI Workspace]
+      parameters:
+        - $ref: '#/components/parameters/CursorParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        filename:
+                          type: string
+                        status:
+                          type: string
+                          enum: [pending, parsing, ready, error]
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+
+  /chat/sessions:
+    post:
+      summary: Tạo phòng Chat AI mới
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                ai_persona:
+                  type: string
+                document_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      session_id:
+                        type: string
+                        format: uuid
+    get:
+      summary: Lấy danh sách Chat Session
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/CursorParam'
+      responses:
+        '200':
+          description: OK
+
+  /chat/sessions/{session_id}/messages:
+    get:
+      summary: Lấy danh sách Messages trong Session
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/CursorParam'
+      responses:
+        '200':
+          description: OK
+    post:
+      summary: Send a message to AI Tutor (Stream SSE)
+      description: |
+        Endpoint này nhận tin nhắn của User và trả về luồng dữ liệu (Stream) từng chữ của AI sử dụng chuẩn Server-Sent Events (SSE). 
+        Frontend đọc luồng này bằng `fetch()` hoặc `EventSource` để hiển thị chữ kiểu gõ phím.
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content:
+                  type: string
+      responses:
+        '200':
+          description: Event Stream (SSE) trả về từng chunk (mảnh văn bản)
+          content:
+            text/event-stream:
+              schema:
+                type: object
+                description: 'Dữ liệu từng sự kiện SSE. Ví dụ: `data: {"chunk": "Xin", "is_final": false}`'
+        '429':
+          description: Quá tải Server GPU, Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
+        '402':
+          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequiredError'
+
+  # ==========================================
+  # GROUP 5: BILLING & SUBSCRIPTIONS
+  # ==========================================
+
+  /billing/plans:
+    get:
+      summary: Lấy danh sách các gói cước (SaaS Tiers)
+      tags: [Billing]
+      security: []
+      responses:
+        '200':
+          description: Danh sách gói cước
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                          example: Pro
+                        price:
+                          type: integer
+                          example: 99000
+                        billing_cycle:
+                          type: string
+                          example: monthly
+                        features:
+                          type: object
+
+  /billing/checkout:
+    post:
+      summary: Khởi tạo luồng thanh toán (Lấy link thanh toán)
+      tags: [Billing]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [plan_id, provider]
+              properties:
+                plan_id:
+                  type: string
+                  format: uuid
+                provider:
+                  type: string
+                  enum: [stripe, vnpay, momo]
+      responses:
+        '200':
+          description: Link checkout thanh toán
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      checkout_url:
+                        type: string
+                        format: uri
+                      transaction_id:
+                        type: string
+                        format: uuid
+
+  /webhooks/payments:
+    post:
+      summary: Endpoint Webhook nhận IPN từ cổng thanh toán (Không yêu cầu Bearer token)
+      tags: [Billing]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Xác nhận đã nhận Webhook
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+
