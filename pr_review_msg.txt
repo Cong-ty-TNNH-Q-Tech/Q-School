@@ -1,0 +1,62 @@
+# 🔍 PR Deep Review Report: PR #237
+
+Dựa trên quy trình 10 vòng rà soát khắt khe (kết hợp với các quy tắc từ `AGENTS.md` và Hexagonal Architecture của dự án), tôi đã phân tích luồng code của tính năng tích hợp thanh toán SePay.
+
+=> **Quyết định cuối cùng: ❌ REQUEST CHANGES**
+
+PR này đang có một số vi phạm **nghiêm trọng** về mặt kiến trúc, nguyên tắc SOLID và rủi ro sập Database. Dưới đây là chi tiết các lỗi cần khắc phục ngay:
+
+### 1. Vi phạm Nguyên tắc Dependency Inversion và Hexagonal (Vòng 3 & Vòng 4)
+- **File:** `backend/app/entrypoints/api_v1/billing.py`
+- **Lỗi:** Router đang tự khởi tạo `BillingRepository(db)` và `CreateCheckoutSessionUseCase(repo)` trực tiếp bằng tay. Đồng thời gọi luôn `await db.commit()` ở tầng Router.
+- **Phân tích:** Điều này vi phạm nghiêm trọng chữ **D (Dependency Inversion)** trong SOLID và vi phạm trực tiếp quy tắc trong `AGENTS.md` (BẮT BUỘC dùng cơ chế DI của FastAPI để inject Repository vào Use Case). Router (Driving Adapter) KHÔNG ĐƯỢC PHÉP chứa logic xử lý transaction hay khởi tạo class cấp thấp.
+- **💡 Suggested Code:**
+Cần tạo các hàm Dependency Injection (ví dụ `get_checkout_use_case`) và ủy quyền việc `commit` cho tầng Use Case hoặc Repository (Unit Of Work).
+
+```python
+# Xóa bỏ việc khởi tạo thủ công và db.commit() trong router
+@router.post("/checkout", response_model=CheckoutResponse)
+async def create_checkout_session(
+    request: CheckoutRequest,
+    user_id: uuid.UUID = Depends(get_current_user_id),
+    use_case: CreateCheckoutSessionUseCase = Depends(get_checkout_use_case)
+):
+    # Use Case sẽ tự lo việc xử lý logic và commit dữ liệu
+    result = await use_case.execute(
+        user_id=user_id, 
+        plan_id=request.plan_id, 
+        provider=request.provider
+    )
+    
+    return CheckoutResponse(
+        status="success",
+        data=CheckoutResponseData(
+            checkout_url=result["checkout_url"],
+            transaction_id=result["transaction_id"]
+        )
+    )
+```
+
+### 2. Nguy cơ lỗi Migration Database (Vòng 8 - Backward Compatibility)
+- **File:** `backend/app/domain/models/billing.py`
+- **Lỗi:** Thay đổi `CheckConstraint` của trường `provider`.
+- **Phân tích:** Việc đổi từ `('stripe', 'vnpay', 'momo')` thành độc nhất `('sepay')` là một lỗi **phá vỡ tương thích ngược**. Nếu trên Database Production đã tồn tại các giao dịch cũ có provider là `stripe` hoặc `vnpay`, khi chạy lệnh `alembic upgrade`, hệ thống sẽ ném lỗi `IntegrityError` (Data Constraint Violation) và làm sập luồng deploy. Theo nguyên tắc Open/Closed, chúng ta chỉ nên MỞ RỘNG enum.
+- **💡 Suggested Code:**
+```diff
+- "provider IN ('sepay')"
++ "provider IN ('stripe', 'vnpay', 'momo', 'sepay')"
+```
+
+### 3. Tồn đọng comment rác trong Production (Vòng 9 - Best Practices)
+- **File:** `backend/app/entrypoints/api_v1/billing.py`
+- **Lỗi:** Để lại comment thảo luận cá nhân trong code: 
+  `# Do we commit here? The usecase should probably have db context or we commit here... For now we'll commit here.`
+- **Yêu cầu:** Xóa ngay các comment này. Đẩy logic quản lý transaction xuống tầng dưới và dọn dẹp code cho sạch sẽ trước khi merge.
+
+### 4. Bỏ ngỏ vấn đề Security Webhook & Testing (Vòng 7 & Vòng 10)
+- **File:** `webhook_router.post("")`
+- **Lỗi:** Không có `try...except` xử lý lỗi nếu `signature` sai. Hơn nữa, toàn bộ luồng thanh toán rất quan trọng này đang không đi kèm bất kỳ file Unit Test/Integration Test nào trong thay đổi (PR diff không có test file).
+- **Yêu cầu:** Phải thêm Unit test cho `ProcessWebhookUseCase` (test trường hợp chữ ký hợp lệ/không hợp lệ) để tránh lỗ hổng giả mạo thanh toán.
+
+---
+Vui lòng cập nhật lại kiến trúc DI, sửa logic Database và bổ sung Unit Test. Sau khi bạn push commit mới, hãy gọi lại tôi nhé!

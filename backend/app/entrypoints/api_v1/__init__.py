@@ -20,6 +20,7 @@ from app.entrypoints.api_v1.lessons import router as lessons_router
 # ── Group 3: Student Tracking ──────────────────
 from app.entrypoints.api_v1.quizzes import router as quizzes_router
 from app.entrypoints.api_v1.essays import router as essays_router
+from app.entrypoints.api_v1.rubrics import router as rubrics_router
 # from app.entrypoints.api_v1.flashcards import router as flashcards_router
 
 # ── Group 4: AI Workspace ──────────────────────
@@ -44,6 +45,7 @@ api_v1_router.include_router(classes_router, prefix="/classes", tags=["Classes"]
 api_v1_router.include_router(lessons_router, prefix="/lessons", tags=["Lessons"])
 api_v1_router.include_router(quizzes_router, prefix="/quizzes", tags=["Student Tracking"])
 api_v1_router.include_router(essays_router, prefix="/essays", tags=["Student Tracking"])
+api_v1_router.include_router(rubrics_router, prefix="/rubrics", tags=["Rubrics"])
 # api_v1_router.include_router(flashcards_router, prefix="/flashcard-sets", tags=["Student Tracking"])
 api_v1_router.include_router(ai_chat_router)
 # api_v1_router.include_router(documents_router, prefix="/documents", tags=["AI Workspace"])

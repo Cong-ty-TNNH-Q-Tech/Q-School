@@ -114,6 +114,8 @@ class Rubric(Base, UUIDMixin, TimestampMixin, SoftDeleteMixin):
         JSONB, nullable=False, default=dict, comment="Ma trận tiêu chí chấm điểm"
     )
 
+    teacher: Mapped["User"] = relationship("User", foreign_keys=[teacher_id])
+
     essay_submissions: Mapped[list["EssaySubmission"]] = relationship(
         "EssaySubmission", back_populates="rubric"
     )

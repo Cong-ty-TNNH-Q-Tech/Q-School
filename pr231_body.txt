@@ -1,0 +1,12 @@
+Closes #91
+
+## What's changed
+- Implemented SQLAlchemyQuizRepository, QuizAttemptRepository, EssayRepository and SQLAlchemyAITaskRepository.
+- Added QuizUseCase and EssayUseCase keeping Hexagonal Architecture pattern intact.
+- Exposed Quiz and Essay interactions through FASTAPI routers (quizzes.py and essays.py).
+- Handled DomainExceptions -> Http exceptions cleanly in the Router layer.
+- Enqueued Celery tasks correctly for Essay Grading.
+- Added robust unit test coverage to the UseCases without any N+1 query issue or DB dependency.
+- Updated OpenAPI Specs for new endpoints.
+
+Closes #112
