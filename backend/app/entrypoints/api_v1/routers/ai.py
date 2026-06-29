@@ -4,7 +4,7 @@ from app.entrypoints.api_v1.schemas.youtube import (
     YouTubeTaskResponse,
     YouTubeTaskStatusResponse
 )
-from app.core.dependencies import CurrentUserDep
+from app.core.dependencies import AIUserDep
 from celery.result import AsyncResult
 from app.entrypoints.api_v1.schemas.base import ApiResponse
 from app.entrypoints.celery_worker.ai_tasks import generate_youtube_questions_task
@@ -14,7 +14,7 @@ router = APIRouter()
 @router.post("/youtube-questions", response_model=ApiResponse[YouTubeTaskResponse], status_code=status.HTTP_202_ACCEPTED)
 async def create_youtube_questions_task(
     request: YouTubeQuestionRequest,
-    current_user: CurrentUserDep,
+    current_user: AIUserDep,
 ):
     """
     Tạo câu hỏi tự động từ video YouTube (Chạy background task).
@@ -30,7 +30,7 @@ async def create_youtube_questions_task(
 @router.get("/youtube-questions/{task_id}", response_model=ApiResponse[YouTubeTaskStatusResponse])
 async def get_youtube_questions_status(
     task_id: str,
-    current_user: CurrentUserDep,
+    current_user: AIUserDep,
 ):
     """
     Kiểm tra trạng thái của task tạo câu hỏi từ YouTube.

@@ -1,9 +1,0 @@
-Tôi đã review PR và nhận thấy chức năng Upload & RAG pipeline hoạt động tốt. Tuy nhiên, PR đang vi phạm 2 quy tắc cốt lõi của dự án (Hexagonal Architecture và Pagination). Bạn vui lòng sửa lại các lỗi sau trước khi merge:
-
-1. **Vi phạm Hexagonal Architecture (Sử dụng Raw SQL sai tầng):**
-Trong file `ai_tasks.py`, bạn đang viết logic nghiệp vụ và chạy trực tiếp Raw SQL (`text("UPDATE ai_tasks...")` và `text("UPDATE documents...")`). Tầng `entrypoints/celery_worker` chỉ làm nhiệm vụ nhận message từ message broker và gọi Use Case.
--> **Yêu cầu:** Hãy chuyển toàn bộ logic xử lý (download file, chunking, embed, lưu db) vào một hàm trong `DocumentUseCase` (ví dụ: `parse_document_async`). Sử dụng `DocumentSQLAlchemyRepository` và `SQLAlchemyAITaskRepository` để tương tác database thay vì Raw SQL.
-
-2. **Vi phạm Quy chuẩn Phân trang (Cursor Pagination):**
-Hàm `get_by_uploader` trong `DocumentSQLAlchemyRepository` và router `GET /documents` đang lấy toàn bộ danh sách. Theo quy định của dự án, các danh sách liên tục thay đổi phải dùng Cursor Pagination.
--> **Yêu cầu:** Sửa lại `list_documents` để nhận `cursor_created_at`, `cursor_id` và dùng hàm `cursor_paginate` được kế thừa từ `BaseRepository`.

@@ -10,6 +10,15 @@ from app.application.ports.outbound.youtube_port import IYouTubeTranscriptAdapte
 
 logger = logging.getLogger(__name__)
 
+_whisper_model = None
+
+def get_whisper_model():
+    global _whisper_model
+    if _whisper_model is None:
+        logger.info("Đang load Whisper model vào RAM (chỉ chạy 1 lần)...")
+        _whisper_model = whisper.load_model("base")
+    return _whisper_model
+
 class YouTubeTranscriptAdapter(IYouTubeTranscriptAdapter):
     async def get_transcript(self, video_id: str) -> List[Dict[str, float | str]]:
         try:
@@ -56,8 +65,8 @@ class YouTubeTranscriptAdapter(IYouTubeTranscriptAdapter):
                 
                 logger.info(f"Đang chạy Whisper để tạo phụ đề cho {video_id}...")
                 try:
-                    # Sử dụng model 'base' để đủ nhanh (nhỏ hơn 'small', lớn hơn 'tiny')
-                    model = whisper.load_model("base")
+                    # Sử dụng model 'base' được cache
+                    model = get_whisper_model()
                     result = model.transcribe(audio_path)
                 except Exception as e:
                     logger.error(f"Lỗi khi chạy Whisper: {e}")

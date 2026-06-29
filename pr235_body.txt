@@ -1,9 +1,0 @@
-- Add LessonList, LessonDetail, and LessonEditor components
-
-- Extract form logic into useLessonForm custom hook
-
-- Integrate mock data and Shadcn AlertDialog
-
-- Align lesson model with OpenAPI schema
-
-Closes #104
