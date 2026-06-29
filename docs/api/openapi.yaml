@@ -1382,10 +1382,75 @@ paths:
 
   /quizzes/{quiz_id}/attempts:
     post:
+      summary: Bắt đầu làm bài thi Trắc nghiệm
+      tags: [Student Tracking]
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Bắt đầu làm bài thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      started_at:
+                        type: string
+                        format: date-time
+    get:
+      summary: Lấy lịch sử làm bài thi Trắc nghiệm
+      tags: [Student Tracking]
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/CursorParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Lịch sử làm bài
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+
+  /quizzes/{quiz_id}/attempts/{attempt_id}/submit:
+    post:
       summary: Nộp bài thi Trắc nghiệm
       tags: [Student Tracking]
       parameters:
         - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: attempt_id
           in: path
           required: true
           schema:
@@ -1411,7 +1476,7 @@ paths:
                   data:
                     type: object
                     properties:
-                      attempt_id:
+                      id:
                         type: string
                         format: uuid
                       score:
@@ -1543,7 +1608,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/StandardError'
 
-  /essays/submissions:
+  /essays:
     post:
       summary: Nộp bài Văn tự luận (AI Tự Động Chấm)
       tags: [Student Tracking]
@@ -1572,6 +1637,42 @@ paths:
                       submission_id:
                         type: string
                         format: uuid
+                      ai_task_id:
+                        type: string
+                        format: uuid
+
+  /essays/{id}:
+    get:
+      summary: Lấy kết quả bài nộp tự luận
+      tags: [Student Tracking]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      score:
+                        type: number
+                      ai_feedback:
+                        type: object
 
   /essays/{id}/status:
     get:

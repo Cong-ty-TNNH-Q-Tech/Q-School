@@ -97,6 +97,9 @@ class QuizAttemptNotFoundError(DomainException):
     pass
 
 
+class QuizAttemptAlreadySubmittedError(DomainException):
+    """Lượt làm bài đã được nộp."""
+
 class RubricNotFoundError(DomainException):
     """Không tìm thấy ma trận tiêu chí."""
 
