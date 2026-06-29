@@ -71,4 +71,4 @@ async def receive_webhook(
     
     await db.commit()
     
-    return {"status": "success"}
+    return {"success": True}
