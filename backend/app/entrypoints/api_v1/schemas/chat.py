@@ -47,3 +47,4 @@ class ChatMessageResponse(ChatMessageBase):
 class ChatMessageListResponse(BaseModel):
     data: list[ChatMessageResponse]
     next_cursor_created_at: datetime | None = None
+    next_cursor_id: UUID | None = None

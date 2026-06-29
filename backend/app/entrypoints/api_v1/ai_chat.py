@@ -25,13 +25,20 @@ from app.application.use_cases.chat_use_case import ChatUseCase
 router = APIRouter(prefix="/chat", tags=["AI Chat"])
 
 
-def get_chat_use_case(db: DbDep) -> ChatUseCase:
+from typing import Annotated, AsyncGenerator
+
+async def get_chat_use_case(db: DbDep) -> AsyncGenerator[ChatUseCase, None]:
     chat_repo = ChatSQLAlchemyRepository(db)
     # Cấu hình VLLMAdapter với model generation mặc định từ biến môi trường
     # Trong thực tế, VLLMAdapter có thể lấy cấu hình từ Settings
     llm_service = VLLMAdapter()
-    return ChatUseCase(chat_repo=chat_repo, llm_service=llm_service)
-
+    try:
+        yield ChatUseCase(chat_repo=chat_repo, llm_service=llm_service)
+    finally:
+        import anyio
+        # Đóng HTTP client của llm_service khi request kết thúc (bảo vệ khỏi việc huỷ bằng shield)
+        with anyio.CancelScope(shield=True):
+            await llm_service.close()
 
 ChatUseCaseDep = Annotated[ChatUseCase, Depends(get_chat_use_case)]
 
@@ -150,7 +157,7 @@ async def send_chat_message(
             async for chunk in stream_generator:
                 # SSE format: "data: chunk\n\n"
                 # Replacing newline so it doesn't break SSE framing
-                formatted_chunk = chunk.replace("\\n", "\\n")
+                formatted_chunk = chunk.replace("\n", "\\n")
                 yield f"data: {formatted_chunk}\n\n"
         except asyncio.CancelledError:
             # Client disconnects early
