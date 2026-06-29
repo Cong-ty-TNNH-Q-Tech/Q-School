@@ -21,6 +21,15 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.domain.models.base import UUIDMixin, TimestampMixin
+import enum
+
+class PaymentProvider(str, enum.Enum):
+    SEPAY = "sepay"
+
+class PaymentStatus(str, enum.Enum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
 
 if TYPE_CHECKING:
     from app.domain.models.user import User
@@ -118,7 +127,7 @@ class PaymentTransaction(Base, UUIDMixin, TimestampMixin):
     __tablename__ = "payment_transactions"
     __table_args__ = (
         CheckConstraint(
-            "provider IN ('stripe', 'vnpay', 'momo')",
+            "provider IN ('sepay')",
             name="ck_payment_transactions_provider",
         ),
         CheckConstraint(
@@ -137,16 +146,16 @@ class PaymentTransaction(Base, UUIDMixin, TimestampMixin):
         Integer, nullable=False, comment="Số tiền (VNĐ)"
     )
     currency: Mapped[str] = mapped_column(String(10), nullable=False, default="VND")
-    provider: Mapped[str] = mapped_column(
-        String(20), nullable=False, comment="stripe | vnpay | momo"
+    provider: Mapped[PaymentProvider] = mapped_column(
+        String(20), nullable=False, comment="sepay"
     )
     provider_transaction_id: Mapped[str | None] = mapped_column(
         String(255), nullable=True, comment="ID giao dịch từ cổng thanh toán"
     )
-    status: Mapped[str] = mapped_column(
+    status: Mapped[PaymentStatus] = mapped_column(
         String(20),
         nullable=False,
-        default="pending",
+        default=PaymentStatus.PENDING,
         comment="pending | success | failed",
     )
 
