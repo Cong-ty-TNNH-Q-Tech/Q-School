@@ -23,11 +23,9 @@ from app.entrypoints.api_v1.lessons import router as lessons_router
 # from app.entrypoints.api_v1.flashcards import router as flashcards_router
 
 # ── Group 4: AI Workspace ──────────────────────
-# from app.entrypoints.api_v1.ai_chat import router as ai_chat_router
-# from app.entrypoints.api_v1.documents import router as documents_router
-from app.entrypoints.api_v1.routers.generated_assets import (
-    router as assets_router,
-)  # Issue #113
+# from app.entrypoints.api_v1.chat import router as ai_chat_router
+from app.entrypoints.api_v1.documents import router as documents_router
+from app.entrypoints.api_v1.routers.generated_assets import router as assets_router
 
 # ── Group 5: Billing ───────────────────────────
 # from app.entrypoints.api_v1.billing import router as billing_router
@@ -46,7 +44,7 @@ api_v1_router.include_router(lessons_router, prefix="/lessons", tags=["Lessons"]
 # api_v1_router.include_router(essays_router, prefix="/essays", tags=["Student Tracking"])
 # api_v1_router.include_router(flashcards_router, prefix="/flashcard-sets", tags=["Student Tracking"])
 # api_v1_router.include_router(ai_chat_router, prefix="/chat", tags=["AI Workspace"])
-# api_v1_router.include_router(documents_router, prefix="/documents", tags=["AI Workspace"])
+api_v1_router.include_router(documents_router, prefix="", tags=["AI Workspace"])
 api_v1_router.include_router(
     assets_router, prefix="/generated-assets", tags=["Generated Assets"]
 )  # Issue #113

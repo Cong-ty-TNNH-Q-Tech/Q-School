@@ -6,9 +6,9 @@ IDocumentRepository, IChatSessionRepository, IAITaskRepository.
 from abc import ABC, abstractmethod
 from datetime import datetime
 from uuid import UUID
-from typing import Any
+from typing import Any, Sequence
 
-from app.domain.models.ai import Document, ChatSession, ChatMessage, AITask
+from app.domain.models.ai import Document, ChatSession, ChatMessage, AITask, DocumentChunk
 
 
 class IDocumentRepository(ABC):
@@ -18,7 +18,13 @@ class IDocumentRepository(ABC):
     async def get_by_id(self, document_id: UUID) -> Document | None: ...
 
     @abstractmethod
-    async def get_by_uploader(self, uploader_id: UUID) -> list[Document]: ...
+    async def get_by_uploader(
+        self, 
+        uploader_id: UUID,
+        cursor_created_at: datetime | None = None,
+        cursor_id: UUID | None = None,
+        limit: int = 20,
+    ) -> Sequence[Document]: ...
 
     @abstractmethod
     async def create(
@@ -30,6 +36,9 @@ class IDocumentRepository(ABC):
 
     @abstractmethod
     async def soft_delete(self, document: Document) -> Document: ...
+
+    @abstractmethod
+    async def save_chunks(self, chunks: Sequence[DocumentChunk]) -> None: ...
 
 
 class IChatRepository(ABC):

@@ -178,21 +178,52 @@ def generate_lesson_plan(self, ai_task_id: str, prompt_params: dict) -> dict:
     max_retries=2,
     default_retry_delay=30,
 )
-def parse_document(self, document_id: str) -> dict:
-    """
-    Background task: Parse PDF và tạo vector embeddings cho RAG.
+async def _run_parse_document_async(document_id: str, ai_task_id: str | None) -> dict:
+    from app.core.database import AsyncSessionFactory
+    from app.adapters.database.document_repository import DocumentSQLAlchemyRepository
+    from app.adapters.database.ai_task_repository import SQLAlchemyAITaskRepository
+    from app.adapters.storage.r2_adapter import R2StorageAdapter
+    from app.adapters.llm_client.llm_factory import get_llm_service
+    from app.application.use_cases.document_use_case import DocumentUseCase
 
-    Flow dự kiến:
-        1. Download file từ S3/R2 qua IStorageService
-        2. Cắt nhỏ thành chunks
-        3. Gọi ILLMService.embed() cho từng chunk
-        4. Lưu DocumentChunk records vào DB
-        5. Update Document.status = 'ready'
+    async with AsyncSessionFactory() as session:
+        doc_repo = DocumentSQLAlchemyRepository(session)
+        ai_task_repo = SQLAlchemyAITaskRepository(session)
+        storage = R2StorageAdapter()
+        llm_service = get_llm_service()
+
+        use_case = DocumentUseCase(
+            doc_repo=doc_repo,
+            storage=storage,
+            llm_service=llm_service,
+            ai_task_repo=ai_task_repo
+        )
+
+        return await use_case.parse_document_async(document_id, ai_task_id)
+
+@celery_app.task(
+    bind=True,
+    base=AIBaseTask,
+    name="ai_tasks.parse_document",
+    max_retries=3,
+    default_retry_delay=60,
+)
+def parse_document(self, document_id: str, *, ai_task_id: str | None = None) -> dict:
     """
-    logger.info("[parse_document] START document_id=%s", document_id)
+    Background task: Parse PDF/DOCX và tạo vector embeddings cho RAG.
+
+    Flow thực tế:
+        1. Download file từ S3/R2 qua IStorageService (R2StorageAdapter)
+        2. Parse file thành văn bản (dùng pypdf/python-docx)
+        3. Cắt nhỏ văn bản thành chunks (1000 chars)
+        4. Gọi ILLMService.embed() song song cho từng chunk (có giới hạn concurrent)
+        5. Lưu DocumentChunk records vào PostgreSQL (pgvector)
+        6. Update Document.status = 'ready' (hoặc 'error' nếu thất bại)
+    """
+    logger.info("[parse_document] START document_id=%s ai_task_id=%s", document_id, ai_task_id)
+    import asyncio
     try:
-        # TODO: Implement khi AI pipeline sẵn sàng
-        return {"status": "not_implemented", "task_id": self.request.id}
+        return asyncio.run(_run_parse_document_async(document_id, ai_task_id))
     except Exception as exc:
         logger.error("[parse_document] FAIL document_id=%s error=%s", document_id, exc)
         raise self.retry(exc=exc)

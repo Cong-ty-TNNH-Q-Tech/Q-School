@@ -24,6 +24,13 @@ class IStorageService(ABC):
         ...
 
     @abstractmethod
+    async def download(self, file_url: str) -> bytes:
+        """
+        Tải file từ storage và trả về mảng bytes.
+        """
+        ...
+
+    @abstractmethod
     async def delete(self, file_url: str) -> None:
         """Xóa file khỏi storage theo URL."""
         ...
