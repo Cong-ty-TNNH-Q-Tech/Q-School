@@ -45,20 +45,23 @@ class EssayUseCase:
             result_payload={"essay_submission_id": str(submission.id)}
         )
 
+        return submission, ai_task.id
+
+    def dispatch_grading(self, submission_id: uuid.UUID, student_id: uuid.UUID, ai_task_id: uuid.UUID) -> None:
+        """
+        Dispatch task tới Celery. 
+        Nên được gọi sau khi database session đã commit để tránh race condition.
+        """
         from app.entrypoints.celery_worker.ai_tasks import process_essay_grading
         
-        # Dispatch background task qua Celery
         process_essay_grading.apply_async(
             kwargs={
-                "essay_submission_id": str(submission.id),
-                "user_id": str(student.id),
-                "ai_task_id": str(ai_task.id)
+                "essay_submission_id": str(submission_id),
+                "user_id": str(student_id),
+                "ai_task_id": str(ai_task_id)
             }
         )
-        
-        logger.info(f"Initiated AI grading task {ai_task.id} for submission {submission.id} by student {student.id}")
-
-        return submission, ai_task.id
+        logger.info(f"Initiated AI grading task {ai_task_id} for submission {submission_id} by student {student_id}")
 
     async def get_essay(self, submission_id: uuid.UUID) -> EssaySubmission | None:
         """

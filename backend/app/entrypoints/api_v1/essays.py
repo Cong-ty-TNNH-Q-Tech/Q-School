@@ -33,6 +33,7 @@ def get_essay_use_case(db: DbDep) -> EssayUseCase:
 async def submit_essay(
     request: EssaySubmissionRequest,
     current_user: AIUserDep,
+    db: DbDep,
     use_case: EssayUseCase = Depends(get_essay_use_case),
 ):
     """
@@ -47,6 +48,11 @@ async def submit_essay(
             content=request.content,
             rubric_id=request.rubric_id
         )
+        
+        # Ngăn chặn Race Condition với Celery: Commit dữ liệu xuống DB trước khi bắn task
+        await db.commit()
+        
+        use_case.dispatch_grading(submission.id, current_user.id, ai_task_id)
     except Exception as e:
         logger.error(f"Error submitting essay: {e}", exc_info=True)
         raise
