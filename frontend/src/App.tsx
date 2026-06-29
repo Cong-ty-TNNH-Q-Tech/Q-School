@@ -12,6 +12,7 @@ import ChatPage from '@/views/pages/chat/ChatPage'
 import DocumentPage from '@/views/pages/documents/DocumentPage'
 import LessonList from '@/views/pages/lessons/LessonList'
 import LessonDetail from '@/views/pages/lessons/LessonDetail'
+import LessonEditor from '@/views/pages/lessons/LessonEditor'
 import QuizList from '@/views/pages/quizzes/QuizList'
 import QuizDetail from '@/views/pages/quizzes/QuizDetail'
 import QuizTake from '@/views/pages/quizzes/QuizTake'
@@ -54,7 +55,9 @@ export default function App() {
         <Route path="classes" element={<ClassList />} />
         <Route path="classes/:id" element={<ClassDetail />} />
         <Route path="lessons" element={<LessonList />} />
+        <Route path="lessons/new" element={<LessonEditor />} />
         <Route path="lessons/:id" element={<LessonDetail />} />
+        <Route path="lessons/:id/edit" element={<LessonEditor />} />
         <Route path="quizzes" element={<QuizList />} />
         <Route path="quizzes/:id" element={<QuizDetail />} />
         <Route path="quizzes/:id/take" element={<QuizTake />} />

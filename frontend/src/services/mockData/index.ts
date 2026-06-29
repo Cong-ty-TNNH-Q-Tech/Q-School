@@ -9,7 +9,7 @@
 export * from './auth.mock'
 
 // TODO: Thêm mock data khi implement các nhóm tính năng
-// export * from './class.mock'
-// export * from './lesson.mock'
+export * from './class.mock'
+export * from './lesson.mock'
 // export * from './quiz.mock'
 // export * from './ai.mock'
