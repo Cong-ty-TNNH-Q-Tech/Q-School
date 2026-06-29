@@ -68,7 +68,7 @@ const mockSubmissions: EssaySubmission[] = []
 
 // ============================================================
 // [MOCK] Submit essay
-// TODO:BACKEND — Replace with: POST /api/v1/essays/submit
+// TODO:BACKEND — Replace with: POST /api/v1/essays/submissions
 // Request: EssaySubmissionRequest
 // Response: EssaySubmission (status: 'pending')
 // ============================================================

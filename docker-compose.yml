@@ -52,7 +52,7 @@ services:
 
   # ─── MinIO (S3-compatible Object Storage) ────────────────
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
     container_name: qschool_minio
     restart: unless-stopped
     ports:
@@ -75,7 +75,7 @@ services:
 
   # ─── MinIO Init (tạo bucket tự động) ─────────────────────
   minio-init:
-    image: minio/mc:latest
+    image: minio/mc:RELEASE.2025-04-16T18-13-36Z
     container_name: qschool_minio_init
     depends_on:
       minio:
@@ -190,7 +190,7 @@ services:
 
   # ─── Adminer (DB Management) ────────────────────────────
   adminer:
-    image: adminer:latest
+    image: adminer:4.8.4
     container_name: qschool_adminer
     restart: unless-stopped
     ports:
