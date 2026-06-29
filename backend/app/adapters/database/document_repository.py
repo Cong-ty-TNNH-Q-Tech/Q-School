@@ -1,10 +1,12 @@
 from uuid import UUID
+from datetime import datetime
+from typing import Sequence
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.adapters.database.base import BaseRepository
 from app.application.ports.outbound.ai_repository import IDocumentRepository
-from app.domain.models.ai import Document
+from app.domain.models.ai import Document, DocumentChunk
 
 class DocumentSQLAlchemyRepository(BaseRepository[Document], IDocumentRepository):
     def __init__(self, db: AsyncSession):
@@ -14,13 +16,20 @@ class DocumentSQLAlchemyRepository(BaseRepository[Document], IDocumentRepository
         # We can just use the super class method since it handles soft deletes
         return await super().get_by_id(document_id)
 
-    async def get_by_uploader(self, uploader_id: UUID) -> list[Document]:
-        stmt = select(Document).where(
-            Document.uploader_id == uploader_id,
-            Document.deleted_at.is_(None)
-        ).order_by(desc(Document.created_at))
-        result = await self.db.execute(stmt)
-        return list(result.scalars().all())
+    async def get_by_uploader(
+        self, 
+        uploader_id: UUID,
+        cursor_created_at: datetime | None = None,
+        cursor_id: UUID | None = None,
+        limit: int = 20,
+    ) -> Sequence[Document]:
+        return await self.cursor_paginate(
+            cursor_created_at=cursor_created_at,
+            cursor_id=cursor_id,
+            limit=limit,
+            filters=[Document.uploader_id == uploader_id],
+            ascending=False
+        )
 
     async def create(self, uploader_id: UUID, filename: str, file_type: str, s3_url: str, **kwargs) -> Document:
         doc = Document(
@@ -40,3 +49,7 @@ class DocumentSQLAlchemyRepository(BaseRepository[Document], IDocumentRepository
 
     async def soft_delete(self, document: Document) -> Document:
         return await super().delete(document.id)
+
+    async def save_chunks(self, chunks: Sequence['DocumentChunk']) -> None:
+        self.db.add_all(chunks)
+        await self.db.flush()

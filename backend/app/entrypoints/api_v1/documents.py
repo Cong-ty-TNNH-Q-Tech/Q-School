@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, UploadFile, File, Form, status, HTTPException
@@ -46,9 +47,15 @@ async def upload_document(
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("", response_model=list[DocumentResponse])
-async def list_documents(user: AIUserDep, use_case: DocumentUseCaseDep):
+async def list_documents(
+    user: AIUserDep, 
+    use_case: DocumentUseCaseDep,
+    cursor_created_at: datetime | None = None,
+    cursor_id: uuid.UUID | None = None,
+    limit: int = 20,
+):
     """Lấy danh sách tài liệu của user."""
-    docs = await use_case.list_documents(user.id)
+    docs = await use_case.list_documents(user.id, cursor_created_at, cursor_id, limit)
     return docs
 
 @router.get("/{document_id}", response_model=DocumentResponse)
