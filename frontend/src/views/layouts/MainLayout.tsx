@@ -24,6 +24,7 @@ import {
   Settings,
   ChevronLeft,
   Menu,
+  PenLine,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -51,6 +52,7 @@ export default function MainLayout() {
     { label: 'AI Chat', to: '/chat', icon: <MessageSquare className="h-4 w-4" /> },
     { label: 'Flashcards', to: '/flashcards', icon: <Layers className="h-4 w-4" /> },
     { label: 'Tài liệu', to: '/documents', icon: <FileText className="h-4 w-4" /> },
+    { label: 'Bài tự luận', to: '/essays/submit', icon: <PenLine className="h-4 w-4" /> },
   ]
 
   const displayName = user?.profile?.full_name || user?.username || 'Guest'

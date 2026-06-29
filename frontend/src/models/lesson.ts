@@ -22,6 +22,7 @@ export interface Lesson {
   content: LessonContent | null
   created_at: string
   updated_at: string
+  teacher_name?: string | null
 }
 
 export interface CreateLessonRequest {
@@ -38,4 +39,11 @@ export interface GenerateLessonPlanRequest {
   topic: string
   duration_minutes?: number
   learning_objectives?: string
+}
+
+export interface UpdateLessonRequest {
+  title?: string
+  subject?: string | null
+  grade_level?: string | null
+  content?: LessonContent | null
 }
