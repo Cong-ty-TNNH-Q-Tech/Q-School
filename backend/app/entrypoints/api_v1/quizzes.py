@@ -8,6 +8,7 @@ from app.domain.exceptions import QuizNotFoundError, QuizAttemptNotFoundError, P
 from app.adapters.database.quiz_repository import SQLAlchemyQuizRepository
 from app.adapters.database.quiz_attempt_repository import QuizAttemptRepository
 from app.application.use_cases.quiz_use_case import QuizUseCase
+from app.entrypoints.api_v1.schemas import ApiResponse
 from app.entrypoints.api_v1.schemas.quiz import (
     QuizAttemptResponse,
     SubmitAttemptRequest,
@@ -22,7 +23,7 @@ def get_quiz_use_case(db: DbDep) -> QuizUseCase:
 
 @router.post(
     "/{quiz_id}/attempts",
-    response_model=QuizAttemptResponse,
+    response_model=ApiResponse[QuizAttemptResponse],
     status_code=status.HTTP_201_CREATED,
     summary="Bắt đầu làm bài Quiz",
 )
@@ -36,13 +37,14 @@ async def start_quiz_attempt(
     Hệ thống sẽ tạo ra một lượt làm bài mới (QuizAttempt) với started_at.
     """
     try:
-        return await use_case.start_attempt(quiz_id=quiz_id, student=current_user)
+        attempt = await use_case.start_attempt(quiz_id=quiz_id, student=current_user)
+        return ApiResponse(data=attempt, message="Bắt đầu làm bài thành công")
     except QuizNotFoundError as e:
         raise NotFoundException(str(e))
 
 @router.post(
     "/{quiz_id}/attempts/{attempt_id}/submit",
-    response_model=QuizAttemptResponse,
+    response_model=ApiResponse[QuizAttemptResponse],
     status_code=status.HTTP_200_OK,
     summary="Nộp bài Quiz",
 )
@@ -58,9 +60,10 @@ async def submit_quiz_attempt(
     Server tự động chấm điểm và lưu StudentAnswers.
     """
     try:
-        return await use_case.submit_attempt(
+        attempt = await use_case.submit_attempt(
             attempt_id=attempt_id, student=current_user, answers=request.answers
         )
+        return ApiResponse(data=attempt, message="Nộp bài thành công")
     except (QuizNotFoundError, QuizAttemptNotFoundError) as e:
         raise NotFoundException(str(e))
     except PermissionDeniedError as e:
@@ -70,7 +73,7 @@ async def submit_quiz_attempt(
 
 @router.get(
     "/{quiz_id}/attempts",
-    response_model=list[QuizAttemptResponse],
+    response_model=ApiResponse[list[QuizAttemptResponse]],
     status_code=status.HTTP_200_OK,
     summary="Lấy lịch sử làm bài Quiz",
 )
@@ -83,6 +86,7 @@ async def list_quiz_attempts(
     Xem lại lịch sử các lượt làm bài của chính học sinh.
     """
     attempt_repo = QuizAttemptRepository(db)
-    return await attempt_repo.get_by_student_and_quiz(
+    attempts = await attempt_repo.get_by_student_and_quiz(
         student_id=current_user.id, quiz_id=quiz_id
     )
+    return ApiResponse(data=attempts)
