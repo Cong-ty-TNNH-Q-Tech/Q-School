@@ -1,7 +1,0 @@
-Chào bạn, PR của bạn có một số vấn đề cần khắc phục trước khi được merge:
-
-1. **Commit nhầm file rác (Junk files):** Có rất nhiều file rác như `pytest_out.txt`, `backend_build_log.txt`, `issues.txt`, `pr*.diff`, `review*.txt`... đã bị commit nhầm vào nhánh này. Vui lòng xóa (git rm) các file không thuộc mã nguồn dự án khỏi PR.
-2. **Vi phạm SaaS Billing Enforcement (AGENTS.md):** Trong file `backend/app/entrypoints/api_v1/routers/ai.py`, bạn đang dùng `current_user: CurrentUserDep` cho các endpoint AI. Theo quy định của dự án, tất cả các API thuộc Nhóm AI phải sử dụng `AIUserDep` để kiểm tra Subscription. Vui lòng đổi import và đổi sang dùng `AIUserDep`.
-3. **Hiệu năng của Whisper (Performance Bottleneck):** Trong file `backend/app/adapters/youtube_transcript_adapter.py`, dòng `model = whisper.load_model("base")` đang được gọi bên trong hàm thực thi `_sync_transcribe`. Nghĩa là mỗi lần fallback, nó sẽ phải load lại model từ ổ cứng. Điều này rất chậm và tốn kém tài nguyên. Bạn cần lưu model này dưới dạng global variable hoặc Singleton để chỉ load 1 lần duy nhất trong suốt vòng đời của worker.
-
-Ngoài ra, PR của bạn đã tốt ở khía cạnh thiết kế (dùng Celery, Hexagonal Architecture) và đã link đúng với Issue #144. Vui lòng sửa lại các lỗi trên nhé!
