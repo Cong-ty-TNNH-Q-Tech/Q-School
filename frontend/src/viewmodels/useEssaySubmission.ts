@@ -91,7 +91,7 @@ export function useEssaySubmission() {
             if (prev && prev.status === updated.status && prev.score === updated.score) {
               return prev
             }
-            return updated
+            return { ...prev, ...updated } as typeof prev
           })
           
           if (updated.status === 'completed' || updated.status === 'failed') {
