@@ -118,6 +118,12 @@ class DocumentNotFoundError(DomainException):
     pass
 
 
+class ChatSessionNotFoundError(DomainException):
+    """Không tìm thấy Chat Session."""
+
+    pass
+
+
 class DocumentNotReadyError(DomainException):
     """Tài liệu chưa được xử lý xong (đang parsing)."""
 

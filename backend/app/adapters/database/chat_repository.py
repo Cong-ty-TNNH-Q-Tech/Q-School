@@ -62,12 +62,13 @@ class ChatSQLAlchemyRepository(BaseRepository[ChatSession], IChatRepository):
         *,
         limit: int = 20,
         cursor_created_at: datetime | None = None,
+        cursor_id: UUID | None = None,
         ascending: bool = True,
     ) -> list[ChatMessage]:
         # Tái sử dụng cursor_paginate của BaseRepository cho ChatMessage
         messages = await self._message_repo.cursor_paginate(
             cursor_created_at=cursor_created_at,
-            cursor_id=None, # Tạm không dùng cursor_id cho messages để đơn giản hoặc truyền qua kwargs nếu cần
+            cursor_id=cursor_id,
             limit=limit,
             filters=[ChatMessage.session_id == session_id],
             ascending=ascending,

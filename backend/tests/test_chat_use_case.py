@@ -47,12 +47,15 @@ async def test_create_session(use_case, chat_repo_mock):
 @pytest.mark.asyncio
 async def test_send_message_stream_and_save(use_case, chat_repo_mock, llm_service_mock):
     session = ChatSession(id=uuid.uuid4(), user_id=uuid.uuid4(), ai_persona="You are a helpful assistant")
+    user = User(id=session.user_id, username="test_user")
+    
+    chat_repo_mock.get_session_by_id.return_value = session
     
     # Mock history messages
     history_msg = ChatMessage(id=uuid.uuid4(), session_id=session.id, sender_type="user", content="Hi")
     chat_repo_mock.get_messages.return_value = [history_msg]
 
-    stream_generator = await use_case.send_message(session, "How are you?")
+    stream_generator = await use_case.send_message(session.id, user, "How are you?")
     
     # Act
     tokens = []

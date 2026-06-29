@@ -70,6 +70,7 @@ class IChatRepository(ABC):
         *,
         limit: int = 20,
         cursor_created_at: "datetime | None" = None,
+        cursor_id: UUID | None = None,
         ascending: bool = True,
     ) -> list[ChatMessage]:
         """

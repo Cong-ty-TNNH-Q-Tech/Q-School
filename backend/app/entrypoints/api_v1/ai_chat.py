@@ -5,10 +5,11 @@ import asyncio
 
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundException
+from app.core.exceptions import NotFoundException, ForbiddenException
 from app.core.dependencies import DbDep, AIUserDep
+from app.domain.exceptions import ChatSessionNotFoundError, PermissionDeniedError
+from app.entrypoints.api_v1.schemas import ApiResponse
 from app.entrypoints.api_v1.schemas.chat import (
     ChatSessionCreate,
     ChatSessionResponse,
@@ -35,19 +36,20 @@ def get_chat_use_case(db: DbDep) -> ChatUseCase:
 ChatUseCaseDep = Annotated[ChatUseCase, Depends(get_chat_use_case)]
 
 
-@router.post("/sessions", response_model=ChatSessionResponse, status_code=201)
+@router.post("/sessions", response_model=ApiResponse[ChatSessionResponse], status_code=201)
 async def create_chat_session(
     payload: ChatSessionCreate,
     user: AIUserDep,
     use_case: ChatUseCaseDep,
 ):
     """Tạo mới một AI Chat Session."""
-    return await use_case.create_session(
+    session = await use_case.create_session(
         user=user, title=payload.title, ai_persona=payload.ai_persona
     )
+    return ApiResponse(data=session, message="Chat session created successfully")
 
 
-@router.get("/sessions", response_model=ChatSessionListResponse)
+@router.get("/sessions", response_model=ApiResponse[ChatSessionListResponse])
 async def get_chat_sessions(
     user: AIUserDep,
     use_case: ChatUseCaseDep,
@@ -72,21 +74,21 @@ async def get_chat_sessions(
         next_updated_at = sessions[-1].updated_at
         next_id = sessions[-1].id
 
-    return ChatSessionListResponse(
+    return ApiResponse(data=ChatSessionListResponse(
         data=sessions,
         next_cursor_updated_at=next_updated_at,
         next_cursor_id=next_id,
-    )
+    ))
 
 
-@router.get("/sessions/{session_id}/messages", response_model=ChatMessageListResponse)
+@router.get("/sessions/{session_id}/messages", response_model=ApiResponse[ChatMessageListResponse])
 async def get_chat_messages(
     session_id: uuid.UUID,
     user: AIUserDep,
     use_case: ChatUseCaseDep,
-    db: DbDep,
     limit: int = Query(20, ge=1, le=100),
     cursor_created_at: datetime | None = Query(None),
+    cursor_id: uuid.UUID | None = Query(None),
     ascending: bool = Query(True),
 ):
     """
@@ -94,27 +96,31 @@ async def get_chat_messages(
     ascending=True: Lấy các tin nhắn CŨ hơn cursor_created_at (Scroll up lịch sử).
     ascending=False: Lấy các tin nhắn MỚI hơn cursor_created_at (Refresh).
     """
-    # 1. Verify session belongs to user
-    chat_repo = ChatSQLAlchemyRepository(db)
-    session = await chat_repo.get_session_by_id(session_id)
-    if not session or session.user_id != user.id:
-        raise NotFoundException("Chat session not found")
-
-    messages = await use_case.get_messages(
-        session_id=session_id,
-        limit=limit,
-        cursor_created_at=cursor_created_at,
-        ascending=ascending,
-    )
+    try:
+        messages = await use_case.get_messages(
+            session_id=session_id,
+            user=user,
+            limit=limit,
+            cursor_created_at=cursor_created_at,
+            cursor_id=cursor_id,
+            ascending=ascending,
+        )
+    except ChatSessionNotFoundError as e:
+        raise NotFoundException(str(e))
+    except PermissionDeniedError as e:
+        raise ForbiddenException(str(e))
 
     next_created_at = None
+    next_id = None
     if len(messages) == limit:
         next_created_at = messages[-1].created_at
+        next_id = messages[-1].id
 
-    return ChatMessageListResponse(
+    return ApiResponse(data=ChatMessageListResponse(
         data=messages,
         next_cursor_created_at=next_created_at,
-    )
+        next_cursor_id=next_id,
+    ))
 
 
 @router.post("/sessions/{session_id}/messages")
@@ -123,22 +129,20 @@ async def send_chat_message(
     payload: ChatMessageCreate,
     user: AIUserDep,
     use_case: ChatUseCaseDep,
-    db: DbDep,
 ):
     """
     Gửi tin nhắn lên session và nhận phản hồi AI qua Server-Sent Events (SSE Streaming).
     KHÔNG sử dụng WebSocket. Trả về text/event-stream.
     """
-    # 1. Verify session belongs to user
-    chat_repo = ChatSQLAlchemyRepository(db)
-    session = await chat_repo.get_session_by_id(session_id)
-    if not session or session.user_id != user.id:
-        raise NotFoundException("Chat session not found")
-
-    # 2. Get the stream generator
-    stream_generator = await use_case.send_message(
-        session=session, content=payload.content
-    )
+    try:
+        # 2. Get the stream generator
+        stream_generator = await use_case.send_message(
+            session_id=session_id, user=user, content=payload.content
+        )
+    except ChatSessionNotFoundError as e:
+        raise NotFoundException(str(e))
+    except PermissionDeniedError as e:
+        raise ForbiddenException(str(e))
 
     # 3. Format as SSE text/event-stream
     async def sse_format():

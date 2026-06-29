@@ -6,6 +6,7 @@ from app.application.ports.outbound.ai_repository import IChatRepository
 from app.application.ports.outbound.llm_service import ILLMService
 from app.domain.models.ai import ChatSession, ChatMessage
 from app.domain.models.user import User
+from app.domain.exceptions import ChatSessionNotFoundError, PermissionDeniedError
 
 
 class ChatUseCase:
@@ -38,30 +39,42 @@ class ChatUseCase:
             cursor_id=cursor_id,
         )
 
+    async def get_session(self, session_id: uuid.UUID, user: User) -> ChatSession:
+        session = await self._chat_repo.get_session_by_id(session_id)
+        if not session:
+            raise ChatSessionNotFoundError("Chat session not found")
+        if session.user_id != user.id:
+            raise PermissionDeniedError("Chat session not found")
+        return session
+
     async def get_messages(
         self,
         session_id: uuid.UUID,
+        user: User,
         limit: int = 20,
         cursor_created_at: datetime | None = None,
+        cursor_id: uuid.UUID | None = None,
         ascending: bool = True,
     ) -> list[ChatMessage]:
-        # TODO: Cần kiểm tra session_id thuộc về user (authorization)
-        # Tuy nhiên logic đó có thể được xử lý ở router layer
+        session = await self.get_session(session_id, user)
         return await self._chat_repo.get_messages(
-            session_id=session_id,
+            session_id=session.id,
             limit=limit,
             cursor_created_at=cursor_created_at,
+            cursor_id=cursor_id,
             ascending=ascending,
         )
 
     async def send_message(
-        self, session: ChatSession, content: str
+        self, session_id: uuid.UUID, user: User, content: str
     ) -> AsyncIterator[str]:
         """
         Lưu tin nhắn người dùng, gọi LLM, stream từng token về client.
         Sau khi kết thúc stream, lưu tin nhắn của AI vào Database.
         """
         import anyio
+        
+        session = await self.get_session(session_id, user)
         
         # 1. Lưu user message và COMMIT ngay lập tức.
         # Đảm bảo tin nhắn user được lưu ngay cả khi stream bị ngắt kết nối giữa chừng.
