@@ -8,7 +8,7 @@ from datetime import datetime
 from uuid import UUID
 from typing import Any, Sequence
 
-from app.domain.models.ai import Document, ChatSession, ChatMessage, AITask
+from app.domain.models.ai import Document, ChatSession, ChatMessage, AITask, DocumentChunk
 
 
 class IDocumentRepository(ABC):
@@ -38,7 +38,7 @@ class IDocumentRepository(ABC):
     async def soft_delete(self, document: Document) -> Document: ...
 
     @abstractmethod
-    async def save_chunks(self, chunks: Sequence['DocumentChunk']) -> None: ...
+    async def save_chunks(self, chunks: Sequence[DocumentChunk]) -> None: ...
 
 
 class IChatRepository(ABC):
