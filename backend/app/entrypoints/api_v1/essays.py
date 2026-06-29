@@ -2,8 +2,11 @@ import uuid
 
 from fastapi import APIRouter, Depends, status
 
-from app.core.dependencies import DbDep, CurrentUserDep
+from app.core.dependencies import DbDep, CurrentUserDep, AIUserDep
 from app.core.exceptions import NotFoundException, ForbiddenException
+import logging
+
+logger = logging.getLogger(__name__)
 from app.adapters.database.essay_repository import EssayRepository
 from app.adapters.database.ai_repository import SQLAlchemyAITaskRepository
 from app.application.use_cases.essay_use_case import EssayUseCase
@@ -29,7 +32,7 @@ def get_essay_use_case(db: DbDep) -> EssayUseCase:
 )
 async def submit_essay(
     request: EssaySubmissionRequest,
-    current_user: CurrentUserDep,
+    current_user: AIUserDep,
     use_case: EssayUseCase = Depends(get_essay_use_case),
 ):
     """
@@ -37,12 +40,16 @@ async def submit_essay(
     Bài sẽ được đưa vào queue (Celery) để AI chấm điểm.
     Trả về mã 202 Accepted.
     """
-    submission, ai_task_id = await use_case.submit_essay(
-        student=current_user,
-        teacher_id=request.teacher_id,
-        content=request.content,
-        rubric_id=request.rubric_id
-    )
+    try:
+        submission, ai_task_id = await use_case.submit_essay(
+            student=current_user,
+            teacher_id=request.teacher_id,
+            content=request.content,
+            rubric_id=request.rubric_id
+        )
+    except Exception as e:
+        logger.error(f"Error submitting essay: {e}", exc_info=True)
+        raise
     return ApiResponse(
         data=EssaySubmissionAcceptedResponse(
             submission_id=submission.id, ai_task_id=ai_task_id
@@ -66,10 +73,12 @@ async def get_essay_submission(
     """
     submission = await use_case.get_essay(submission_id)
     if not submission:
+        logger.warning(f"Submission not found: {submission_id}")
         raise NotFoundException("Bài nộp không tồn tại")
         
     # Security: Chỉ người nộp hoặc giáo viên liên quan mới được xem
     if current_user.role == "student" and submission.student_id != current_user.id:
+        logger.warning(f"Student {current_user.id} tried to access submission {submission_id} belonging to {submission.student_id}")
         raise ForbiddenException("Bạn không có quyền xem bài này")
         
     return ApiResponse(data=submission)

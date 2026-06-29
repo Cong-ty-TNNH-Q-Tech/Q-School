@@ -47,15 +47,20 @@ class QuizAttemptRepository(BaseRepository[QuizAttempt], IQuizAttemptRepository)
         return attempt
 
     async def get_by_student_and_quiz(
-        self, student_id: UUID, quiz_id: UUID, *, limit: int = 10
+        self, student_id: UUID, quiz_id: UUID, *, cursor: UUID | None = None, limit: int = 10
     ) -> list[QuizAttempt]:
         query = (
             select(QuizAttempt)
             .where(QuizAttempt.student_id == student_id)
             .where(QuizAttempt.quiz_id == quiz_id)
             .order_by(QuizAttempt.started_at.desc())
-            .limit(limit)
-            .options(selectinload(QuizAttempt.student_answers))
         )
+        
+        if cursor:
+            cursor_entity = await self.get_by_id(cursor)
+            if cursor_entity:
+                query = query.where(QuizAttempt.started_at < cursor_entity.started_at)
+
+        query = query.limit(limit).options(selectinload(QuizAttempt.student_answers))
         result = await self.db.execute(query)
         return list(result.scalars().all())

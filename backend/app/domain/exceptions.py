@@ -97,6 +97,12 @@ class QuizAttemptNotFoundError(DomainException):
     pass
 
 
+class QuizAttemptAlreadySubmittedError(DomainException):
+    """Lượt làm bài đã được nộp."""
+
+    pass
+
+
 # ──────────────────────────────────────────────
 # AI / Billing
 # ──────────────────────────────────────────────

@@ -5,6 +5,10 @@ from app.application.ports.outbound.ai_repository import IAITaskRepository
 from app.domain.models.quiz import EssaySubmission
 from app.domain.models.user import User
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class EssayUseCase:
     """
     Use Case cho Essay Submission logic.
@@ -51,6 +55,8 @@ class EssayUseCase:
                 "ai_task_id": str(ai_task.id)
             }
         )
+        
+        logger.info(f"Initiated AI grading task {ai_task.id} for submission {submission.id} by student {student.id}")
 
         return submission, ai_task.id
 

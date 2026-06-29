@@ -4,7 +4,15 @@ from fastapi import APIRouter, Depends, status
 
 from app.core.dependencies import DbDep, CurrentUserDep
 from app.core.exceptions import NotFoundException, ForbiddenException, ValidationException
-from app.domain.exceptions import QuizNotFoundError, QuizAttemptNotFoundError, PermissionDeniedError
+from app.domain.exceptions import (
+    QuizNotFoundError,
+    QuizAttemptNotFoundError,
+    PermissionDeniedError,
+    QuizAttemptAlreadySubmittedError,
+)
+import logging
+
+logger = logging.getLogger(__name__)
 from app.adapters.database.quiz_repository import SQLAlchemyQuizRepository
 from app.adapters.database.quiz_attempt_repository import QuizAttemptRepository
 from app.application.use_cases.quiz_use_case import QuizUseCase
@@ -40,7 +48,11 @@ async def start_quiz_attempt(
         attempt = await use_case.start_attempt(quiz_id=quiz_id, student=current_user)
         return ApiResponse(data=attempt, message="Bắt đầu làm bài thành công")
     except QuizNotFoundError as e:
+        logger.error(f"Quiz not found: {e}")
         raise NotFoundException(str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error when starting quiz attempt: {e}", exc_info=True)
+        raise
 
 @router.post(
     "/{quiz_id}/attempts/{attempt_id}/submit",
@@ -65,11 +77,17 @@ async def submit_quiz_attempt(
         )
         return ApiResponse(data=attempt, message="Nộp bài thành công")
     except (QuizNotFoundError, QuizAttemptNotFoundError) as e:
+        logger.error(f"Not found error in submit_quiz_attempt: {e}")
         raise NotFoundException(str(e))
+    except QuizAttemptAlreadySubmittedError as e:
+        logger.warning(f"Validation error in submit_quiz_attempt: {e}")
+        raise ValidationException(str(e))
     except PermissionDeniedError as e:
-        if "đã được nộp" in str(e):
-            raise ValidationException(str(e))
+        logger.warning(f"Forbidden error in submit_quiz_attempt: {e}")
         raise ForbiddenException(str(e))
+    except Exception as e:
+        logger.error(f"Unexpected error when submitting quiz attempt: {e}", exc_info=True)
+        raise
 
 @router.get(
     "/{quiz_id}/attempts",
@@ -81,12 +99,14 @@ async def list_quiz_attempts(
     quiz_id: uuid.UUID,
     current_user: CurrentUserDep,
     db: DbDep,
+    cursor: uuid.UUID | None = None,
+    limit: int = 10,
 ):
     """
     Xem lại lịch sử các lượt làm bài của chính học sinh.
     """
     attempt_repo = QuizAttemptRepository(db)
     attempts = await attempt_repo.get_by_student_and_quiz(
-        student_id=current_user.id, quiz_id=quiz_id
+        student_id=current_user.id, quiz_id=quiz_id, cursor=cursor, limit=limit
     )
     return ApiResponse(data=attempts)

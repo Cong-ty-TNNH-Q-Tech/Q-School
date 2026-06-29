@@ -22,14 +22,20 @@ class EssayRepository(BaseRepository[EssaySubmission], IEssaySubmissionRepositor
         return result.scalar_one_or_none()
 
     async def list_by_student(
-        self, student_id: UUID, *, limit: int = 20
+        self, student_id: UUID, *, cursor: UUID | None = None, limit: int = 20
     ) -> list[EssaySubmission]:
         query = (
             select(EssaySubmission)
             .where(EssaySubmission.student_id == student_id)
             .order_by(EssaySubmission.created_at.desc())
-            .limit(limit)
         )
+        
+        if cursor:
+            cursor_entity = await self.get_by_id(cursor)
+            if cursor_entity:
+                query = query.where(EssaySubmission.created_at < cursor_entity.created_at)
+
+        query = query.limit(limit)
         result = await self.db.execute(query)
         return list(result.scalars().all())
 

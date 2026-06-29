@@ -16,9 +16,9 @@ class IEssaySubmissionRepository(ABC):
 
     @abstractmethod
     async def list_by_student(
-        self, student_id: UUID, *, limit: int = 20
+        self, student_id: UUID, *, cursor: UUID | None = None, limit: int = 20
     ) -> list[EssaySubmission]:
-        """Lấy tất cả bài viết của student, giới hạn bởng limit."""
+        """Lấy tất cả bài viết của student, giới hạn bằng limit và dùng cursor."""
         ...
 
     @abstractmethod

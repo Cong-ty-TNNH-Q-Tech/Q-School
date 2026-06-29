@@ -9,9 +9,14 @@ from app.domain.exceptions import (
     QuizNotFoundError,
     QuizAttemptNotFoundError,
     PermissionDeniedError,
+    QuizAttemptAlreadySubmittedError,
 )
 from app.domain.models.quiz import QuizAttempt, StudentAnswer
 from app.domain.models.user import User
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class QuizUseCase:
@@ -31,11 +36,13 @@ class QuizUseCase:
         """
         quiz = await self._quiz_repo.get_by_id(quiz_id)
         if not quiz:
+            logger.warning(f"Failed to start attempt: Quiz {quiz_id} not found")
             raise QuizNotFoundError(f"Quiz {quiz_id} không tồn tại")
         
         attempt = await self._attempt_repo.create(
             student_id=student.id, quiz_id=quiz_id
         )
+        logger.info(f"Student {student.id} started attempt {attempt.id} for quiz {quiz_id}")
         return attempt
 
     async def submit_attempt(
@@ -47,14 +54,18 @@ class QuizUseCase:
         """
         attempt = await self._attempt_repo.get_by_id(attempt_id)
         if not attempt:
+            logger.warning(f"Failed to submit attempt: Attempt {attempt_id} not found")
             raise QuizAttemptNotFoundError("Không tìm thấy lượt làm bài")
         if attempt.student_id != student.id:
+            logger.warning(f"Permission denied: Student {student.id} tried to submit attempt {attempt_id}")
             raise PermissionDeniedError("Không có quyền nộp bài này")
         if attempt.completed_at is not None:
-            raise PermissionDeniedError("Lượt làm bài đã được nộp") # Or another exception, wait I'll use PermissionDeniedError or create a new one, but let's just use ValueError
+            logger.warning(f"Attempt already submitted: Attempt {attempt_id}")
+            raise QuizAttemptAlreadySubmittedError("Lượt làm bài đã được nộp")
 
         quiz = await self._quiz_repo.get_by_id(attempt.quiz_id)
         if not quiz:
+            logger.warning(f"Failed to submit attempt: Quiz {attempt.quiz_id} not found")
             raise QuizNotFoundError("Quiz không tồn tại")
 
         correct_count = 0
@@ -89,4 +100,6 @@ class QuizUseCase:
 
         score = (correct_count / total_questions) * 100 if total_questions > 0 else 0.0
 
-        return await self._attempt_repo.complete(attempt, score)
+        completed_attempt = await self._attempt_repo.complete(attempt, score)
+        logger.info(f"Student {student.id} submitted attempt {attempt_id} with score {score}")
+        return completed_attempt
