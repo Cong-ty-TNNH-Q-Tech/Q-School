@@ -88,10 +88,11 @@ export function useEssaySubmission() {
         const updated = response.data
         if (updated) {
           setSubmission((prev) => {
-            if (prev && prev.status === updated.status && prev.score === updated.score) {
+            if (!prev) return prev
+            if (prev.status === updated.status && prev.score === updated.score) {
               return prev
             }
-            return { ...prev, ...updated } as typeof prev
+            return { ...prev, ...updated } as typeof prev // Merge để giữ lại id và các trường gốc
           })
           
           if (updated.status === 'completed' || updated.status === 'failed') {

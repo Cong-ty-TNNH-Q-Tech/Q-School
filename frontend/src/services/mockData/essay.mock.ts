@@ -1,4 +1,4 @@
-import type { EssaySubmission, EssaySubmissionRequest, Rubric } from '@/models/quiz'
+import type { EssaySubmission, EssaySubmissionRequest, EssayStatusResponse, Rubric } from '@/models/quiz'
 
 // ============================================================
 // [MOCK] Danh sách Rubric — hardcode data
@@ -107,9 +107,11 @@ export const submitEssayMock = async (request: EssaySubmissionRequest): Promise<
 // ============================================================
 // [MOCK] Poll essay status
 // TODO:BACKEND — Replace with: GET /api/v1/essays/{id}/status
+// NOTE — Backend chỉ trả về { status, ai_feedback, score }.
+//        Frontend phải merge vào state hiện tại (giữ lại id, content, v.v).
 // NOTE — Mỗi lần gọi sẽ simulate tiến 1 bước trong pipeline
 // ============================================================
-export const pollEssayStatusMock = async (id: string): Promise<{ status: string, data: EssaySubmission | null }> => {
+export const pollEssayStatusMock = async (id: string): Promise<{ status: string, data: EssayStatusResponse | null }> => {
   return new Promise(resolve => {
     setTimeout(() => {
       const subIndex = mockSubmissions.findIndex(s => s.id === id)
@@ -120,10 +122,13 @@ export const pollEssayStatusMock = async (id: string): Promise<{ status: string,
       // Simulate state transitions: pending -> processing -> completed
       if (sub.status === 'pending') {
         mockSubmissions[subIndex] = { ...sub, status: 'processing' }
+        resolve({
+          status: 'success',
+          data: { status: 'processing', ai_feedback: null, score: null }
+        })
       } else if (sub.status === 'processing') {
-        mockSubmissions[subIndex] = { 
-          ...sub, 
-          status: 'completed',
+        const completedData = {
+          status: 'completed' as const,
           score: Math.floor(Math.random() * 3) + 7, // 7-9 points
           ai_feedback: {
             summary: "Bài viết có bố cục rõ ràng, lập luận chặt chẽ.",
@@ -135,9 +140,15 @@ export const pollEssayStatusMock = async (id: string): Promise<{ status: string,
             ]
           }
         }
+        mockSubmissions[subIndex] = { ...sub, ...completedData }
+        resolve({ status: 'success', data: completedData })
+      } else {
+        // Already completed or failed — return current state
+        resolve({
+          status: 'success',
+          data: { status: sub.status, ai_feedback: sub.ai_feedback, score: sub.score }
+        })
       }
-      
-      resolve({ status: 'success', data: { ...mockSubmissions[subIndex] } })
     }, 300)
   })
 }
