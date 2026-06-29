@@ -1,4 +1,6 @@
 import logging
+import asyncio
+import contextlib
 import aioboto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
@@ -20,18 +22,33 @@ class R2StorageAdapter(IStorageService):
         self.public_url = settings.S3_PUBLIC_URL.rstrip('/')
         # MinIO/R2 cần signature S3v4
         self.boto_config = Config(signature_version='s3v4')
+        self._client = None
+        self._exit_stack = None
+        self._lock = asyncio.Lock()
         
-    def _get_client(self):
-        # Cloudflare R2 yêu cầu region_name='auto', MinIO cần 'us-east-1' hoặc region chuẩn
-        region = 'auto' if 'cloudflarestorage' in (self.endpoint_url or "") else 'us-east-1'
-        return self.session.client(
-            's3',
-            endpoint_url=self.endpoint_url if self.endpoint_url else None,
-            aws_access_key_id=self.access_key,
-            aws_secret_access_key=self.secret_key,
-            region_name=region,
-            config=self.boto_config
-        )
+    async def get_client(self):
+        if self._client is None:
+            async with self._lock:
+                if self._client is None:
+                    self._exit_stack = contextlib.AsyncExitStack()
+                    # Cloudflare R2 yêu cầu region_name='auto', MinIO cần 'us-east-1' hoặc region chuẩn
+                    region = 'auto' if 'cloudflarestorage' in (self.endpoint_url or "") else 'us-east-1'
+                    client_ctx = self.session.client(
+                        's3',
+                        endpoint_url=self.endpoint_url if self.endpoint_url else None,
+                        aws_access_key_id=self.access_key,
+                        aws_secret_access_key=self.secret_key,
+                        region_name=region,
+                        config=self.boto_config
+                    )
+                    self._client = await self._exit_stack.enter_async_context(client_ctx)
+        return self._client
+        
+    async def close(self):
+        if self._exit_stack:
+            await self._exit_stack.aclose()
+            self._exit_stack = None
+            self._client = None
         
     def _extract_key_from_url(self, file_url: str) -> str:
         """
@@ -59,8 +76,8 @@ class R2StorageAdapter(IStorageService):
         extra_args = {'ContentType': content_type}
         
         try:
-            async with self._get_client() as s3_client:
-                await s3_client.put_object(
+            s3_client = await self.get_client()
+            await s3_client.put_object(
                     Bucket=self.bucket_name,
                     Key=filename,
                     Body=file_bytes,
@@ -82,8 +99,8 @@ class R2StorageAdapter(IStorageService):
         """
         key = self._extract_key_from_url(file_url)
         try:
-            async with self._get_client() as s3_client:
-                response = await s3_client.get_object(
+            s3_client = await self.get_client()
+            response = await s3_client.get_object(
                     Bucket=self.bucket_name,
                     Key=key
                 )
@@ -97,8 +114,8 @@ class R2StorageAdapter(IStorageService):
         """Xóa file khỏi storage theo URL."""
         key = self._extract_key_from_url(file_url)
         try:
-            async with self._get_client() as s3_client:
-                await s3_client.delete_object(
+            s3_client = await self.get_client()
+            await s3_client.delete_object(
                     Bucket=self.bucket_name,
                     Key=key
                 )
@@ -115,8 +132,8 @@ class R2StorageAdapter(IStorageService):
             
         key = self._extract_key_from_url(file_url)
         try:
-            async with self._get_client() as s3_client:
-                url = await s3_client.generate_presigned_url(
+            s3_client = await self.get_client()
+            url = await s3_client.generate_presigned_url(
                     ClientMethod='get_object',
                     Params={
                         'Bucket': self.bucket_name,

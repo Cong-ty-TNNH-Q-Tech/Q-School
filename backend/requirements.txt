@@ -12,8 +12,8 @@ psycopg2-binary>=2.9.12
 pgvector>=0.4.2
 
 # Storage & AI
-boto3                  # Cho Cloudflare R2 / MinIO / S3
-aioboto3               # Async client cho boto3
+boto3>=1.34.0          # Cho Cloudflare R2 / MinIO / S3
+aioboto3>=13.0.0       # Async client cho boto3
 openai>=2.44.0          # Giao tiếp với vLLM server (OpenAI-compatible API)
 httpx>=0.28.1          # Async HTTP client
 
