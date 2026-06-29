@@ -3,7 +3,7 @@ import os
 import tempfile
 import logging
 import yt_dlp
-import whisper
+from faster_whisper import WhisperModel
 from typing import List, Dict
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled, NoTranscriptFound
 from app.application.ports.outbound.youtube_port import IYouTubeTranscriptAdapter
@@ -16,7 +16,7 @@ def get_whisper_model():
     global _whisper_model
     if _whisper_model is None:
         logger.info("Đang load Whisper model vào RAM (chỉ chạy 1 lần)...")
-        _whisper_model = whisper.load_model("base")
+        _whisper_model = WhisperModel("small", device="cpu", compute_type="int8")
     return _whisper_model
 
 class YouTubeTranscriptAdapter(IYouTubeTranscriptAdapter):
@@ -65,19 +65,19 @@ class YouTubeTranscriptAdapter(IYouTubeTranscriptAdapter):
                 
                 logger.info(f"Đang chạy Whisper để tạo phụ đề cho {video_id}...")
                 try:
-                    # Sử dụng model 'base' được cache
+                    # Sử dụng model 'small' được cache
                     model = get_whisper_model()
-                    result = model.transcribe(audio_path)
+                    segments, info = model.transcribe(audio_path, beam_size=5)
                 except Exception as e:
                     logger.error(f"Lỗi khi chạy Whisper: {e}")
                     raise ValueError("Có lỗi xảy ra trong quá trình nhận diện giọng nói.") from e
                 
                 transcript_data = []
-                for segment in result.get("segments", []):
+                for segment in segments:
                     transcript_data.append({
-                        "start": segment["start"],
-                        "duration": segment["end"] - segment["start"],
-                        "text": segment["text"].strip()
+                        "start": segment.start,
+                        "duration": segment.end - segment.start,
+                        "text": segment.text.strip()
                     })
                     
                 if not transcript_data:

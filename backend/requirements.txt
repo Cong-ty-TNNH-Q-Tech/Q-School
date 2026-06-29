@@ -39,4 +39,4 @@ anyio>=4.14.1           # Backend cho pytest-asyncio
 # Video Processing
 youtube-transcript-api>=0.6.3
 yt-dlp>=2024.5.27
-openai-whisper>=20231117
+faster-whisper>=1.0.2
