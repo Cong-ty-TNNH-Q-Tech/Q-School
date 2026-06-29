@@ -39,6 +39,30 @@ export interface UseLessonFormReturn {
 
 const DEFAULT_SECTION = { title: '', content: '', duration_minutes: 0 }
 
+function deriveFormValues(lesson: { title: string; subject: string | null; grade_level: string | null; content: LessonContent | null } | null) {
+  if (!lesson) {
+    return {
+      title: '',
+      subject: '',
+      gradeLevel: '',
+      objectives: [''],
+      sections: [DEFAULT_SECTION] as Required<LessonContent>['sections'],
+      materials: [''],
+      homework: '',
+    }
+  }
+  const content = lesson.content
+  return {
+    title: lesson.title,
+    subject: lesson.subject || '',
+    gradeLevel: lesson.grade_level || '',
+    objectives: content?.objectives?.length ? content.objectives : [''],
+    sections: content?.sections?.length ? content.sections : [DEFAULT_SECTION] as Required<LessonContent>['sections'],
+    materials: content?.materials?.length ? content.materials : [''],
+    homework: content?.homework || '',
+  }
+}
+
 export function useLessonForm(lessonId?: string): UseLessonFormReturn {
   const isEditMode = Boolean(lessonId)
   const navigate = useNavigate()
@@ -52,51 +76,32 @@ export function useLessonForm(lessonId?: string): UseLessonFormReturn {
     }
   }, [isEditMode, lessonId, fetchLessonDetail])
 
-  // Derive initial values from selectedLesson (avoids setState inside effect)
-  const initialValues = useMemo(() => {
-    if (isEditMode && selectedLesson) {
-      const content = selectedLesson.content
-      return {
-        title: selectedLesson.title,
-        subject: selectedLesson.subject || '',
-        gradeLevel: selectedLesson.grade_level || '',
-        objectives: content?.objectives?.length ? content.objectives : [''],
-        sections: content?.sections?.length ? content.sections : [DEFAULT_SECTION],
-        materials: content?.materials?.length ? content.materials : [''],
-        homework: content?.homework || '',
-      }
-    }
-    return {
-      title: '',
-      subject: '',
-      gradeLevel: '',
-      objectives: [''],
-      sections: [DEFAULT_SECTION],
-      materials: [''],
-      homework: '',
-    }
-  }, [isEditMode, selectedLesson])
+  // Track which lesson we last synced — "adjusting state during render" pattern
+  // (React docs: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)
+  const [syncedLessonId, setSyncedLessonId] = useState<string | undefined>(undefined)
 
-  // Form State
-  const [title, setTitle] = useState(initialValues.title)
-  const [subject, setSubject] = useState(initialValues.subject)
-  const [gradeLevel, setGradeLevel] = useState(initialValues.gradeLevel)
-  const [objectives, setObjectives] = useState<string[]>(initialValues.objectives)
-  const [sections, setSections] = useState<Required<LessonContent>['sections']>(initialValues.sections)
-  const [materials, setMaterials] = useState<string[]>(initialValues.materials)
-  const [homework, setHomework] = useState(initialValues.homework)
+  const defaults = useMemo(() => deriveFormValues(null), [])
 
-  // Sync form state when initialValues change (lesson data loaded async)
-  useEffect(() => {
-    setTitle(initialValues.title)
-    setSubject(initialValues.subject)
-    setGradeLevel(initialValues.gradeLevel)
-    setObjectives(initialValues.objectives)
-    setSections(initialValues.sections)
-    setMaterials(initialValues.materials)
-    setHomework(initialValues.homework)
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional sync from derived initialValues
-  }, [initialValues])
+  const [title, setTitle] = useState(defaults.title)
+  const [subject, setSubject] = useState(defaults.subject)
+  const [gradeLevel, setGradeLevel] = useState(defaults.gradeLevel)
+  const [objectives, setObjectives] = useState<string[]>(defaults.objectives)
+  const [sections, setSections] = useState<Required<LessonContent>['sections']>(defaults.sections)
+  const [materials, setMaterials] = useState<string[]>(defaults.materials)
+  const [homework, setHomework] = useState(defaults.homework)
+
+  // Adjust state during render when selectedLesson arrives (no useEffect needed)
+  if (isEditMode && selectedLesson && selectedLesson.id !== syncedLessonId) {
+    const vals = deriveFormValues(selectedLesson)
+    setSyncedLessonId(selectedLesson.id)
+    setTitle(vals.title)
+    setSubject(vals.subject)
+    setGradeLevel(vals.gradeLevel)
+    setObjectives(vals.objectives)
+    setSections(vals.sections)
+    setMaterials(vals.materials)
+    setHomework(vals.homework)
+  }
 
   // Handlers for dynamic lists
   const handleObjectiveChange = (index: number, value: string) => {
