@@ -1768,14 +1768,20 @@ paths:
 
   /chat/sessions:
     post:
-      summary: Tạo phòng Chat AI mới (Optional Context Document)
+      summary: Tạo phòng Chat AI mới
       tags: [AI Workspace]
+      security:
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
+                title:
+                  type: string
+                ai_persona:
+                  type: string
                 document_id:
                   type: string
                   format: uuid
@@ -1796,14 +1802,44 @@ paths:
                       session_id:
                         type: string
                         format: uuid
+    get:
+      summary: Lấy danh sách Chat Session
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/CursorParam'
+      responses:
+        '200':
+          description: OK
 
   /chat/sessions/{session_id}/messages:
+    get:
+      summary: Lấy danh sách Messages trong Session
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/CursorParam'
+      responses:
+        '200':
+          description: OK
     post:
       summary: Send a message to AI Tutor (Stream SSE)
       description: |
         Endpoint này nhận tin nhắn của User và trả về luồng dữ liệu (Stream) từng chữ của AI sử dụng chuẩn Server-Sent Events (SSE). 
         Frontend đọc luồng này bằng `fetch()` hoặc `EventSource` để hiển thị chữ kiểu gõ phím.
       tags: [AI Workspace]
+      security:
+        - bearerAuth: []
       parameters:
         - name: session_id
           in: path
@@ -1841,47 +1877,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaymentRequiredError'
-    get:
-      summary: Lấy lịch sử tin nhắn của một phiên Chat AI
-      tags: [AI Workspace]
-      parameters:
-        - name: session_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - $ref: '#/components/parameters/CursorParam'
-        - $ref: '#/components/parameters/LimitParam'
-      responses:
-        '200':
-          description: Lịch sử hội thoại
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        sender_type:
-                          type: string
-                          enum: [user, ai]
-                        content:
-                          type: string
-                        created_at:
-                          type: string
-                          format: date-time
-                  meta:
-                    $ref: '#/components/schemas/PaginationMeta'
 
   # ==========================================
   # GROUP 5: BILLING & SUBSCRIPTIONS

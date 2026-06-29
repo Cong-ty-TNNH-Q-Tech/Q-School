@@ -70,6 +70,7 @@ class IChatRepository(ABC):
         *,
         limit: int = 20,
         cursor_created_at: "datetime | None" = None,
+        cursor_id: UUID | None = None,
         ascending: bool = True,
     ) -> list[ChatMessage]:
         """
@@ -87,6 +88,11 @@ class IChatRepository(ABC):
     async def add_message(
         self, session_id: UUID, sender_type: str, content: str
     ) -> ChatMessage: ...
+
+    @abstractmethod
+    async def commit(self) -> None:
+        """Thực hiện commit transaction hiện tại vào DB."""
+        ...
 
 
 class IAITaskRepository(ABC):
