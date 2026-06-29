@@ -101,6 +101,14 @@ class Settings(BaseSettings):
     FREE_PLAN_AI_REQUESTS_PER_DAY: int = 10
     PRO_PLAN_AI_REQUESTS_PER_DAY: int = 200
 
+    # ──────────────────────────────────────────────
+    # Payment (SePay)
+    # ──────────────────────────────────────────────
+    SEPAY_API_TOKEN: str = "test_api_token"
+    SEPAY_WEBHOOK_SECRET: str = "test_webhook_secret"
+    SEPAY_ACCOUNT_NUMBER: str = "0010000000355"
+    SEPAY_BANK: str = "Vietcombank"
+
     @model_validator(mode="after")
     def validate_production_secrets(self) -> "Settings":
         """
