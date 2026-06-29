@@ -22,7 +22,7 @@ class IBillingRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_transaction_by_id(self, transaction_id: uuid.UUID) -> Optional[PaymentTransaction]:
+    async def get_transaction_by_id(self, transaction_id: uuid.UUID, for_update: bool = False) -> Optional[PaymentTransaction]:
         pass
 
     @abstractmethod

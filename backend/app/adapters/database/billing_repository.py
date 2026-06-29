@@ -27,10 +27,11 @@ class BillingRepository(IBillingRepository):
         await self.session.flush()
         return transaction
 
-    async def get_transaction_by_id(self, transaction_id: uuid.UUID) -> Optional[PaymentTransaction]:
-        result = await self.session.execute(
-            select(PaymentTransaction).where(PaymentTransaction.id == transaction_id)
-        )
+    async def get_transaction_by_id(self, transaction_id: uuid.UUID, for_update: bool = False) -> Optional[PaymentTransaction]:
+        stmt = select(PaymentTransaction).where(PaymentTransaction.id == transaction_id)
+        if for_update:
+            stmt = stmt.with_for_update()
+        result = await self.session.execute(stmt)
         return result.scalars().first()
 
     async def update_transaction(self, transaction: PaymentTransaction) -> PaymentTransaction:

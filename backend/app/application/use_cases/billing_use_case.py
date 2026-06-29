@@ -1,10 +1,11 @@
 import uuid
 import logging
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any
 
 from app.application.ports.outbound.billing_repository import IBillingRepository
 from app.adapters.payment.factory import PaymentGatewayFactory
-from app.domain.models.billing import PaymentTransaction, PaymentStatus, PaymentProvider
+from app.domain.models.billing import PaymentTransaction, PaymentStatus, PaymentProvider, UserSubscription
 from app.domain.exceptions import PlanNotFoundError, PaymentTransactionNotFoundError, InvalidPaymentWebhookError
 
 logger = logging.getLogger(__name__)
@@ -82,8 +83,8 @@ class ProcessWebhookUseCase:
         except ValueError:
             raise InvalidPaymentWebhookError(f"transaction_id không hợp lệ: {transaction_id_str}")
             
-        # 3. Get transaction
-        transaction = await self.billing_repo.get_transaction_by_id(transaction_uuid)
+        # 3. Get transaction (Lock for update to prevent concurrent race conditions)
+        transaction = await self.billing_repo.get_transaction_by_id(transaction_uuid, for_update=True)
         if not transaction:
             raise PaymentTransactionNotFoundError("Transaction không tồn tại")
             
@@ -105,11 +106,11 @@ class ProcessWebhookUseCase:
         if status == PaymentStatus.SUCCESS and transaction.plan_id:
             logger.info(f"Thanh toán thành công cho transaction {transaction.id}. Cập nhật subscription...")
             
-            from datetime import datetime, timezone, timedelta
-            from app.domain.models.billing import UserSubscription
-            
             now = datetime.now(timezone.utc)
             plan = await self.billing_repo.get_plan_by_id(transaction.plan_id)
+            if not plan:
+                logger.error(f"Gói cước {transaction.plan_id} không tồn tại cho transaction {transaction.id}")
+                return
             
             # Tính thời gian gia hạn dựa trên chu kỳ gói cước (tạm tính 30 ngày cho monthly, 365 ngày cho yearly)
             delta = timedelta(days=30) if plan.billing_cycle == "monthly" else timedelta(days=365)
