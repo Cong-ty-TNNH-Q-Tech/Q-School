@@ -4,6 +4,7 @@ Outbound Port — Repository Interface cho Quiz, Question, Attempt.
 
 from abc import ABC, abstractmethod
 from uuid import UUID
+from datetime import datetime
 
 from app.domain.models.quiz import Quiz, QuizAttempt, EssaySubmission
 
@@ -54,9 +55,15 @@ class IEssaySubmissionRepository(ABC):
 
     @abstractmethod
     async def list_by_student(
-        self, student_id: UUID, *, limit: int = 20
+        self,
+        student_id: UUID,
+        *,
+        limit: int = 20,
+        cursor_created_at: "datetime | None" = None,
+        cursor_id: UUID | None = None,
+        ascending: bool = False,
     ) -> list[EssaySubmission]:
-        """Lấy tất cả bài viết của student, giới hạn bởng limit."""
+        """Lấy tất cả bài viết của student, hỗ trợ cursor pagination."""
         ...
 
     @abstractmethod

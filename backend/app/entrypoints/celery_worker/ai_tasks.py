@@ -105,6 +105,38 @@ class AIBaseTask(Task):
         )
 
 
+async def _run_process_essay_grading_async(essay_submission_id: str, user_id: str, ai_task_id: str | None) -> dict:
+    import uuid
+    from app.core.database import AsyncSessionFactory
+    from app.adapters.database.essay_repository import SQLAlchemyEssaySubmissionRepository
+    from app.adapters.database.ai_task_repository import SQLAlchemyAITaskRepository
+    from app.adapters.llm_client.llm_factory import get_llm_service
+    from app.application.use_cases.essay_use_case import EssayUseCase
+
+    async with AsyncSessionFactory() as session:
+        try:
+            essay_repo = SQLAlchemyEssaySubmissionRepository(session)
+            task_repo = SQLAlchemyAITaskRepository(session)
+            llm_service = get_llm_service()
+
+            use_case = EssayUseCase(
+                essay_repo=essay_repo,
+                task_repo=task_repo,
+                llm_service=llm_service,
+            )
+
+            result = await use_case.grade_submission_async(
+                submission_id=uuid.UUID(essay_submission_id),
+                ai_task_id=uuid.UUID(ai_task_id) if ai_task_id else None,
+            )
+
+            await session.commit()
+            return result
+        except Exception as exc:
+            await session.rollback()
+            raise exc
+
+
 @celery_app.task(
     bind=True,
     base=AIBaseTask,
@@ -117,27 +149,17 @@ def process_essay_grading(
 ) -> dict:
     """
     Background task: Chấm điểm bài văn tự luận bằng AI.
-    ai_task_id: UUID của AITask record trong DB (dùng cho on_failure DB update)
-
-    Flow dự kiến (TODO member implement):
-        1. Kiểm tra idempotency: nếu AITask.status == 'completed', return luôn
-        2. Update AITask.status = 'processing'
-        3. Load EssaySubmission + Rubric từ DB
-        4. Gọi ILLMService.generate() với nội dung + rubric
-        5. Parse kết quả AI -> ai_feedback JSONB
-        6. Update EssaySubmission.score + AITask.status = 'completed'
     """
     logger.info(
         "[essay_grading] START submission=%s ai_task_id=%s",
         essay_submission_id,
         ai_task_id,
     )
+    import asyncio
     try:
-        # TODO: Implement khi AI pipeline sẵn sàng.
-        # QUAN TRọNG: Kiểm tra idempotency trước khi chạy:
-        #   result = db.execute("SELECT status FROM ai_tasks WHERE id = :id", {"id": ai_task_id})
-        #   if result.status == 'completed': return {"status": "already_completed"}
-        return {"status": "not_implemented", "task_id": self.request.id}
+        return asyncio.run(
+            _run_process_essay_grading_async(essay_submission_id, user_id, ai_task_id)
+        )
     except Exception as exc:
         logger.error(
             "[essay_grading] FAIL submission=%s error=%s", essay_submission_id, exc
