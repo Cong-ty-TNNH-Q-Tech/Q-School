@@ -109,3 +109,28 @@ async def test_r2_adapter_upload_exception(mock_aioboto3_session):
     
     with pytest.raises(Exception, match="Storage upload error"):
         await adapter.upload(b"data", "test.txt", "text/plain")
+
+@pytest.mark.asyncio
+async def test_r2_adapter_download(mock_aioboto3_session):
+    _, mock_s3_client = mock_aioboto3_session
+    mock_response = {'Body': AsyncMock()}
+    mock_response['Body'].read.return_value = b"downloaded data"
+    mock_s3_client.get_object.return_value = mock_response
+    adapter = R2StorageAdapter()
+    
+    data = await adapter.download(f"s3://{adapter.bucket_name}/test.txt")
+    
+    mock_s3_client.get_object.assert_called_once_with(
+        Bucket=adapter.bucket_name,
+        Key="test.txt"
+    )
+    assert data == b"downloaded data"
+
+@pytest.mark.asyncio
+async def test_r2_adapter_download_exception(mock_aioboto3_session):
+    _, mock_s3_client = mock_aioboto3_session
+    mock_s3_client.get_object.side_effect = ClientError({"Error": {"Code": "404", "Message": "Not Found"}}, "get_object")
+    adapter = R2StorageAdapter()
+    
+    with pytest.raises(Exception, match="Storage download error"):
+        await adapter.download(f"s3://{adapter.bucket_name}/test.txt")
