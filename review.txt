@@ -1,0 +1,18 @@
+Chào @thinhlai06, cảm ơn bạn vì Pull Request UI/UX rất xịn xò. MVVM pattern bạn làm cũng rất chuẩn chỉ. Tuy nhiên, tôi cần bạn sửa lại vài điểm trước khi có thể merge:
+
+**1. Vi phạm Quy tắc Dự án (AGENTS.md - Điều 7.3):**
+PR của bạn có Description trống trơn. Quy định yêu cầu phải có keyword link issue. Vui lòng update lại Description của PR và thêm vào dòng chữ `closes #212` để hệ thống tự động link và đóng issue khi merge.
+
+**2. Trùng lặp API Route trong `openapi.yaml`:**
+Bạn đã khai báo thêm `/essays/submit` (và `/essays/{id}/status`, `/uploads/image`) ở cuối file. 
+Thực tế, `openapi.yaml` đã có sẵn route `/essays/submissions` (ở dòng 1374) cho việc nộp bài tự luận với đúng payload schema `EssaySubmissionRequest` mà bạn muốn.
+Việc tạo endpoint mới làm trùng lặp logic hệ thống.
+**Yêu cầu:** 
+- Xóa khai báo `/essays/submit` ở cuối file.
+- Gộp các API con như `/essays/{id}/status` và `/uploads/image` lên phần Group `Student Tracking` (cạnh `/essays/submissions`).
+- Thay đổi code Frontend (file Mock) để sử dụng `/essays/submissions` thay vì `/essays/submit`.
+
+**3. Khuyến nghị cấu hình Docker Compose:**
+Việc dùng tag `:latest` cho `minio`, `mc` và `adminer` trong `docker-compose.yml` có rủi ro tiềm ẩn (có thể chạy bình thường hôm nay nhưng ngày mai update bản lỗi làm sập toàn bộ môi trường của các thành viên khác). Vui lòng revert lại về đúng các version release tag cụ thể trước đó để đảm bảo tính ổn định (Reproducibility).
+
+Bạn fix các vấn đề này xong ping tôi để tôi Approve nhé!

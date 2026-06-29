@@ -1,0 +1,13 @@
+Chào @ThanhTrunggDEV,
+
+Tôi đã review kỹ PR #230 của bạn (R2/MinIO Storage Adapter). Nhìn chung, việc thiết lập `aioboto3` và cách tổ chức code theo Hexagonal Architecture (adapter đặt đúng chuẩn) là rất tốt, tuân thủ đúng yêu cầu không hardcode API Keys và có log lỗi cẩn thận.
+
+Tuy nhiên, PR này đang gặp một lỗi **rất nghiêm trọng (Critical)** vi phạm nguyên tắc thiết kế SOLID và sẽ gây sập ứng dụng:
+
+### 🚨 Bắt buộc phải sửa (Blocker):
+1. **Thiếu implement phương thức `download`:** Interface `IStorageService` (port outbound) có khai báo `@abstractmethod async def download(self, file_url: str) -> bytes:`. Tuy nhiên, trong `R2StorageAdapter` bạn đã quên implement hàm này. Vì kế thừa từ `abc.ABC`, Python sẽ ném ra lỗi `TypeError: Can't instantiate abstract class R2StorageAdapter with abstract methods download` ngay tại thời điểm runtime khởi tạo đối tượng, dẫn đến ứng dụng bị crash. 
+Bạn cần bổ sung hàm `download` vào adapter (sử dụng `s3_client.get_object`) và viết thêm test case cho nó.
+
+2. Mô tả PR hiện tại có chứa `Closes #94`, đúng theo quy chuẩn AGENTS.md, rất tốt.
+
+Vui lòng bổ sung phương thức `download` và test case tương ứng nhé. Tôi sẽ **Request Changes** ở PR này. Cập nhật xong báo tôi để review lại nhé!

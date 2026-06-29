@@ -1,0 +1,2040 @@
+﻿diff --git a/frontend/package-lock.json b/frontend/package-lock.json
+index 3af4d52..2f04ca4 100644
+--- a/frontend/package-lock.json
++++ b/frontend/package-lock.json
+@@ -9,6 +9,7 @@
+       "version": "0.0.0",
+       "dependencies": {
+         "@hookform/resolvers": "^5.4.0",
++        "@radix-ui/react-alert-dialog": "^1.1.17",
+         "@radix-ui/react-avatar": "^1.2.0",
+         "@radix-ui/react-dialog": "^1.1.15",
+         "@radix-ui/react-dropdown-menu": "^2.1.16",
+@@ -916,6 +917,110 @@
+       "integrity": "sha512-JTF99U/6XIjCBo0wqkU5sK10glYe27MRRsfwoiq5zzOEZLHU3A3KCMa5X/azekYRCJ0HlwI0crAXS/5dEHTzDg==",
+       "license": "MIT"
+     },
++    "node_modules/@radix-ui/react-alert-dialog": {
++      "version": "1.1.17",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-alert-dialog/-/react-alert-dialog-1.1.17.tgz",
++      "integrity": "sha512-563ygGeyWPrxyVCNp7OV4rE2aIXhFPknpFyo4wbDlcyMMPZ6ySh+zC5WTvY0ZFLgPTg/QB6tA8PyDQyJ2b4cPg==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/primitive": "1.1.4",
++        "@radix-ui/react-compose-refs": "1.1.3",
++        "@radix-ui/react-context": "1.1.4",
++        "@radix-ui/react-dialog": "1.1.17",
++        "@radix-ui/react-primitive": "2.1.6"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "@types/react-dom": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
++        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        },
++        "@types/react-dom": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-alert-dialog/node_modules/@radix-ui/primitive": {
++      "version": "1.1.4",
++      "resolved": "https://registry.npmjs.org/@radix-ui/primitive/-/primitive-1.1.4.tgz",
++      "integrity": "sha512-7AdCK9PQyiljKoBDbN8OuctCbd/esdwZPQ8RtOE3SsyQtUpiPb+ND75q0jEhC1m1ecBI0MFNeLJvwIh9iKHRcQ==",
++      "license": "MIT"
++    },
++    "node_modules/@radix-ui/react-alert-dialog/node_modules/@radix-ui/react-compose-refs": {
++      "version": "1.1.3",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.3.tgz",
++      "integrity": "sha512-rYOP8OMnuuPMQF1uhPVlGNcCDlkokKqGFE3JcxFViIkAXP7EvFWUliJAstrapypaBLJNHbZL6jGhbVDGTwmVhA==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-alert-dialog/node_modules/@radix-ui/react-context": {
++      "version": "1.1.4",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-context/-/react-context-1.1.4.tgz",
++      "integrity": "sha512-QwH4PO5urrbO+FaGd5Aglg+YJgWTyyuZ3g/6mKvsqraLkglDdckw9JafgL5McL5VEJ6EPNduPaT3ZE9BttDAqg==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-alert-dialog/node_modules/@radix-ui/react-primitive": {
++      "version": "2.1.6",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-primitive/-/react-primitive-2.1.6.tgz",
++      "integrity": "sha512-wetd0QI77DbvrPpTAvH1SqOxsYF2wZe5TNxqwOd5Ty4XDpV3dpV0s8K/1MGMJBeY5o7lg8ub5VIt1Ub+yVen6g==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-slot": "1.3.0"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "@types/react-dom": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
++        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        },
++        "@types/react-dom": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-alert-dialog/node_modules/@radix-ui/react-slot": {
++      "version": "1.3.0",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-slot/-/react-slot-1.3.0.tgz",
++      "integrity": "sha512-MojKku4U/miO8Av4Dkb+ctMAQx7JmY96LmtDQlAarCRtd7rN52QCSzBF+XAvr5S6coSVj9HEPBgHAHKEJVk/WA==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-compose-refs": "1.1.3"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
+     "node_modules/@radix-ui/react-arrow": {
+       "version": "1.1.7",
+       "resolved": "https://registry.npmjs.org/@radix-ui/react-arrow/-/react-arrow-1.1.7.tgz",
+@@ -1142,25 +1247,216 @@
+       }
+     },
+     "node_modules/@radix-ui/react-dialog": {
+-      "version": "1.1.15",
+-      "resolved": "https://registry.npmjs.org/@radix-ui/react-dialog/-/react-dialog-1.1.15.tgz",
+-      "integrity": "sha512-TCglVRtzlffRNxRMEyR36DGBLJpeusFcgMVD9PZEzAKnUs1lKCgX5u9BmC2Yg+LL9MgZDugFFs1Vl+Jp4t/PGw==",
++      "version": "1.1.17",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-dialog/-/react-dialog-1.1.17.tgz",
++      "integrity": "sha512-TDTYmpdq8dI2+Xgvgj9AJ8Ghqq+Eph/TRVEdaFQPDItIY+6QSkU7MJMeevw1568Yw/2Ijz8BTphPSP2XejKphw==",
+       "license": "MIT",
+       "dependencies": {
+-        "@radix-ui/primitive": "1.1.3",
+-        "@radix-ui/react-compose-refs": "1.1.2",
+-        "@radix-ui/react-context": "1.1.2",
+-        "@radix-ui/react-dismissable-layer": "1.1.11",
+-        "@radix-ui/react-focus-guards": "1.1.3",
+-        "@radix-ui/react-focus-scope": "1.1.7",
+-        "@radix-ui/react-id": "1.1.1",
+-        "@radix-ui/react-portal": "1.1.9",
+-        "@radix-ui/react-presence": "1.1.5",
+-        "@radix-ui/react-primitive": "2.1.3",
+-        "@radix-ui/react-slot": "1.2.3",
+-        "@radix-ui/react-use-controllable-state": "1.2.2",
++        "@radix-ui/primitive": "1.1.4",
++        "@radix-ui/react-compose-refs": "1.1.3",
++        "@radix-ui/react-context": "1.1.4",
++        "@radix-ui/react-dismissable-layer": "1.1.13",
++        "@radix-ui/react-focus-guards": "1.1.4",
++        "@radix-ui/react-focus-scope": "1.1.10",
++        "@radix-ui/react-id": "1.1.2",
++        "@radix-ui/react-portal": "1.1.12",
++        "@radix-ui/react-presence": "1.1.6",
++        "@radix-ui/react-primitive": "2.1.6",
++        "@radix-ui/react-slot": "1.3.0",
++        "@radix-ui/react-use-controllable-state": "1.2.3",
+         "aria-hidden": "^1.2.4",
+-        "react-remove-scroll": "^2.6.3"
++        "react-remove-scroll": "^2.7.2"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "@types/react-dom": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
++        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        },
++        "@types/react-dom": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/primitive": {
++      "version": "1.1.4",
++      "resolved": "https://registry.npmjs.org/@radix-ui/primitive/-/primitive-1.1.4.tgz",
++      "integrity": "sha512-7AdCK9PQyiljKoBDbN8OuctCbd/esdwZPQ8RtOE3SsyQtUpiPb+ND75q0jEhC1m1ecBI0MFNeLJvwIh9iKHRcQ==",
++      "license": "MIT"
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-compose-refs": {
++      "version": "1.1.3",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-compose-refs/-/react-compose-refs-1.1.3.tgz",
++      "integrity": "sha512-rYOP8OMnuuPMQF1uhPVlGNcCDlkokKqGFE3JcxFViIkAXP7EvFWUliJAstrapypaBLJNHbZL6jGhbVDGTwmVhA==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-context": {
++      "version": "1.1.4",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-context/-/react-context-1.1.4.tgz",
++      "integrity": "sha512-QwH4PO5urrbO+FaGd5Aglg+YJgWTyyuZ3g/6mKvsqraLkglDdckw9JafgL5McL5VEJ6EPNduPaT3ZE9BttDAqg==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-dismissable-layer": {
++      "version": "1.1.13",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-dismissable-layer/-/react-dismissable-layer-1.1.13.tgz",
++      "integrity": "sha512-2v+zNAWWe0ySxgC0D0yeXMPQ23xZVgXZTerTz+JKlmdRj6gfTqmCcR29jb6d290DezXPGgruHWDX/vYUebtErg==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/primitive": "1.1.4",
++        "@radix-ui/react-compose-refs": "1.1.3",
++        "@radix-ui/react-primitive": "2.1.6",
++        "@radix-ui/react-use-callback-ref": "1.1.2",
++        "@radix-ui/react-use-escape-keydown": "1.1.2"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "@types/react-dom": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
++        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        },
++        "@types/react-dom": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-focus-guards": {
++      "version": "1.1.4",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-focus-guards/-/react-focus-guards-1.1.4.tgz",
++      "integrity": "sha512-cot/aB/mOm0IYVYTTmQcEEK1M48lZWi8FlYe5nDPQQ8NYZUlXEFgncJ9p2Kzer3RKSrY7cTTpEMLZKNo9QoP5Q==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-focus-scope": {
++      "version": "1.1.10",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-focus-scope/-/react-focus-scope-1.1.10.tgz",
++      "integrity": "sha512-Fas/lXQqhVvqwAb64s5RFeHiHYElZ6SUQbZaNd6EkfhP/Al7wTIQ9WIR4QVX475tlu5yFCEdDcJH6/UwsZjMWw==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-compose-refs": "1.1.3",
++        "@radix-ui/react-primitive": "2.1.6",
++        "@radix-ui/react-use-callback-ref": "1.1.2"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "@types/react-dom": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
++        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        },
++        "@types/react-dom": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-id": {
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-id/-/react-id-1.1.2.tgz",
++      "integrity": "sha512-orBC88futVpqCmhX1p4cvquNHsELQ+w+vBJnuj3ftETI5bJb0bZn3Tqu3SWN2IOcPycTnMGnhwoermvISt72sA==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-use-layout-effect": "1.1.2"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-portal": {
++      "version": "1.1.12",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-portal/-/react-portal-1.1.12.tgz",
++      "integrity": "sha512-m309havGzsjLHHaIX50G5PlvRs3xkgPCsGk/5PTvYm8D5q33yG0J7w/712PTOhid7NTaFETtnSXjngHQavvhVw==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-primitive": "2.1.6",
++        "@radix-ui/react-use-layout-effect": "1.1.2"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "@types/react-dom": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
++        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        },
++        "@types/react-dom": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-presence": {
++      "version": "1.1.6",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-presence/-/react-presence-1.1.6.tgz",
++      "integrity": "sha512-zdTk4PlUO0E18HnZ3wYbW0KkJJxWCdiNYp6g6X1PtONFhxVkg01vliTJAmwIszU6mHiyBOoW9P0rAugl5/hULQ==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-use-layout-effect": "1.1.2"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "@types/react-dom": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
++        "react-dom": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        },
++        "@types/react-dom": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-primitive": {
++      "version": "2.1.6",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-primitive/-/react-primitive-2.1.6.tgz",
++      "integrity": "sha512-wetd0QI77DbvrPpTAvH1SqOxsYF2wZe5TNxqwOd5Ty4XDpV3dpV0s8K/1MGMJBeY5o7lg8ub5VIt1Ub+yVen6g==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-slot": "1.3.0"
+       },
+       "peerDependencies": {
+         "@types/react": "*",
+@@ -1178,12 +1474,46 @@
+       }
+     },
+     "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-slot": {
++      "version": "1.3.0",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-slot/-/react-slot-1.3.0.tgz",
++      "integrity": "sha512-MojKku4U/miO8Av4Dkb+ctMAQx7JmY96LmtDQlAarCRtd7rN52QCSzBF+XAvr5S6coSVj9HEPBgHAHKEJVk/WA==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-compose-refs": "1.1.3"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-use-callback-ref": {
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-use-callback-ref/-/react-use-callback-ref-1.1.2.tgz",
++      "integrity": "sha512-xCso9j1/u8sEgP1RNHjFrXJLApL8LiqOkI1R4ywuN00rxWdYg4oQXuwKLS3i0j5NWLromUD27/4nlxj2UFVvIw==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-use-controllable-state": {
+       "version": "1.2.3",
+-      "resolved": "https://registry.npmjs.org/@radix-ui/react-slot/-/react-slot-1.2.3.tgz",
+-      "integrity": "sha512-aeNmHnBxbi2St0au6VBVC7JXFlhLlOnvIIlePNniyUNAClzmtAUEY8/pBiK3iHjufOlwA+c20/8jngo7xcrg8A==",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-use-controllable-state/-/react-use-controllable-state-1.2.3.tgz",
++      "integrity": "sha512-PLzC90MS+ReootmjC597dvopoelpZ8Q61HJkDXZSExitIq7PL55vHNnesAHwguHK0aPfBnpdNzQtv1uliaqQrA==",
+       "license": "MIT",
+       "dependencies": {
+-        "@radix-ui/react-compose-refs": "1.1.2"
++        "@radix-ui/react-use-effect-event": "0.0.3",
++        "@radix-ui/react-use-layout-effect": "1.1.2"
+       },
+       "peerDependencies": {
+         "@types/react": "*",
+@@ -1195,6 +1525,57 @@
+         }
+       }
+     },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-use-effect-event": {
++      "version": "0.0.3",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-use-effect-event/-/react-use-effect-event-0.0.3.tgz",
++      "integrity": "sha512-6c8ZqvPTWILEKnyVkP53EGRCcpnJiKTC21sS/6R1GF5xKyHJJWQEPfkqlcgUkdRQivd6tb23abUwe4ngWmY0JA==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-use-layout-effect": "1.1.2"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-use-escape-keydown": {
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-use-escape-keydown/-/react-use-escape-keydown-1.1.2.tgz",
++      "integrity": "sha512-2uVLvLjgO7NZCWw01/FdqRwmA42J0BcjPMUCA+koFEOAb+zjqIP7SiFz/7zWPrKnVmSqr76Omq2ALyCuX4dhLw==",
++      "license": "MIT",
++      "dependencies": {
++        "@radix-ui/react-use-callback-ref": "1.1.2"
++      },
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
++    "node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-use-layout-effect": {
++      "version": "1.1.2",
++      "resolved": "https://registry.npmjs.org/@radix-ui/react-use-layout-effect/-/react-use-layout-effect-1.1.2.tgz",
++      "integrity": "sha512-jrBWOxZITuGcnjRCM2t2U5ZPkCLxD+Ym6DjfssS5haTj2iiak/DOb64JeN6OdLfLgptb6/e2kKR+ZuTrGoZTPA==",
++      "license": "MIT",
++      "peerDependencies": {
++        "@types/react": "*",
++        "react": "^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
++      },
++      "peerDependenciesMeta": {
++        "@types/react": {
++          "optional": true
++        }
++      }
++    },
+     "node_modules/@radix-ui/react-direction": {
+       "version": "1.1.1",
+       "resolved": "https://registry.npmjs.org/@radix-ui/react-direction/-/react-direction-1.1.1.tgz",
+diff --git a/frontend/package.json b/frontend/package.json
+index 4bd94fe..264dd95 100644
+--- a/frontend/package.json
++++ b/frontend/package.json
+@@ -12,6 +12,7 @@
+   },
+   "dependencies": {
+     "@hookform/resolvers": "^5.4.0",
++    "@radix-ui/react-alert-dialog": "^1.1.17",
+     "@radix-ui/react-avatar": "^1.2.0",
+     "@radix-ui/react-dialog": "^1.1.15",
+     "@radix-ui/react-dropdown-menu": "^2.1.16",
+diff --git a/frontend/src/App.tsx b/frontend/src/App.tsx
+index 2f10b45..6929426 100644
+--- a/frontend/src/App.tsx
++++ b/frontend/src/App.tsx
+@@ -12,6 +12,7 @@ import ChatPage from '@/views/pages/chat/ChatPage'
+ import DocumentPage from '@/views/pages/documents/DocumentPage'
+ import LessonList from '@/views/pages/lessons/LessonList'
+ import LessonDetail from '@/views/pages/lessons/LessonDetail'
++import LessonEditor from '@/views/pages/lessons/LessonEditor'
+ import QuizList from '@/views/pages/quizzes/QuizList'
+ import QuizDetail from '@/views/pages/quizzes/QuizDetail'
+ import QuizTake from '@/views/pages/quizzes/QuizTake'
+@@ -54,7 +55,9 @@ export default function App() {
+         <Route path="classes" element={<ClassList />} />
+         <Route path="classes/:id" element={<ClassDetail />} />
+         <Route path="lessons" element={<LessonList />} />
++        <Route path="lessons/new" element={<LessonEditor />} />
+         <Route path="lessons/:id" element={<LessonDetail />} />
++        <Route path="lessons/:id/edit" element={<LessonEditor />} />
+         <Route path="quizzes" element={<QuizList />} />
+         <Route path="quizzes/:id" element={<QuizDetail />} />
+         <Route path="quizzes/:id/take" element={<QuizTake />} />
+diff --git a/frontend/src/components/ui/alert-dialog.tsx b/frontend/src/components/ui/alert-dialog.tsx
+new file mode 100644
+index 0000000..25e7b47
+--- /dev/null
++++ b/frontend/src/components/ui/alert-dialog.tsx
+@@ -0,0 +1,141 @@
++"use client"
++
++import * as React from "react"
++import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
++
++import { cn } from "@/lib/utils"
++import { buttonVariants } from "@/components/ui/button"
++
++const AlertDialog = AlertDialogPrimitive.Root
++
++const AlertDialogTrigger = AlertDialogPrimitive.Trigger
++
++const AlertDialogPortal = AlertDialogPrimitive.Portal
++
++const AlertDialogOverlay = React.forwardRef<
++  React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
++  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
++>(({ className, ...props }, ref) => (
++  <AlertDialogPrimitive.Overlay
++    className={cn(
++      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
++      className
++    )}
++    {...props}
++    ref={ref}
++  />
++))
++AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName
++
++const AlertDialogContent = React.forwardRef<
++  React.ElementRef<typeof AlertDialogPrimitive.Content>,
++  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
++>(({ className, ...props }, ref) => (
++  <AlertDialogPortal>
++    <AlertDialogOverlay />
++    <AlertDialogPrimitive.Content
++      ref={ref}
++      className={cn(
++        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
++        className
++      )}
++      {...props}
++    />
++  </AlertDialogPortal>
++))
++AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName
++
++const AlertDialogHeader = ({
++  className,
++  ...props
++}: React.HTMLAttributes<HTMLDivElement>) => (
++  <div
++    className={cn(
++      "flex flex-col space-y-2 text-center sm:text-left",
++      className
++    )}
++    {...props}
++  />
++)
++AlertDialogHeader.displayName = "AlertDialogHeader"
++
++const AlertDialogFooter = ({
++  className,
++  ...props
++}: React.HTMLAttributes<HTMLDivElement>) => (
++  <div
++    className={cn(
++      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
++      className
++    )}
++    {...props}
++  />
++)
++AlertDialogFooter.displayName = "AlertDialogFooter"
++
++const AlertDialogTitle = React.forwardRef<
++  React.ElementRef<typeof AlertDialogPrimitive.Title>,
++  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Title>
++>(({ className, ...props }, ref) => (
++  <AlertDialogPrimitive.Title
++    ref={ref}
++    className={cn("text-lg font-semibold", className)}
++    {...props}
++  />
++))
++AlertDialogTitle.displayName = AlertDialogPrimitive.Title.displayName
++
++const AlertDialogDescription = React.forwardRef<
++  React.ElementRef<typeof AlertDialogPrimitive.Description>,
++  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Description>
++>(({ className, ...props }, ref) => (
++  <AlertDialogPrimitive.Description
++    ref={ref}
++    className={cn("text-sm text-muted-foreground", className)}
++    {...props}
++  />
++))
++AlertDialogDescription.displayName =
++  AlertDialogPrimitive.Description.displayName
++
++const AlertDialogAction = React.forwardRef<
++  React.ElementRef<typeof AlertDialogPrimitive.Action>,
++  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Action>
++>(({ className, ...props }, ref) => (
++  <AlertDialogPrimitive.Action
++    ref={ref}
++    className={cn(buttonVariants(), className)}
++    {...props}
++  />
++))
++AlertDialogAction.displayName = AlertDialogPrimitive.Action.displayName
++
++const AlertDialogCancel = React.forwardRef<
++  React.ElementRef<typeof AlertDialogPrimitive.Cancel>,
++  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Cancel>
++>(({ className, ...props }, ref) => (
++  <AlertDialogPrimitive.Cancel
++    ref={ref}
++    className={cn(
++      buttonVariants({ variant: "outline" }),
++      "mt-2 sm:mt-0",
++      className
++    )}
++    {...props}
++  />
++))
++AlertDialogCancel.displayName = AlertDialogPrimitive.Cancel.displayName
++
++export {
++  AlertDialog,
++  AlertDialogPortal,
++  AlertDialogOverlay,
++  AlertDialogTrigger,
++  AlertDialogContent,
++  AlertDialogHeader,
++  AlertDialogFooter,
++  AlertDialogTitle,
++  AlertDialogDescription,
++  AlertDialogAction,
++  AlertDialogCancel,
++}
+diff --git a/frontend/src/components/ui/textarea.tsx b/frontend/src/components/ui/textarea.tsx
+new file mode 100644
+index 0000000..12c9136
+--- /dev/null
++++ b/frontend/src/components/ui/textarea.tsx
+@@ -0,0 +1,23 @@
++import * as React from "react"
++
++import { cn } from "@/lib/utils"
++
++export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>
++
++const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
++  ({ className, ...props }, ref) => {
++    return (
++      <textarea
++        className={cn(
++          "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
++          className
++        )}
++        ref={ref}
++        {...props}
++      />
++    )
++  }
++)
++Textarea.displayName = "Textarea"
++
++export { Textarea }
+diff --git a/frontend/src/models/lesson.ts b/frontend/src/models/lesson.ts
+index b275b3a..6cc994f 100644
+--- a/frontend/src/models/lesson.ts
++++ b/frontend/src/models/lesson.ts
+@@ -22,6 +22,7 @@ export interface Lesson {
+   content: LessonContent | null
+   created_at: string
+   updated_at: string
++  teacher_name?: string | null
+ }
+ 
+ export interface CreateLessonRequest {
+@@ -39,3 +40,10 @@ export interface GenerateLessonPlanRequest {
+   duration_minutes?: number
+   learning_objectives?: string
+ }
++
++export interface UpdateLessonRequest {
++  title?: string
++  subject?: string | null
++  grade_level?: string | null
++  content?: LessonContent | null
++}
+diff --git a/frontend/src/services/mockData/index.ts b/frontend/src/services/mockData/index.ts
+index 476e0eb..f2d9d65 100644
+--- a/frontend/src/services/mockData/index.ts
++++ b/frontend/src/services/mockData/index.ts
+@@ -9,7 +9,7 @@
+ export * from './auth.mock'
+ 
+ // TODO: Th├¬m mock data khi implement c├íc nh├│m t├¡nh n─âng
+-// export * from './class.mock'
+-// export * from './lesson.mock'
++export * from './class.mock'
++export * from './lesson.mock'
+ // export * from './quiz.mock'
+ // export * from './ai.mock'
+diff --git a/frontend/src/services/mockData/lesson.mock.ts b/frontend/src/services/mockData/lesson.mock.ts
+new file mode 100644
+index 0000000..89d37bc
+--- /dev/null
++++ b/frontend/src/services/mockData/lesson.mock.ts
+@@ -0,0 +1,173 @@
++import type { Lesson, CreateLessonRequest, UpdateLessonRequest } from '@/models'
++
++// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++// Mock Data
++// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++let MOCK_LESSONS: Lesson[] = [
++  {
++    id: 'l1',
++    teacher_id: '11111111-1111-1111-1111-111111111111',
++    teacher_name: 'Nguyß╗àn V─ân A',
++    title: 'Giß╗¢i hß║ín v├á Li├¬n tß╗Ñc',
++    subject: 'To├ín',
++    grade_level: '11',
++    created_at: '2023-09-05T00:00:00.000Z',
++    updated_at: '2023-09-05T00:00:00.000Z',
++    content: {
++      objectives: ['Hiß╗âu kh├íi niß╗çm giß╗¢i hß║ín cß╗ºa d├úy sß╗æ v├á h├ám sß╗æ', 'Biß║┐t c├ích t├¡nh giß╗¢i hß║ín c╞í bß║ún', 'Hiß╗âu ─æß╗ïnh ngh─⌐a h├ám sß╗æ li├¬n tß╗Ñc'],
++      sections: [
++        { title: 'Khß╗ƒi ─æß╗Öng', content: '├ön tß║¡p lß║íi d├úy sß╗æ v├á h├ám sß╗æ.', duration_minutes: 5 },
++        { title: 'Giß╗¢i hß║ín cß╗ºa d├úy sß╗æ', content: '─Éß╗ïnh ngh─⌐a v├á c├íc ─æß╗ïnh l├╜ c╞í bß║ún.', duration_minutes: 15 },
++        { title: 'Giß╗¢i hß║ín cß╗ºa h├ám sß╗æ', content: '─Éß╗ïnh ngh─⌐a v├á b├ái tß║¡p v├¡ dß╗Ñ.', duration_minutes: 15 },
++        { title: 'H├ám sß╗æ li├¬n tß╗Ñc', content: '─Éß╗ïnh ngh─⌐a v├á ─æiß╗üu kiß╗çn li├¬n tß╗Ñc tß║íi mß╗Öt ─æiß╗âm.', duration_minutes: 10 }
++      ],
++      materials: ['SGK To├ín 11 Tß║¡p 1', 'M├íy t├¡nh cß║ºm tay'],
++      homework: 'L├ám b├ái tß║¡p 1, 2, 3 trang 120 SGK.'
++    }
++  },
++  {
++    id: 'l2',
++    teacher_id: '11111111-1111-1111-1111-111111111111',
++    teacher_name: 'Nguyß╗àn V─ân A',
++    title: '─Éß║ío h├ám',
++    subject: 'To├ín',
++    grade_level: '11',
++    created_at: '2023-09-12T00:00:00.000Z',
++    updated_at: '2023-09-12T00:00:00.000Z',
++    content: {
++      objectives: ['Hiß╗âu ├╜ ngh─⌐a cß╗ºa ─æß║ío h├ám', 'T├¡nh ─æ╞░ß╗úc ─æß║ío h├ám cß╗ºa c├íc h├ám sß╗æ c╞í bß║ún'],
++      sections: [
++        { title: '─Éß╗ïnh ngh─⌐a', content: '─Éß║ío h├ám tß║íi mß╗Öt ─æiß╗âm.', duration_minutes: 15 },
++        { title: 'Quy tß║»c t├¡nh ─æß║ío h├ám', content: '─Éß║ío h├ám cß╗ºa tß╗òng, hiß╗çu, t├¡ch, th╞░╞íng.', duration_minutes: 20 },
++        { title: 'Luyß╗çn tß║¡p', content: 'L├ám b├ái tß║¡p nh├│m.', duration_minutes: 10 }
++      ],
++      materials: ['SGK To├ín 11', 'Phiß║┐u b├ái tß║¡p'],
++      homework: 'Ho├án th├ánh phiß║┐u b├ái tß║¡p sß╗æ 2.'
++    }
++  },
++  {
++    id: 'l3',
++    teacher_id: '11111111-1111-1111-1111-111111111111',
++    teacher_name: 'Nguyß╗àn V─ân A',
++    title: 'T├¡ch ph├ón',
++    subject: 'To├ín',
++    grade_level: '12',
++    created_at: '2023-10-01T00:00:00.000Z',
++    updated_at: '2023-10-01T00:00:00.000Z',
++    content: {
++      objectives: ['Hiß╗âu kh├íi niß╗çm t├¡ch ph├ón', 'T├¡nh ─æ╞░ß╗úc t├¡ch ph├ón cß╗ºa c├íc h├ám sß╗æ c╞í bß║ún'],
++      sections: [
++        { title: 'Nguy├¬n h├ám', content: '─Éß╗ïnh ngh─⌐a nguy├¬n h├ám.', duration_minutes: 15 },
++        { title: 'T├¡ch ph├ón', content: 'C├┤ng thß╗⌐c Newton-Leibniz.', duration_minutes: 20 },
++        { title: 'B├ái tß║¡p', content: 'Giß║úi b├ái tß║¡p mß║½u.', duration_minutes: 10 }
++      ],
++      materials: ['SGK To├ín 12'],
++      homework: 'L├ám b├ái tß║¡p 1 ─æß║┐n 5 trang 80.'
++    }
++  },
++  {
++    id: 'l4',
++    teacher_id: '11111111-1111-1111-1111-111111111111',
++    teacher_name: 'Nguyß╗àn V─ân A',
++    title: 'Chuyß╗ân ─æß╗Öng Newton',
++    subject: 'Vß║¡t L├╜',
++    grade_level: '10',
++    created_at: '2023-10-15T00:00:00.000Z',
++    updated_at: '2023-10-15T00:00:00.000Z',
++    content: {
++      objectives: ['Hiß╗âu ba ─æß╗ïnh luß║¡t Newton', 'Vß║¡n dß╗Ñng ─æß╗ïnh luß║¡t v├áo b├ái to├ín thß╗▒c tß║┐'],
++      sections: [
++        { title: '─Éß╗ïnh luß║¡t I', content: 'Qu├ín t├¡nh.', duration_minutes: 10 },
++        { title: '─Éß╗ïnh luß║¡t II', content: 'F = ma.', duration_minutes: 15 },
++        { title: '─Éß╗ïnh luß║¡t III', content: 'Lß╗▒c v├á phß║ún lß╗▒c.', duration_minutes: 10 },
++        { title: 'Thß╗▒c h├ánh', content: 'L├ám th├¡ nghiß╗çm ß║úo.', duration_minutes: 10 }
++      ],
++      materials: ['SGK Vß║¡t L├╜ 10', 'Phß║ºn mß╗üm m├┤ phß╗Ång PhET'],
++      homework: 'Viß║┐t b├ío c├ío th├¡ nghiß╗çm.'
++    }
++  },
++  {
++    id: 'l5',
++    teacher_id: '11111111-1111-1111-1111-111111111111',
++    teacher_name: 'Nguyß╗àn V─ân A',
++    title: 'Cß║Ñu tß║ío nguy├¬n tß╗¡',
++    subject: 'H├│a',
++    grade_level: '10',
++    created_at: '2023-10-20T00:00:00.000Z',
++    updated_at: '2023-10-20T00:00:00.000Z',
++    content: {
++      objectives: ['Nß║»m ─æ╞░ß╗úc th├ánh phß║ºn cß║Ñu tß║ío nguy├¬n tß╗¡', 'Hiß╗âu vß╗ü ─æß╗ông vß╗ï'],
++      sections: [
++        { title: 'Th├ánh phß║ºn nguy├¬n tß╗¡', content: 'Proton, n╞ítron, electron.', duration_minutes: 20 },
++        { title: '─Éß╗ông vß╗ï', content: '─Éß╗ïnh ngh─⌐a v├á b├ái tß║¡p t├¡nh nguy├¬n tß╗¡ khß╗æi trung b├¼nh.', duration_minutes: 25 }
++      ],
++      materials: ['SGK H├│a 10', 'Bß║úng tuß║ºn ho├án'],
++      homework: 'B├ái tß║¡p 2, 4 trang 20 SGK.'
++    }
++  }
++]
++
++// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++// Helpers to simulate network delay
++// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
++
++// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++// Mock API Functions
++// ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
++export const mockGetLessons = async (teacherId?: string): Promise<Lesson[]> => {
++  await delay(500)
++  if (teacherId) {
++    return MOCK_LESSONS.filter((l) => l.teacher_id === teacherId)
++  }
++  return [...MOCK_LESSONS]
++}
++
++export const mockGetLessonById = async (id: string): Promise<Lesson> => {
++  await delay(300)
++  const lesson = MOCK_LESSONS.find((l) => l.id === id)
++  if (!lesson) {
++    throw new Error('Lesson not found')
++  }
++  return { ...lesson }
++}
++
++export const mockCreateLesson = async (req: CreateLessonRequest, teacherId: string): Promise<Lesson> => {
++  await delay(500)
++  const newLesson: Lesson = {
++    id: `l_${Date.now()}`,
++    teacher_id: teacherId,
++    teacher_name: 'Nguyß╗àn V─ân A',
++    title: req.title,
++    subject: req.subject || null,
++    grade_level: req.grade_level || null,
++    content: req.content || null,
++    created_at: new Date().toISOString(),
++    updated_at: new Date().toISOString(),
++  }
++  MOCK_LESSONS = [newLesson, ...MOCK_LESSONS]
++  return { ...newLesson }
++}
++
++export const mockUpdateLesson = async (id: string, req: UpdateLessonRequest): Promise<Lesson> => {
++  await delay(500)
++  const index = MOCK_LESSONS.findIndex((l) => l.id === id)
++  if (index === -1) {
++    throw new Error('Lesson not found')
++  }
++  
++  MOCK_LESSONS[index] = {
++    ...MOCK_LESSONS[index],
++    title: req.title !== undefined ? req.title : MOCK_LESSONS[index].title,
++    subject: req.subject !== undefined ? req.subject : MOCK_LESSONS[index].subject,
++    grade_level: req.grade_level !== undefined ? req.grade_level : MOCK_LESSONS[index].grade_level,
++    content: req.content !== undefined ? req.content : MOCK_LESSONS[index].content,
++    updated_at: new Date().toISOString()
++  }
++  return { ...MOCK_LESSONS[index] }
++}
++
++export const mockDeleteLesson = async (id: string): Promise<void> => {
++  await delay(500)
++  MOCK_LESSONS = MOCK_LESSONS.filter((l) => l.id !== id)
++}
+diff --git a/frontend/src/viewmodels/useLessonForm.ts b/frontend/src/viewmodels/useLessonForm.ts
+new file mode 100644
+index 0000000..d5a84e1
+--- /dev/null
++++ b/frontend/src/viewmodels/useLessonForm.ts
+@@ -0,0 +1,190 @@
++import { useState, useEffect, useMemo } from 'react'
++import { useNavigate } from 'react-router-dom'
++import { useLessons } from './useLessons'
++import { useAuthStore } from '@/stores/useAuthStore'
++import type { LessonContent } from '@/models'
++
++export interface UseLessonFormReturn {
++  // Form state
++  title: string
++  setTitle: (v: string) => void
++  subject: string
++  setSubject: (v: string) => void
++  gradeLevel: string
++  setGradeLevel: (v: string) => void
++  objectives: string[]
++  sections: Required<LessonContent>['sections']
++  materials: string[]
++  homework: string
++  setHomework: (v: string) => void
++
++  // Dynamic list handlers
++  handleObjectiveChange: (index: number, value: string) => void
++  addObjective: () => void
++  removeObjective: (index: number) => void
++
++  handleSectionChange: (index: number, field: keyof Required<LessonContent>['sections'][0], value: string | number) => void
++  addSection: () => void
++  removeSection: (index: number) => void
++
++  handleMaterialChange: (index: number, value: string) => void
++  addMaterial: () => void
++  removeMaterial: (index: number) => void
++
++  // Submit
++  handleSubmit: (e: React.FormEvent) => Promise<void>
++  isLoading: boolean
++  error: string | null
++}
++
++const DEFAULT_SECTION = { title: '', content: '', duration_minutes: 0 }
++
++function deriveFormValues(lesson: { title: string; subject: string | null; grade_level: string | null; content: LessonContent | null } | null) {
++  if (!lesson) {
++    return {
++      title: '',
++      subject: '',
++      gradeLevel: '',
++      objectives: [''],
++      sections: [DEFAULT_SECTION] as Required<LessonContent>['sections'],
++      materials: [''],
++      homework: '',
++    }
++  }
++  const content = lesson.content
++  return {
++    title: lesson.title,
++    subject: lesson.subject || '',
++    gradeLevel: lesson.grade_level || '',
++    objectives: content?.objectives?.length ? content.objectives : [''],
++    sections: content?.sections?.length ? content.sections : [DEFAULT_SECTION] as Required<LessonContent>['sections'],
++    materials: content?.materials?.length ? content.materials : [''],
++    homework: content?.homework || '',
++  }
++}
++
++export function useLessonForm(lessonId?: string): UseLessonFormReturn {
++  const isEditMode = Boolean(lessonId)
++  const navigate = useNavigate()
++  const user = useAuthStore((state) => state.user)
++  const { selectedLesson, fetchLessonDetail, createLesson, updateLesson, isLoading, error } = useLessons()
++
++  // Load data for edit mode
++  useEffect(() => {
++    if (isEditMode && lessonId) {
++      fetchLessonDetail(lessonId)
++    }
++  }, [isEditMode, lessonId, fetchLessonDetail])
++
++  // Track which lesson we last synced ΓÇö "adjusting state during render" pattern
++  // (React docs: https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)
++  const [syncedLessonId, setSyncedLessonId] = useState<string | undefined>(undefined)
++
++  const defaults = useMemo(() => deriveFormValues(null), [])
++
++  const [title, setTitle] = useState(defaults.title)
++  const [subject, setSubject] = useState(defaults.subject)
++  const [gradeLevel, setGradeLevel] = useState(defaults.gradeLevel)
++  const [objectives, setObjectives] = useState<string[]>(defaults.objectives)
++  const [sections, setSections] = useState<Required<LessonContent>['sections']>(defaults.sections)
++  const [materials, setMaterials] = useState<string[]>(defaults.materials)
++  const [homework, setHomework] = useState(defaults.homework)
++
++  // Adjust state during render when selectedLesson arrives (no useEffect needed)
++  if (isEditMode && selectedLesson && selectedLesson.id !== syncedLessonId) {
++    const vals = deriveFormValues(selectedLesson)
++    setSyncedLessonId(selectedLesson.id)
++    setTitle(vals.title)
++    setSubject(vals.subject)
++    setGradeLevel(vals.gradeLevel)
++    setObjectives(vals.objectives)
++    setSections(vals.sections)
++    setMaterials(vals.materials)
++    setHomework(vals.homework)
++  }
++
++  // Handlers for dynamic lists
++  const handleObjectiveChange = (index: number, value: string) => {
++    const newObjs = [...objectives]
++    newObjs[index] = value
++    setObjectives(newObjs)
++  }
++  
++  const addObjective = () => setObjectives([...objectives, ''])
++  const removeObjective = (index: number) => {
++    if (objectives.length > 1) {
++      setObjectives(objectives.filter((_, i) => i !== index))
++    }
++  }
++
++  const handleMaterialChange = (index: number, value: string) => {
++    const newMats = [...materials]
++    newMats[index] = value
++    setMaterials(newMats)
++  }
++  
++  const addMaterial = () => setMaterials([...materials, ''])
++  const removeMaterial = (index: number) => {
++    if (materials.length > 1) {
++      setMaterials(materials.filter((_, i) => i !== index))
++    }
++  }
++
++  const handleSectionChange = (index: number, field: keyof Required<LessonContent>['sections'][0], value: string | number) => {
++    const newSections = [...sections]
++    newSections[index] = { ...newSections[index], [field]: value }
++    setSections(newSections)
++  }
++  
++  const addSection = () => setSections([...sections, { title: '', content: '', duration_minutes: 0 }])
++  const removeSection = (index: number) => {
++    if (sections.length > 1) {
++      setSections(sections.filter((_, i) => i !== index))
++    }
++  }
++
++  const handleSubmit = async (e: React.FormEvent) => {
++    e.preventDefault()
++    
++    // Clean up empty fields
++    const cleanObjectives = objectives.filter(o => o.trim() !== '')
++    const cleanMaterials = materials.filter(m => m.trim() !== '')
++    const cleanSections = sections.filter(s => s.title.trim() !== '' || s.content.trim() !== '')
++
++    const payload = {
++      title,
++      subject: subject || undefined,
++      grade_level: gradeLevel || undefined,
++      content: {
++        objectives: cleanObjectives.length > 0 ? cleanObjectives : undefined,
++        sections: cleanSections.length > 0 ? cleanSections : undefined,
++        materials: cleanMaterials.length > 0 ? cleanMaterials : undefined,
++        homework: homework.trim() !== '' ? homework : undefined
++      }
++    }
++
++    try {
++      if (isEditMode && lessonId) {
++        await updateLesson(lessonId, payload)
++        navigate(`/lessons/${lessonId}`)
++      } else if (user) {
++        await createLesson(payload, user.id)
++        navigate('/lessons')
++      }
++    } catch {
++      // Error is already handled by the store via error state
++    }
++  }
++
++  return {
++    title, setTitle,
++    subject, setSubject,
++    gradeLevel, setGradeLevel,
++    objectives, sections, materials, homework, setHomework,
++    handleObjectiveChange, addObjective, removeObjective,
++    handleSectionChange, addSection, removeSection,
++    handleMaterialChange, addMaterial, removeMaterial,
++    handleSubmit,
++    isLoading, error
++  }
++}
+diff --git a/frontend/src/viewmodels/useLessons.ts b/frontend/src/viewmodels/useLessons.ts
+new file mode 100644
+index 0000000..8bc8ebf
+--- /dev/null
++++ b/frontend/src/viewmodels/useLessons.ts
+@@ -0,0 +1,95 @@
++import { create } from 'zustand'
++import type { Lesson, CreateLessonRequest, UpdateLessonRequest } from '@/models'
++import {
++  mockGetLessons,
++  mockGetLessonById,
++  mockCreateLesson,
++  mockUpdateLesson,
++  mockDeleteLesson
++} from '@/services/mockData'
++
++interface LessonsState {
++  lessons: Lesson[]
++  selectedLesson: Lesson | null
++  isLoading: boolean
++  error: string | null
++
++  fetchLessons: (teacherId?: string) => Promise<void>
++  fetchLessonDetail: (id: string) => Promise<void>
++  createLesson: (req: CreateLessonRequest, teacherId: string) => Promise<void>
++  updateLesson: (id: string, req: UpdateLessonRequest) => Promise<void>
++  deleteLesson: (id: string) => Promise<void>
++}
++
++export const useLessons = create<LessonsState>((set, get) => ({
++  lessons: [],
++  selectedLesson: null,
++  isLoading: false,
++  error: null,
++
++  fetchLessons: async (teacherId) => {
++    set({ isLoading: true, error: null })
++    try {
++      const data = await mockGetLessons(teacherId)
++      set({ lessons: data })
++    } catch (err: unknown) {
++      set({ error: (err as Error).message || 'Lß╗ùi khi lß║Ñy danh s├ích b├ái giß║úng' })
++    } finally {
++      set({ isLoading: false })
++    }
++  },
++
++  fetchLessonDetail: async (id) => {
++    set({ isLoading: true, error: null })
++    try {
++      const lesson = await mockGetLessonById(id)
++      set({ selectedLesson: lesson })
++    } catch (err: unknown) {
++      set({ error: (err as Error).message || 'Lß╗ùi khi lß║Ñy th├┤ng tin b├ái giß║úng' })
++    } finally {
++      set({ isLoading: false })
++    }
++  },
++
++  createLesson: async (req, teacherId) => {
++    set({ isLoading: true, error: null })
++    try {
++      const newLesson = await mockCreateLesson(req, teacherId)
++      set({ lessons: [newLesson, ...get().lessons] })
++    } catch (err: unknown) {
++      set({ error: (err as Error).message || 'Lß╗ùi khi tß║ío b├ái giß║úng' })
++      throw err
++    } finally {
++      set({ isLoading: false })
++    }
++  },
++
++  updateLesson: async (id, req) => {
++    set({ isLoading: true, error: null })
++    try {
++      const updatedLesson = await mockUpdateLesson(id, req)
++      set({
++        lessons: get().lessons.map((l) => (l.id === id ? updatedLesson : l)),
++        selectedLesson: get().selectedLesson?.id === id ? updatedLesson : get().selectedLesson
++      })
++    } catch (err: unknown) {
++      set({ error: (err as Error).message || 'Lß╗ùi khi cß║¡p nhß║¡t b├ái giß║úng' })
++      throw err
++    } finally {
++      set({ isLoading: false })
++    }
++  },
++
++  deleteLesson: async (id) => {
++    set({ isLoading: true, error: null })
++    try {
++      await mockDeleteLesson(id)
++      set({ lessons: get().lessons.filter((l) => l.id !== id) })
++    } catch (err: unknown) {
++      set({ error: (err as Error).message || 'Lß╗ùi khi x├│a b├ái giß║úng' })
++      throw err
++    } finally {
++      set({ isLoading: false })
++    }
++  }
++}))
+diff --git a/frontend/src/views/pages/lessons/LessonDetail.tsx b/frontend/src/views/pages/lessons/LessonDetail.tsx
+index 36a508b..83bfceb 100644
+--- a/frontend/src/views/pages/lessons/LessonDetail.tsx
++++ b/frontend/src/views/pages/lessons/LessonDetail.tsx
+@@ -1,4 +1,7 @@
+-import { useParams, Link } from 'react-router-dom'
++import { useEffect } from 'react'
++import { useParams, Link, useNavigate } from 'react-router-dom'
++import { Pencil, Clock, Target, Layers, FileText, ChevronLeft, Calendar, User } from 'lucide-react'
++
+ import { Button } from '@/components/ui/button'
+ import { Badge } from '@/components/ui/badge'
+ import {
+@@ -7,79 +10,209 @@ import {
+   CardHeader,
+   CardTitle,
+ } from '@/components/ui/card'
+-import { Separator } from '@/components/ui/separator'
++
++import { useLessons } from '@/viewmodels/useLessons'
+ 
+ export default function LessonDetail() {
+   const { id } = useParams<{ id: string }>()
++  const navigate = useNavigate()
++  const { selectedLesson, fetchLessonDetail, isLoading, error } = useLessons()
++
++  useEffect(() => {
++    if (id) {
++      fetchLessonDetail(id)
++    }
++  }, [id, fetchLessonDetail])
++
++  if (isLoading) {
++    return (
++      <div className="flex items-center justify-center min-h-[400px]">
++        <div className="text-muted-foreground animate-pulse">─Éang tß║úi th├┤ng tin b├ái giß║úng...</div>
++      </div>
++    )
++  }
++
++  if (error || !selectedLesson) {
++    return (
++      <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
++        <div className="text-destructive font-medium">{error || 'Kh├┤ng t├¼m thß║Ñy b├ái giß║úng'}</div>
++        <Button variant="outline" onClick={() => navigate('/lessons')}>
++          <ChevronLeft className="mr-2 h-4 w-4" /> Quay lß║íi danh s├ích
++        </Button>
++      </div>
++    )
++  }
++
++  const { title, subject, grade_level, content, created_at, teacher_name } = selectedLesson
++  
++  // Calculate total duration
++  const totalDuration = content?.sections?.reduce((acc, section) => acc + (section.duration_minutes || 0), 0) || 0
+ 
+   return (
+-    <div className="space-y-6">
++    <div className="space-y-6 max-w-5xl mx-auto pb-10">
++      {/* Header Area */}
+       <div>
+-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+-          <Link to="/lessons" className="hover:underline">B├ái hß╗ìc</Link>
++        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
++          <Link to="/lessons" className="hover:text-foreground transition-colors flex items-center">
++            <ChevronLeft className="h-4 w-4 mr-1" /> Danh s├ích
++          </Link>
+           <span>/</span>
+-          <span>Chi tiß║┐t</span>
++          <span className="text-foreground font-medium truncate max-w-[200px]">{title}</span>
+         </div>
+-        <div className="flex items-center justify-between">
+-          <h2 className="text-2xl font-bold tracking-tight">Giß╗¢i hß║ín v├á Li├¬n tß╗Ñc</h2>
+-          <Badge>─É├ú xuß║Ñt bß║ún</Badge>
++        
++        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
++          <div className="space-y-1">
++            <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
++            <div className="flex flex-wrap items-center gap-3 text-muted-foreground pt-1">
++              {subject && <Badge variant="outline">{subject}</Badge>}
++              {grade_level && <Badge variant="secondary">Khß╗æi {grade_level}</Badge>}
++              {teacher_name && (
++                <div className="flex items-center text-sm">
++                  <User className="mr-1 h-3.5 w-3.5" /> {teacher_name}
++                </div>
++              )}
++              <div className="flex items-center text-sm">
++                <Calendar className="mr-1 h-3.5 w-3.5" /> 
++                {new Date(created_at).toLocaleDateString('vi-VN')}
++              </div>
++            </div>
++          </div>
++          <Button onClick={() => navigate(`/lessons/${id}/edit`)}>
++            <Pencil className="mr-2 h-4 w-4" /> Chß╗ënh sß╗¡a
++          </Button>
+         </div>
+-        <p className="text-muted-foreground">M├ú b├ái hß╗ìc: {id}</p>
+       </div>
+ 
+-      <div className="grid gap-4 md:grid-cols-4">
++      {/* Stat Cards */}
++      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+         <Card>
+-          <CardHeader className="pb-2">
++          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+             <CardTitle className="text-sm font-medium">Thß╗¥i l╞░ß╗úng</CardTitle>
++            <Clock className="h-4 w-4 text-muted-foreground" />
+           </CardHeader>
+           <CardContent>
+-            <div className="text-2xl font-bold">45 ph├║t</div>
++            <div className="text-2xl font-bold">{totalDuration} <span className="text-base font-normal text-muted-foreground">ph├║t</span></div>
+           </CardContent>
+         </Card>
+         <Card>
+-          <CardHeader className="pb-2">
+-            <CardTitle className="text-sm font-medium">Lß╗¢p</CardTitle>
++          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
++            <CardTitle className="text-sm font-medium">Cß║Ñu tr├║c</CardTitle>
++            <Layers className="h-4 w-4 text-muted-foreground" />
+           </CardHeader>
+           <CardContent>
+-            <div className="text-2xl font-bold">To├ín A1</div>
++            <div className="text-2xl font-bold">{content?.sections?.length || 0} <span className="text-base font-normal text-muted-foreground">phß║ºn</span></div>
+           </CardContent>
+         </Card>
+         <Card>
+-          <CardHeader className="pb-2">
+-            <CardTitle className="text-sm font-medium">T├ái liß╗çu</CardTitle>
++          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
++            <CardTitle className="text-sm font-medium">Mß╗Ñc ti├¬u</CardTitle>
++            <Target className="h-4 w-4 text-muted-foreground" />
+           </CardHeader>
+           <CardContent>
+-            <div className="text-2xl font-bold">3</div>
++            <div className="text-2xl font-bold">{content?.objectives?.length || 0}</div>
+           </CardContent>
+         </Card>
+         <Card>
+-          <CardHeader className="pb-2">
+-            <CardTitle className="text-sm font-medium">B├ái kiß╗âm tra</CardTitle>
++          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
++            <CardTitle className="text-sm font-medium">T├ái liß╗çu</CardTitle>
++            <FileText className="h-4 w-4 text-muted-foreground" />
+           </CardHeader>
+           <CardContent>
+-            <div className="text-2xl font-bold">1</div>
++            <div className="text-2xl font-bold">{content?.materials?.length || 0}</div>
+           </CardContent>
+         </Card>
+       </div>
+ 
+-      <Separator />
++      {/* Content Area */}
++      <div className="space-y-6">
++        
++        {/* Objectives */}
++        {content?.objectives && content.objectives.length > 0 && (
++          <Card>
++            <CardHeader>
++              <CardTitle className="flex items-center text-lg">
++                <Target className="mr-2 h-5 w-5 text-indigo-500" /> Mß╗Ñc ti├¬u b├ái hß╗ìc
++              </CardTitle>
++            </CardHeader>
++            <CardContent>
++              <ul className="space-y-2">
++                {content.objectives.map((obj, i) => (
++                  <li key={i} className="flex items-start">
++                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-700 text-xs font-medium mr-3 mt-0.5">
++                      {i + 1}
++                    </span>
++                    <span className="leading-relaxed">{obj}</span>
++                  </li>
++                ))}
++              </ul>
++            </CardContent>
++          </Card>
++        )}
+ 
+-      <Card>
+-        <CardHeader>
+-          <CardTitle>Nß╗Öi dung b├ái hß╗ìc</CardTitle>
+-        </CardHeader>
+-        <CardContent>
+-          <p className="text-sm text-muted-foreground text-center py-12">
+-            Nß╗Öi dung b├ái hß╗ìc sß║╜ ─æ╞░ß╗úc hiß╗ân thß╗ï ß╗ƒ ─æ├óy khi Backend sß║╡n s├áng.
+-          </p>
+-        </CardContent>
+-      </Card>
++        {/* Sections */}
++        {content?.sections && content.sections.length > 0 && (
++          <div className="space-y-4">
++            <h3 className="text-xl font-bold tracking-tight pt-4">Nß╗Öi dung chi tiß║┐t</h3>
++            <div className="space-y-4">
++              {content.sections.map((section, i) => (
++                <Card key={i} className="overflow-hidden">
++                  <div className="bg-muted/50 px-6 py-3 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-2">
++                    <h4 className="font-semibold text-base flex items-center">
++                      <span className="text-muted-foreground mr-2 text-sm font-normal">Phß║ºn {i + 1}:</span>
++                      {section.title}
++                    </h4>
++                    {section.duration_minutes && (
++                      <Badge variant="outline" className="w-fit bg-background">
++                        <Clock className="mr-1 h-3 w-3" /> {section.duration_minutes} ph├║t
++                      </Badge>
++                    )}
++                  </div>
++                  <CardContent className="pt-6">
++                    <div className="prose prose-sm max-w-none text-muted-foreground whitespace-pre-wrap">
++                      {section.content}
++                    </div>
++                  </CardContent>
++                </Card>
++              ))}
++            </div>
++          </div>
++        )}
+ 
+-      <div className="flex gap-3">
+-        <Button variant="outline" asChild>
+-          <Link to="/lessons">Quay lß║íi</Link>
+-        </Button>
+-        <Button>Chß╗ënh sß╗¡a</Button>
++        <div className="grid md:grid-cols-2 gap-6 pt-4">
++          {/* Materials */}
++          {content?.materials && content.materials.length > 0 && (
++            <Card>
++              <CardHeader>
++                <CardTitle className="flex items-center text-lg">
++                  <FileText className="mr-2 h-5 w-5 text-emerald-500" /> T├ái liß╗çu cß║ºn chuß║⌐n bß╗ï
++                </CardTitle>
++              </CardHeader>
++              <CardContent>
++                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
++                  {content.materials.map((mat, i) => (
++                    <li key={i}>{mat}</li>
++                  ))}
++                </ul>
++              </CardContent>
++            </Card>
++          )}
++
++          {/* Homework */}
++          {content?.homework && (
++            <Card className="md:col-span-1 h-full">
++              <CardHeader>
++                <CardTitle className="flex items-center text-lg">
++                  <Layers className="mr-2 h-5 w-5 text-amber-500" /> B├ái tß║¡p vß╗ü nh├á
++                </CardTitle>
++              </CardHeader>
++              <CardContent>
++                <p className="text-muted-foreground whitespace-pre-wrap">
++                  {content.homework}
++                </p>
++              </CardContent>
++            </Card>
++          )}
++        </div>
+       </div>
+     </div>
+   )
+diff --git a/frontend/src/views/pages/lessons/LessonEditor.tsx b/frontend/src/views/pages/lessons/LessonEditor.tsx
+new file mode 100644
+index 0000000..16ab620
+--- /dev/null
++++ b/frontend/src/views/pages/lessons/LessonEditor.tsx
+@@ -0,0 +1,279 @@
++import { useParams, useNavigate } from 'react-router-dom'
++import { ChevronLeft, Plus, Trash2, Save, BookOpen } from 'lucide-react'
++
++import { Button } from '@/components/ui/button'
++import { Input } from '@/components/ui/input'
++import { Label } from '@/components/ui/label'
++import { Textarea } from '@/components/ui/textarea'
++import {
++  Select,
++  SelectContent,
++  SelectItem,
++  SelectTrigger,
++  SelectValue,
++} from '@/components/ui/select'
++import {
++  Card,
++  CardContent,
++  CardHeader,
++  CardTitle,
++  CardDescription,
++} from '@/components/ui/card'
++import { Separator } from '@/components/ui/separator'
++
++import { useLessonForm } from '@/viewmodels/useLessonForm'
++import { SUBJECT_OPTIONS, GRADE_OPTIONS } from './lesson.constants'
++
++export default function LessonEditor() {
++  const { id } = useParams<{ id: string }>()
++  const isEditMode = Boolean(id)
++  const navigate = useNavigate()
++  
++  const form = useLessonForm(id)
++
++  if (isEditMode && form.isLoading && !form.title) {
++    return <div className="p-8 text-center text-muted-foreground animate-pulse">─Éang tß║úi dß╗» liß╗çu b├ái giß║úng...</div>
++  }
++
++  return (
++    <div className="space-y-6 max-w-4xl mx-auto pb-10">
++      <div className="flex items-center gap-4">
++        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
++          <ChevronLeft className="h-5 w-5" />
++        </Button>
++        <div>
++          <h2 className="text-2xl font-bold tracking-tight">
++            {isEditMode ? 'Chß╗ënh sß╗¡a b├ái giß║úng' : 'Tß║ío b├ái giß║úng mß╗¢i'}
++          </h2>
++          <p className="text-muted-foreground">
++            {isEditMode ? 'Cß║¡p nhß║¡t th├┤ng tin v├á nß╗Öi dung b├ái giß║úng' : 'Thiß║┐t kß║┐ gi├ío ├ín vß╗¢i c├íc mß╗Ñc ti├¬u, phß║ºn nß╗Öi dung v├á t├ái liß╗çu'}
++          </p>
++        </div>
++      </div>
++
++      {form.error && (
++        <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive font-medium border border-destructive/20">
++          {form.error}
++        </div>
++      )}
++
++      <form onSubmit={form.handleSubmit} className="space-y-8">
++        
++        {/* Basic Info */}
++        <Card>
++          <CardHeader>
++            <CardTitle className="flex items-center text-lg">
++              <BookOpen className="mr-2 h-5 w-5 text-indigo-500" /> Th├┤ng tin c╞í bß║ún
++            </CardTitle>
++            <CardDescription>Ti├¬u ─æß╗ü, m├┤n hß╗ìc v├á khß╗æi lß╗¢p</CardDescription>
++          </CardHeader>
++          <CardContent className="space-y-4">
++            <div className="space-y-2">
++              <Label htmlFor="title">Ti├¬u ─æß╗ü b├ái giß║úng <span className="text-destructive">*</span></Label>
++              <Input 
++                id="title" 
++                placeholder="V├¡ dß╗Ñ: ─Éß╗ïnh luß║¡t bß║úo to├án n─âng l╞░ß╗úng" 
++                value={form.title}
++                onChange={(e) => form.setTitle(e.target.value)}
++                required
++              />
++            </div>
++            
++            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
++              <div className="space-y-2">
++                <Label htmlFor="subject">M├┤n hß╗ìc</Label>
++                <Select value={form.subject} onValueChange={form.setSubject}>
++                  <SelectTrigger id="subject">
++                    <SelectValue placeholder="Chß╗ìn m├┤n hß╗ìc" />
++                  </SelectTrigger>
++                  <SelectContent>
++                    {SUBJECT_OPTIONS.map(opt => (
++                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
++                    ))}
++                  </SelectContent>
++                </Select>
++              </div>
++              <div className="space-y-2">
++                <Label htmlFor="gradeLevel">Khß╗æi lß╗¢p</Label>
++                <Select value={form.gradeLevel} onValueChange={form.setGradeLevel}>
++                  <SelectTrigger id="gradeLevel">
++                    <SelectValue placeholder="Chß╗ìn khß╗æi lß╗¢p" />
++                  </SelectTrigger>
++                  <SelectContent>
++                    {GRADE_OPTIONS.map(opt => (
++                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
++                    ))}
++                  </SelectContent>
++                </Select>
++              </div>
++            </div>
++          </CardContent>
++        </Card>
++
++        {/* Content Builder */}
++        <Card>
++          <CardHeader>
++            <CardTitle className="text-lg">Soß║ín thß║úo nß╗Öi dung b├ái giß║úng</CardTitle>
++            <CardDescription>X├óy dß╗▒ng cß║Ñu tr├║c chi tiß║┐t b├ái giß║úng</CardDescription>
++          </CardHeader>
++          <CardContent className="space-y-8">
++            
++            {/* Objectives */}
++            <div className="space-y-4">
++              <div className="flex items-center justify-between">
++                <Label className="text-base">Mß╗Ñc ti├¬u b├ái hß╗ìc</Label>
++                <Button type="button" variant="outline" size="sm" onClick={form.addObjective}>
++                  <Plus className="mr-2 h-4 w-4" /> Th├¬m mß╗Ñc ti├¬u
++                </Button>
++              </div>
++              <div className="space-y-3">
++                {form.objectives.map((obj, i) => (
++                  <div key={i} className="flex items-center gap-2">
++                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground text-xs font-medium">
++                      {i + 1}
++                    </div>
++                    <Input 
++                      placeholder="Hß╗ìc sinh hiß╗âu ─æ╞░ß╗úc..." 
++                      value={obj}
++                      onChange={(e) => form.handleObjectiveChange(i, e.target.value)}
++                    />
++                    <Button 
++                      type="button" 
++                      variant="ghost" 
++                      size="icon" 
++                      onClick={() => form.removeObjective(i)}
++                      disabled={form.objectives.length === 1}
++                      className="text-muted-foreground hover:text-destructive"
++                    >
++                      <Trash2 className="h-4 w-4" />
++                    </Button>
++                  </div>
++                ))}
++              </div>
++            </div>
++
++            <Separator />
++
++            {/* Sections */}
++            <div className="space-y-4">
++              <div className="flex items-center justify-between">
++                <Label className="text-base">C├íc phß║ºn b├ái hß╗ìc (Sections)</Label>
++                <Button type="button" variant="outline" size="sm" onClick={form.addSection}>
++                  <Plus className="mr-2 h-4 w-4" /> Th├¬m phß║ºn
++                </Button>
++              </div>
++              <div className="space-y-6">
++                {form.sections.map((section, i) => (
++                  <div key={i} className="relative rounded-lg border bg-card p-4 shadow-sm">
++                    <Button 
++                      type="button" 
++                      variant="ghost" 
++                      size="icon" 
++                      onClick={() => form.removeSection(i)}
++                      disabled={form.sections.length === 1}
++                      className="absolute right-2 top-2 text-muted-foreground hover:text-destructive"
++                    >
++                      <Trash2 className="h-4 w-4" />
++                    </Button>
++                    
++                    <h4 className="font-medium mb-4">Phß║ºn {i + 1}</h4>
++                    
++                    <div className="space-y-4">
++                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
++                        <div className="md:col-span-3 space-y-2">
++                          <Label>Ti├¬u ─æß╗ü phß║ºn</Label>
++                          <Input 
++                            placeholder="Khß╗ƒi ─æß╗Öng, L├╜ thuyß║┐t, Luyß╗çn tß║¡p..." 
++                            value={section.title}
++                            onChange={(e) => form.handleSectionChange(i, 'title', e.target.value)}
++                          />
++                        </div>
++                        <div className="space-y-2">
++                          <Label>Thß╗¥i l╞░ß╗úng (ph├║t)</Label>
++                          <Input 
++                            type="number" 
++                            min="0"
++                            value={section.duration_minutes || ''}
++                            onChange={(e) => form.handleSectionChange(i, 'duration_minutes', parseInt(e.target.value) || 0)}
++                          />
++                        </div>
++                      </div>
++                      
++                      <div className="space-y-2">
++                        <Label>Nß╗Öi dung</Label>
++                        <Textarea 
++                          placeholder="Chi tiß║┐t nß╗Öi dung phß║ºn n├áy..." 
++                          className="min-h-[120px]"
++                          value={section.content}
++                          onChange={(e) => form.handleSectionChange(i, 'content', e.target.value)}
++                        />
++                      </div>
++                    </div>
++                  </div>
++                ))}
++              </div>
++            </div>
++
++            <Separator />
++
++            {/* Materials & Homework */}
++            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
++              
++              <div className="space-y-4">
++                <div className="flex items-center justify-between">
++                  <Label className="text-base">T├ái liß╗çu chuß║⌐n bß╗ï</Label>
++                  <Button type="button" variant="ghost" size="sm" onClick={form.addMaterial}>
++                    <Plus className="h-4 w-4" />
++                  </Button>
++                </div>
++                <div className="space-y-3">
++                  {form.materials.map((mat, i) => (
++                    <div key={i} className="flex items-center gap-2">
++                      <Input 
++                        placeholder="SGK, M├íy chiß║┐u..." 
++                        value={mat}
++                        onChange={(e) => form.handleMaterialChange(i, e.target.value)}
++                      />
++                      <Button 
++                        type="button" 
++                        variant="ghost" 
++                        size="icon" 
++                        onClick={() => form.removeMaterial(i)}
++                        disabled={form.materials.length === 1}
++                      >
++                        <Trash2 className="h-4 w-4" />
++                      </Button>
++                    </div>
++                  ))}
++                </div>
++              </div>
++
++              <div className="space-y-4">
++                <Label className="text-base">B├ái tß║¡p vß╗ü nh├á</Label>
++                <Textarea 
++                  placeholder="Giao b├ái tß║¡p hoß║╖c h╞░ß╗¢ng dß║½n tß╗▒ hß╗ìc..." 
++                  className="min-h-[120px]"
++                  value={form.homework}
++                  onChange={(e) => form.setHomework(e.target.value)}
++                />
++              </div>
++
++            </div>
++          </CardContent>
++        </Card>
++
++        {/* Actions */}
++        <div className="flex justify-end gap-3">
++          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
++            Hß╗ºy
++          </Button>
++          <Button type="submit" disabled={form.isLoading} className="bg-indigo-600 hover:bg-indigo-700">
++            <Save className="mr-2 h-4 w-4" /> 
++            {form.isLoading ? '─Éang l╞░u...' : (isEditMode ? 'Cß║¡p nhß║¡t b├ái giß║úng' : 'Tß║ío b├ái giß║úng')}
++          </Button>
++        </div>
++
++      </form>
++    </div>
++  )
++}
+diff --git a/frontend/src/views/pages/lessons/LessonList.tsx b/frontend/src/views/pages/lessons/LessonList.tsx
+index 36ffc67..36f2175 100644
+--- a/frontend/src/views/pages/lessons/LessonList.tsx
++++ b/frontend/src/views/pages/lessons/LessonList.tsx
+@@ -1,60 +1,234 @@
+-import { Link } from 'react-router-dom'
++import { useEffect, useState } from 'react'
++import { useNavigate } from 'react-router-dom'
++import { Plus, Search, MoreVertical, BookOpen, Pencil, Eye, Trash2 } from 'lucide-react'
++
+ import { Button } from '@/components/ui/button'
++import { Input } from '@/components/ui/input'
++import {
++  Table,
++  TableBody,
++  TableCell,
++  TableHead,
++  TableHeader,
++  TableRow,
++} from '@/components/ui/table'
++import {
++  DropdownMenu,
++  DropdownMenuContent,
++  DropdownMenuItem,
++  DropdownMenuTrigger,
++} from '@/components/ui/dropdown-menu'
++import {
++  Select,
++  SelectContent,
++  SelectItem,
++  SelectTrigger,
++  SelectValue,
++} from '@/components/ui/select'
+ import { Badge } from '@/components/ui/badge'
+ import {
+-  Card,
+-  CardContent,
+-  CardDescription,
+-  CardFooter,
+-  CardHeader,
+-  CardTitle,
+-} from '@/components/ui/card'
+-
+-const MOCK_LESSONS = [
+-  { id: '1', title: 'Giß╗¢i hß║ín v├á Li├¬n tß╗Ñc', subject: 'To├ín Cao Cß║Ñp A1', duration: '45 ph├║t', status: 'published' as const },
+-  { id: '2', title: '─Éß║ío h├ám', subject: 'To├ín Cao Cß║Ñp A1', duration: '60 ph├║t', status: 'published' as const },
+-  { id: '3', title: 'T├¡ch ph├ón', subject: 'To├ín Cao Cß║Ñp A1', duration: '50 ph├║t', status: 'draft' as const },
+-  { id: '4', title: 'Chuyß╗ân ─æß╗Öng Newton', subject: 'Vß║¡t L├╜ ─Éß║íi C╞░╞íng', duration: '55 ph├║t', status: 'published' as const },
+-]
++  AlertDialog,
++  AlertDialogAction,
++  AlertDialogCancel,
++  AlertDialogContent,
++  AlertDialogDescription,
++  AlertDialogFooter,
++  AlertDialogHeader,
++  AlertDialogTitle,
++} from '@/components/ui/alert-dialog'
++
++import { useLessons } from '@/viewmodels/useLessons'
++import { useAuthStore } from '@/stores/useAuthStore'
++import { SUBJECT_OPTIONS, GRADE_OPTIONS } from './lesson.constants'
+ 
+ export default function LessonList() {
++  const navigate = useNavigate()
++  const user = useAuthStore((state) => state.user)
++  const { lessons, fetchLessons, deleteLesson, isLoading } = useLessons()
++
++  const [searchQuery, setSearchQuery] = useState('')
++  const [gradeFilter, setGradeFilter] = useState('all')
++  const [subjectFilter, setSubjectFilter] = useState('all')
++
++  const [deletingLessonId, setDeletingLessonId] = useState<string | null>(null)
++
++  useEffect(() => {
++    if (user) {
++      fetchLessons(user.id)
++    }
++  }, [user, fetchLessons])
++
++  const handleDelete = async () => {
++    if (deletingLessonId) {
++      await deleteLesson(deletingLessonId)
++      setDeletingLessonId(null)
++    }
++  }
++
++  // Filtering
++  const filteredLessons = lessons.filter((lesson) => {
++    const matchesSearch = lesson.title.toLowerCase().includes(searchQuery.toLowerCase())
++    const matchesGrade = gradeFilter === 'all' || lesson.grade_level === gradeFilter
++    const matchesSubject = subjectFilter === 'all' || lesson.subject === subjectFilter
++    return matchesSearch && matchesGrade && matchesSubject
++  })
++
++  // Helper for grade badge colors
++  const getGradeBadgeVariant = (grade: string | null) => {
++    if (grade === '10') return 'default'
++    if (grade === '11') return 'secondary'
++    return 'outline'
++  }
++
+   return (
+     <div className="space-y-6">
+-      <div className="flex items-center justify-between">
++      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+         <div>
+-          <h2 className="text-2xl font-bold tracking-tight">B├ái hß╗ìc</h2>
++          <h2 className="text-2xl font-bold tracking-tight">B├ái giß║úng cß╗ºa t├┤i</h2>
+           <p className="text-muted-foreground">
+-            Quß║ún l├╜ nß╗Öi dung b├ái hß╗ìc
++            Quß║ún l├╜ v├á soß║ín thß║úo nß╗Öi dung gi├ío ├ín ─æiß╗çn tß╗¡
+           </p>
+         </div>
+-        <Button>Tß║ío b├ái hß╗ìc mß╗¢i</Button>
++        <Button onClick={() => navigate('/lessons/new')} className="bg-indigo-600 hover:bg-indigo-700">
++          <Plus className="mr-2 h-4 w-4" /> Tß║ío b├ái giß║úng mß╗¢i
++        </Button>
+       </div>
+ 
+-      <div className="grid gap-4 md:grid-cols-2">
+-        {MOCK_LESSONS.map((lesson) => (
+-          <Card key={lesson.id}>
+-            <CardHeader>
+-              <div className="flex items-center justify-between">
+-                <CardTitle className="text-lg">{lesson.title}</CardTitle>
+-                <Badge variant={lesson.status === 'published' ? 'default' : 'secondary'}>
+-                  {lesson.status === 'published' ? '─É├ú xuß║Ñt bß║ún' : 'Bß║ún nh├íp'}
+-                </Badge>
+-              </div>
+-              <CardDescription>{lesson.subject}</CardDescription>
+-            </CardHeader>
+-            <CardContent>
+-              <p className="text-sm text-muted-foreground">
+-                Thß╗¥i l╞░ß╗úng: {lesson.duration}
+-              </p>
+-            </CardContent>
+-            <CardFooter>
+-              <Button variant="outline" className="w-full" asChild>
+-                <Link to={`/lessons/${lesson.id}`}>Xem b├ái hß╗ìc</Link>
+-              </Button>
+-            </CardFooter>
+-          </Card>
+-        ))}
++      <div className="flex flex-col sm:flex-row gap-4">
++        <div className="relative flex-1">
++          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
++          <Input
++            type="search"
++            placeholder="T├¼m kiß║┐m theo ti├¬u ─æß╗ü..."
++            className="pl-8"
++            value={searchQuery}
++            onChange={(e) => setSearchQuery(e.target.value)}
++          />
++        </div>
++        <Select value={gradeFilter} onValueChange={setGradeFilter}>
++          <SelectTrigger className="w-full sm:w-[180px]">
++            <SelectValue placeholder="Khß╗æi lß╗¢p (Tß║Ñt cß║ú)" />
++          </SelectTrigger>
++          <SelectContent>
++            <SelectItem value="all">Khß╗æi lß╗¢p (Tß║Ñt cß║ú)</SelectItem>
++            {GRADE_OPTIONS.map(opt => (
++              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
++            ))}
++          </SelectContent>
++        </Select>
++        <Select value={subjectFilter} onValueChange={setSubjectFilter}>
++          <SelectTrigger className="w-full sm:w-[180px]">
++            <SelectValue placeholder="M├┤n hß╗ìc (Tß║Ñt cß║ú)" />
++          </SelectTrigger>
++          <SelectContent>
++            <SelectItem value="all">M├┤n hß╗ìc (Tß║Ñt cß║ú)</SelectItem>
++            {SUBJECT_OPTIONS.map(opt => (
++              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
++            ))}
++          </SelectContent>
++        </Select>
+       </div>
++
++      <div className="rounded-md border bg-card">
++        <Table>
++          <TableHeader>
++            <TableRow>
++              <TableHead className="w-[300px]">TI├èU ─Éß╗Ç B├ÇI GIß║óNG</TableHead>
++              <TableHead>M├öN Hß╗îC</TableHead>
++              <TableHead>KHß╗ÉI Lß╗ÜP</TableHead>
++              <TableHead>NG├ÇY Tß║áO</TableHead>
++              <TableHead className="text-right">H├ÇNH ─Éß╗ÿNG</TableHead>
++            </TableRow>
++          </TableHeader>
++          <TableBody>
++            {isLoading && lessons.length === 0 ? (
++              <TableRow>
++                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
++                  ─Éang tß║úi dß╗» liß╗çu...
++                </TableCell>
++              </TableRow>
++            ) : filteredLessons.length === 0 ? (
++              <TableRow>
++                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
++                  Kh├┤ng t├¼m thß║Ñy b├ái giß║úng n├áo.
++                </TableCell>
++              </TableRow>
++            ) : (
++              filteredLessons.map((lesson) => (
++                <TableRow key={lesson.id}>
++                  <TableCell className="font-medium cursor-pointer" onClick={() => navigate(`/lessons/${lesson.id}`)}>
++                    <div className="flex items-center gap-3">
++                      <div className="bg-primary/10 p-2 rounded-md">
++                        <BookOpen className="h-4 w-4 text-primary" />
++                      </div>
++                      <span className="truncate max-w-[200px] sm:max-w-xs">{lesson.title}</span>
++                    </div>
++                  </TableCell>
++                  <TableCell>
++                    {lesson.subject || 'ΓÇö'}
++                  </TableCell>
++                  <TableCell>
++                    {lesson.grade_level ? (
++                      <Badge variant={getGradeBadgeVariant(lesson.grade_level)} className={lesson.grade_level === '10' ? 'bg-green-100 text-green-800 hover:bg-green-100' : lesson.grade_level === '11' ? 'bg-indigo-100 text-indigo-800 hover:bg-indigo-100' : 'bg-slate-100 text-slate-800'}>
++                        Khß╗æi {lesson.grade_level}
++                      </Badge>
++                    ) : (
++                      'ΓÇö'
++                    )}
++                  </TableCell>
++                  <TableCell>
++                    {new Date(lesson.created_at).toLocaleDateString('vi-VN')}
++                  </TableCell>
++                  <TableCell className="text-right">
++                    <DropdownMenu>
++                      <DropdownMenuTrigger asChild>
++                        <Button variant="ghost" className="h-8 w-8 p-0">
++                          <span className="sr-only">Mß╗ƒ menu</span>
++                          <MoreVertical className="h-4 w-4" />
++                        </Button>
++                      </DropdownMenuTrigger>
++                      <DropdownMenuContent align="end">
++                        <DropdownMenuItem onClick={() => navigate(`/lessons/${lesson.id}`)}>
++                          <Eye className="mr-2 h-4 w-4" /> Xem chi tiß║┐t
++                        </DropdownMenuItem>
++                        <DropdownMenuItem onClick={() => navigate(`/lessons/${lesson.id}/edit`)}>
++                          <Pencil className="mr-2 h-4 w-4" /> Chß╗ënh sß╗¡a
++                        </DropdownMenuItem>
++                        <DropdownMenuItem
++                          className="text-red-600 focus:text-red-600"
++                          onClick={() => setDeletingLessonId(lesson.id)}
++                        >
++                          <Trash2 className="mr-2 h-4 w-4" /> X├│a b├ái giß║úng
++                        </DropdownMenuItem>
++                      </DropdownMenuContent>
++                    </DropdownMenu>
++                  </TableCell>
++                </TableRow>
++              ))
++            )}
++          </TableBody>
++        </Table>
++      </div>
++
++      {/* TODO: Th├¬m Cursor Pagination khi t├¡ch hß╗úp Backend API (AGENTS.md ┬º5) */}
++
++      <AlertDialog open={!!deletingLessonId} onOpenChange={(open: boolean) => !open && setDeletingLessonId(null)}>
++        <AlertDialogContent>
++          <AlertDialogHeader>
++            <AlertDialogTitle>X├íc nhß║¡n x├│a b├ái giß║úng</AlertDialogTitle>
++            <AlertDialogDescription>
++              H├ánh ─æß╗Öng n├áy kh├┤ng thß╗â ho├án t├íc. Bß║ín c├│ chß║»c chß║»n muß╗æn x├│a b├ái giß║úng n├áy khß╗Åi hß╗ç thß╗æng kh├┤ng?
++            </AlertDialogDescription>
++          </AlertDialogHeader>
++          <AlertDialogFooter>
++            <AlertDialogCancel>Hß╗ºy</AlertDialogCancel>
++            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
++              X├│a b├ái giß║úng
++            </AlertDialogAction>
++          </AlertDialogFooter>
++        </AlertDialogContent>
++      </AlertDialog>
++
+     </div>
+   )
+ }
+diff --git a/frontend/src/views/pages/lessons/lesson.constants.ts b/frontend/src/views/pages/lessons/lesson.constants.ts
+new file mode 100644
+index 0000000..4a0e78b
+--- /dev/null
++++ b/frontend/src/views/pages/lessons/lesson.constants.ts
+@@ -0,0 +1,20 @@
++/**
++ * Shared constants cho Lesson pages.
++ * D├╣ng chung giß╗»a LessonList (filter) v├á LessonEditor (form select).
++ */
++export const SUBJECT_OPTIONS = [
++  { value: 'To├ín', label: 'To├ín' },
++  { value: 'Vß║¡t L├╜', label: 'Vß║¡t L├╜' },
++  { value: 'H├│a', label: 'H├│a Hß╗ìc' },
++  { value: 'Sinh Hß╗ìc', label: 'Sinh Hß╗ìc' },
++  { value: 'Ngß╗» V─ân', label: 'Ngß╗» V─ân' },
++  { value: 'Tiß║┐ng Anh', label: 'Tiß║┐ng Anh' },
++  { value: 'Lß╗ïch Sß╗¡', label: 'Lß╗ïch Sß╗¡' },
++  { value: '─Éß╗ïa L├╜', label: '─Éß╗ïa L├╜' },
++] as const
++
++export const GRADE_OPTIONS = [
++  { value: '10', label: 'Khß╗æi 10' },
++  { value: '11', label: 'Khß╗æi 11' },
++  { value: '12', label: 'Khß╗æi 12' },
++] as const

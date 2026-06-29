@@ -1985,3 +1985,56 @@ paths:
                     type: string
                     example: success
 
+
+  /ai/youtube-questions:
+    post:
+      summary: Tạo câu hỏi từ video YouTube (UC-FT-014)
+      description: Tải transcript của video YouTube và dùng AI tạo câu hỏi trắc nghiệm kèm timestamp.
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  example: "https://www.youtube.com/watch?v=1234567890"
+                question_count:
+                  type: integer
+                  example: 5
+                  minimum: 1
+                  maximum: 20
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    question_text:
+                      type: string
+                    timestamp:
+                      type: number
+                    answers:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          text:
+                            type: string
+                          is_correct:
+                            type: boolean
+        '400':
+          description: Lỗi đầu vào hoặc video không có transcript
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'

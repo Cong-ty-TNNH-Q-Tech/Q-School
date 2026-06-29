@@ -1,0 +1,20 @@
+Mình đã review rất kỹ PR #227 và phát hiện ra một số vấn đề vi phạm nghiêm trọng quy chuẩn dự án trong AGENTS.md, cũng như lỗi kỹ thuật cần phải sửa lại (Request Changes):
+
+1. **Vi phạm quy tắc cập nhật Docs (Mục 7.1 AGENTS.md):**
+   - PR tự ý thêm/mở rộng các API mới (`POST /api/v1/essays/submit`, `GET /api/v1/essays/{id}/status`, `POST /api/v1/uploads/image`) và thay đổi cấu trúc bảng trong Entity (`image_url`, `status`).
+   - Yêu cầu BẮT BUỘC: Phải cập nhật cấu trúc schema vào `docs/api/openapi.yaml` và `docs/architecture/erd_schema.md` TRƯỚC TIÊN. Không được viết `// TODO:BACKEND` đòi hỏi backend migration mà không khai báo tài liệu.
+
+2. **Vi phạm chuẩn Mock Data (Mục 4 AGENTS.md):**
+   - Các hàm mock trong `essay.mock.ts` (`getRubricsMock`, `submitEssayMock`, v.v.) hiện đang trả về trực tiếp dữ liệu thô.
+   - Yêu cầu: Bắt buộc bọc dữ liệu trong chuẩn Response của Q-School: `{"status": "success", "data": {...}}`. Frontend cần lấy data từ trường `.data` của response mock thay vì lấy trực tiếp.
+
+3. **Lỗi sửa sai luồng đăng nhập (Login.tsx) & Xung đột:**
+   - Việc tự ý chuyển `mockLogin` sang `apiClient.post('/auth/login')` sẽ làm sập môi trường dev do Backend hiện chưa chạy API này (vi phạm nguyên tắc dùng Mock API khi Backend chưa sẵn sàng).
+   - Thao tác sửa file này vô tình đè mất logic điều hướng role-based (`/teacher/dashboard` và `/student/dashboard`) vừa được implement ở nhánh chính.
+   - Yêu cầu: Revert lại file `Login.tsx`, loại bỏ thay đổi này khỏi PR.
+
+4. **Lỗi Kỹ thuật (Technical Debt):**
+   - File `useEssaySubmission.ts` (dòng 72) có để lại comment `// FIXME — Polling interval nên dùng exponential backoff thay vì fixed 3s` nhưng vẫn dùng code `setInterval` cố định 3s.
+   - Yêu cầu: Không để lại FIXME như một món nợ kỹ thuật. Hãy implement trực tiếp logic Exponential Backoff (sử dụng đệ quy `setTimeout` với delay tăng dần, có max delay).
+
+Vui lòng khắc phục triệt để các điểm trên và đẩy code lên lại để mình kiểm tra nhé!

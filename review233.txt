@@ -1,0 +1,21 @@
+Tôi đã review PR #233 (Implement Celery Essay Grading Logic) và phát hiện một số vi phạm nghiêm trọng về kiến trúc dự án (AGENTS.md):
+
+🚨 **Các vấn đề cần Request Changes:**
+
+1. **Vi phạm Hexagonal Architecture & SOLID (Leak Logic vào Entrypoint)**: 
+   - Trong `ai_tasks.py`, hàm `_run_process_essay_grading_async` (thuộc tầng Entrypoint/Driving Adapter) đang tự khởi tạo `SQLAlchemyEssaySubmissionRepository`, gọi trực tiếp `get_llm_service`, tự build prompt LLM và gọi query RAW SQL để update bảng `ai_tasks`.
+   - **Cách sửa**: Toàn bộ logic này (kiểm tra trạng thái task, build prompt, gọi LLM, parse JSON, update score) PHẢI được đóng gói vào một Use Case (VD: `EssayUseCase.grade_submission` hoặc `AITaskUseCase.process_grading`). Celery Task chỉ có nhiệm vụ nhận `task_id`, khởi tạo Use Case (thông qua Dependency Injection hoặc Factory) và gọi hàm thực thi.
+
+2. **Sử dụng Raw SQL sai tầng (Data Access Leak)**:
+   - Việc viết `session.execute(text("UPDATE ai_tasks..."))` ngay trong Celery worker là vi phạm nguyên tắc tách biệt Data Layer. 
+   - **Cách sửa**: Phải thông qua một Repository pattern (VD: `IAITaskRepository.update_status(task_id, status)`).
+
+3. **Vi phạm quy tắc Phân trang (Cursor Pagination)**:
+   - Hàm `list_by_student` trong `SQLAlchemyEssaySubmissionRepository` chỉ sử dụng `limit` và `order_by`, chưa hỗ trợ tham số `cursor` (như `cursor_created_at` và `cursor_id`).
+   - **Cách sửa**: Sử dụng hàm `cursor_paginate` từ `BaseRepository` giống như các entity khác.
+
+4. **Lỗi kẹt trạng thái Task (State stuck)**:
+   - Trong khối `try...except`, nếu LLM trả về JSON lỗi hoặc có Exception, task văng lỗi `raise exc` nhưng KHÔNG update trạng thái của `ai_task_id` thành `failed`. Điều này khiến task bị kẹt vĩnh viễn ở trạng thái `processing` trên Database.
+   - **Cách sửa**: Khối `except` cần phải catch lỗi và gọi hàm update status của AITask thành `failed` trước khi raise/rollback.
+
+Vui lòng sửa các lỗi thiết kế này để đảm bảo mã nguồn tuân thủ Clean Architecture của Q-School.

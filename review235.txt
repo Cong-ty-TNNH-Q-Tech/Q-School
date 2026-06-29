@@ -1,0 +1,22 @@
+Chào @thinhlai06, 
+
+Tôi đã review PR #235 của bạn. Dưới đây là những đánh giá chi tiết:
+
+### 👍 Điểm tích cực (Rất đáng khen):
+1. **Kiến trúc MVVM & SOLID:** Bạn đã tách biệt hoàn toàn UI và Logic rất tốt. Việc sử dụng `useLessonForm` để quản lý form state và `useLessons` (Zustand) để quản lý global state + API calls đúng chuẩn MVVM.
+2. **React Best Practices:** Việc bạn áp dụng pattern *"Adjusting state during render"* thay vì dùng `useEffect` để đồng bộ state (như comment link tài liệu React) là một bước xử lý cực kỳ tinh tế và tối ưu hiệu năng render.
+3. **Tuân thủ AGENTS.md:** Rất ấn tượng khi bạn nhớ để lại chú thích `TODO: Thêm Cursor Pagination` đúng với yêu cầu xử lý dữ liệu lớn (Điều 5).
+
+### 💡 Góp ý nhỏ (Không bắt buộc phải block merge):
+1. **Hiệu năng Render (Performance):** Trong `LessonList.tsx`, biến `filteredLessons` đang thực hiện filter mảng `lessons` trên mỗi lần render. Dù hiện tại data mock đang ít, nhưng best practice là bạn nên bọc nó trong `useMemo`:
+```typescript
+const filteredLessons = useMemo(() => {
+  return lessons.filter((lesson) => {
+    // logic filter
+  })
+}, [lessons, searchQuery, gradeFilter, subjectFilter])
+```
+2. **Mock Response (AGENTS.md - Điều 4):** Quy định dự án yêu cầu file Mock phải có cấu trúc Response chuẩn `{"status": "success", "data": {...}}`. Hiện tại các mock file đang return thẳng object/array. Do vấn đề này xuất hiện từ trước ở các file mock khác, tôi sẽ không bắt buộc bạn phải sửa ngay trong PR này, nhưng team cần lưu ý khi thay bằng API thật.
+3. **Quy tắc PR (AGENTS.md - Điều 7.3):** Nếu PR này giải quyết một Issue trên board, hãy nhớ thêm từ khóa `closes #<id>` vào mô tả PR nhé.
+
+Nhìn chung, code rất sạch sẽ, logic tốt và không có vi phạm nghiêm trọng nào. Tôi **Approve** PR này! Lên merge thôi! 🚀
