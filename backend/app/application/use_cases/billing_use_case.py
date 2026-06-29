@@ -27,13 +27,12 @@ class CreateCheckoutSessionUseCase:
         # 2. Tạo Transaction (pending)
         transaction = PaymentTransaction(
             user_id=user_id,
+            plan_id=plan_id,
             amount=plan.price,
             currency="VND",
             provider=provider,
             status=PaymentStatus.PENDING
         )
-        # TODO: Link transaction với subscription_id nếu đang renew hoặc lưu tạm plan_id vào metadata. 
-        # Vì đây là ví dụ, ta lưu transaction
         transaction = await self.billing_repo.create_transaction(transaction)
         
         # 3. Lấy Gateway Adapter
@@ -103,7 +102,42 @@ class ProcessWebhookUseCase:
         await self.billing_repo.update_transaction(transaction)
         
         # 6. Nếu success, update subscription
-        if status == PaymentStatus.SUCCESS:
+        if status == PaymentStatus.SUCCESS and transaction.plan_id:
             logger.info(f"Thanh toán thành công cho transaction {transaction.id}. Cập nhật subscription...")
-            # TODO: Cập nhật hoặc tạo mới UserSubscription cho user (Cần lưu plan_id lúc tạo transaction)
-            # Vì entity PaymentTransaction có liên kết subscription_id, ta có thể cập nhật ở đây.
+            
+            from datetime import datetime, timezone, timedelta
+            from app.domain.models.billing import UserSubscription
+            
+            now = datetime.now(timezone.utc)
+            plan = await self.billing_repo.get_plan_by_id(transaction.plan_id)
+            
+            # Tính thời gian gia hạn dựa trên chu kỳ gói cước (tạm tính 30 ngày cho monthly, 365 ngày cho yearly)
+            delta = timedelta(days=30) if plan.billing_cycle == "monthly" else timedelta(days=365)
+            
+            # Lấy subscription hiện tại
+            active_sub = await self.billing_repo.get_active_subscription(transaction.user_id)
+            
+            if active_sub:
+                # Nếu cùng gói cước, cộng dồn ngày. Nếu khác gói, bắt đầu chu kỳ mới từ hôm nay
+                if active_sub.plan_id == plan.id and active_sub.current_period_end > now:
+                    active_sub.current_period_end += delta
+                else:
+                    active_sub.plan_id = plan.id
+                    active_sub.current_period_start = now
+                    active_sub.current_period_end = now + delta
+                
+                await self.billing_repo.update_subscription(active_sub)
+                transaction.subscription_id = active_sub.id
+            else:
+                # Tạo subscription mới
+                new_sub = UserSubscription(
+                    user_id=transaction.user_id,
+                    plan_id=plan.id,
+                    status="active",
+                    current_period_start=now,
+                    current_period_end=now + delta
+                )
+                new_sub = await self.billing_repo.create_subscription(new_sub)
+                transaction.subscription_id = new_sub.id
+                
+            await self.billing_repo.update_transaction(transaction)

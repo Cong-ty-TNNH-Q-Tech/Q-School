@@ -142,6 +142,9 @@ class PaymentTransaction(Base, UUIDMixin, TimestampMixin):
     subscription_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("user_subscriptions.id"), nullable=True
     )
+    plan_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("plans.id"), nullable=True, comment="Gói cước đang mua"
+    )
     amount: Mapped[int] = mapped_column(
         Integer, nullable=False, comment="Số tiền (VNĐ)"
     )
@@ -162,3 +165,4 @@ class PaymentTransaction(Base, UUIDMixin, TimestampMixin):
     subscription: Mapped["UserSubscription | None"] = relationship(
         "UserSubscription", back_populates="transactions"
     )
+    plan: Mapped["Plan | None"] = relationship("Plan")
