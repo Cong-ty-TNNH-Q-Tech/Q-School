@@ -97,6 +97,12 @@ class QuizAttemptNotFoundError(DomainException):
     pass
 
 
+class RubricNotFoundError(DomainException):
+    """Không tìm thấy ma trận tiêu chí."""
+
+    pass
+
+
 # ──────────────────────────────────────────────
 # AI / Billing
 # ──────────────────────────────────────────────

@@ -393,6 +393,52 @@ components:
           type: string
           format: date-time
 
+    # ----------------------------------------
+    # RUBRIC SCHEMAS
+    # ----------------------------------------
+    CreateRubricRequest:
+      type: object
+      required:
+        - title
+        - criteria_matrix
+      properties:
+        title:
+          type: string
+          example: "IELTS Writing Task 2 Rubric"
+        criteria_matrix:
+          type: object
+          description: "JSONB flexible structure"
+          example: {"Task Achievement": {"max_score": 9}, "Coherence": {"max_score": 9}}
+          
+    UpdateRubricRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        criteria_matrix:
+          type: object
+          
+    RubricResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        teacher_id:
+          type: string
+          format: uuid
+        teacher_name:
+          type: string
+        title:
+          type: string
+        criteria_matrix:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
   # ----------------------------------------
   # COMMON PARAMETERS
@@ -1370,6 +1416,132 @@ paths:
                         format: uuid
                       score:
                         type: number
+
+  # ==========================================
+  # GROUP: RUBRICS
+  # ==========================================
+  /rubrics:
+    post:
+      summary: Tạo ma trận tiêu chí
+      tags: [Rubrics]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRubricRequest'
+      responses:
+        '201':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardError'
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      data:
+                        $ref: '#/components/schemas/RubricResponse'
+        '422':
+          description: Validation error
+    get:
+      summary: Danh sách ma trận tiêu chí của giáo viên
+      tags: [Rubrics]
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardError'
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RubricResponse'
+                          
+  /rubrics/{id}:
+    get:
+      summary: Chi tiết ma trận tiêu chí
+      tags: [Rubrics]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardError'
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      data:
+                        $ref: '#/components/schemas/RubricResponse'
+    patch:
+      summary: Cập nhật ma trận tiêu chí
+      tags: [Rubrics]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRubricRequest'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardError'
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      data:
+                        $ref: '#/components/schemas/RubricResponse'
+    delete:
+      summary: Xóa (soft delete) ma trận tiêu chí
+      tags: [Rubrics]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
 
   /essays/submissions:
     post:
