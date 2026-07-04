@@ -1,7 +1,20 @@
+import { type ReactNode } from 'react';
 import { FileText, Languages, PenLine, Video, Wand2 } from 'lucide-react';
 import { ToolCard } from '@/views/components/AITools';
 
-const TOOLS = [
+// [FIX #2] Dùng explicit type thay vì `as const` (as const không có giá trị với JSX elements)
+interface ToolConfig {
+  title: string;
+  description: string;
+  icon: ReactNode;
+  to: string;
+  gradientClass: string;
+  iconColorClass: string;
+  badge: string;
+}
+
+// Module-level constant — khởi tạo 1 lần, stable reference, không re-create mỗi render
+const TOOLS: ToolConfig[] = [
   {
     title: 'Tóm tắt văn bản',
     description: 'Tóm tắt tài liệu dài thành các ý chính, phù hợp cho ôn tập và nghiên cứu.',
@@ -38,7 +51,7 @@ const TOOLS = [
     iconColorClass: 'text-red-600',
     badge: 'AI',
   },
-] as const;
+];
 
 export default function AIToolsHubPage() {
   return (
@@ -63,7 +76,9 @@ export default function AIToolsHubPage() {
         {TOOLS.map((tool, index) => (
           <div
             key={tool.to}
-            className="animate-in fade-in slide-in-from-bottom-4"
+            // [FIX #3] Thêm duration-500 — bắt buộc để animation có thời gian chạy
+            // Convention dự án: FlashcardStudy dùng duration-300, EssaySubmission dùng duration-500
+            className="animate-in fade-in slide-in-from-bottom-4 duration-500"
             style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'both' }}
           >
             <ToolCard
