@@ -41,7 +41,7 @@ export const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 // 1. Summarizer Mock
-export async function* streamMockSummarize(text: string, level: SummarizeLevel): AsyncGenerator<AIToolSSEChunk, void, unknown> {
+export async function* streamMockSummarize(_text: string, level: SummarizeLevel): AsyncGenerator<AIToolSSEChunk, void, unknown> {
   await delay(500)
   
   let summary = ''
@@ -60,7 +60,7 @@ export async function* streamMockSummarize(text: string, level: SummarizeLevel):
 }
 
 // 2. Translator Mock
-export async function* streamMockTranslate(text: string, sourceLang: string, targetLang: string): AsyncGenerator<AIToolSSEChunk, void, unknown> {
+export async function* streamMockTranslate(text: string, _sourceLang: string, targetLang: string): AsyncGenerator<AIToolSSEChunk, void, unknown> {
   await delay(500)
   
   const targetName = SUPPORTED_LANGUAGES.find(l => l.code === targetLang)?.native_name || targetLang
@@ -129,7 +129,7 @@ export async function extractMockYouTubeInfo(url: string): Promise<YouTubeInfo> 
   }
 }
 
-export async function getMockYouTubeQuestions(url: string, count: number, type: YouTubeQuestionType): Promise<{ status: string, data: YouTubeQuestion[] }> {
+export async function getMockYouTubeQuestions(_url: string, count: number, type: YouTubeQuestionType): Promise<{ status: string, data: YouTubeQuestion[] }> {
   await delay(2000)
   
   const questions: YouTubeQuestion[] = []

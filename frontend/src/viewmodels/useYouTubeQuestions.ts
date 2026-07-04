@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import type { YouTubeQuestion, YouTubeQuestionType } from '@/models/ai'
 import { getMockYouTubeQuestions, extractMockYouTubeInfo, type YouTubeInfo } from '@/services/mockData'
 
@@ -12,6 +12,10 @@ export function useYouTubeQuestions() {
   const [videoInfo, setVideoInfo] = useState<YouTubeInfo | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Error UX states
+  const [isPaymentRequired, setIsPaymentRequired] = useState(false)
+  const [rateLimitSeconds, setRateLimitSeconds] = useState(0)
 
   // [FIX #4] useCallback để tránh recreate mỗi render khi pass làm prop/dependency
   const validateUrl = useCallback((url: string): boolean => {
@@ -37,9 +41,22 @@ export function useYouTubeQuestions() {
 
     setIsLoading(true)
     setError(null)
+    setIsPaymentRequired(false)
     setQuestions([])
     setVideoInfo(null)
     
+    // [Simulate 402/429 based on special URL input]
+    if (youtubeUrl.includes('402')) {
+      setIsLoading(false);
+      setIsPaymentRequired(true);
+      return;
+    }
+    if (youtubeUrl.includes('429')) {
+      setIsLoading(false);
+      setRateLimitSeconds(10);
+      return;
+    }
+
     try {
       const info = await extractMockYouTubeInfo(youtubeUrl)
       setVideoInfo(info)
@@ -48,7 +65,10 @@ export function useYouTubeQuestions() {
       setQuestions(res.data)
     } catch (err: unknown) {
       // [FIX #5] Dùng unknown thay vì any — theo pattern useEssaySubmission.ts
-      setError(err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo câu hỏi. Vui lòng thử lại.')
+      const msg = err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo câu hỏi. Vui lòng thử lại.'
+      if (msg.includes('402')) setIsPaymentRequired(true)
+      else if (msg.includes('429')) setRateLimitSeconds(15)
+      else setError(msg)
     } finally {
       setIsLoading(false)
     }
@@ -62,7 +82,17 @@ export function useYouTubeQuestions() {
     setVideoInfo(null)
     setError(null)
     setIsLoading(false)
+    setIsPaymentRequired(false)
+    setRateLimitSeconds(0)
   }, [])
+
+  // Timer cho Rate Limit countdown
+  useEffect(() => {
+    if (rateLimitSeconds > 0) {
+      const timer = setTimeout(() => setRateLimitSeconds(prev => prev - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [rateLimitSeconds])
 
   return {
     youtubeUrl, setYoutubeUrl,
@@ -72,6 +102,8 @@ export function useYouTubeQuestions() {
     videoInfo,
     isLoading,
     error, setError,
+    isPaymentRequired,
+    rateLimitSeconds,
     generate,
     reset,
     validateUrl

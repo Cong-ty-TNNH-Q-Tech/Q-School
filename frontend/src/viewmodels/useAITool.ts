@@ -9,6 +9,10 @@ export function useAITool(toolType: AIToolType) {
   const [error, setError] = useState<string | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
 
+  // Error UX states
+  const [isPaymentRequired, setIsPaymentRequired] = useState(false)
+  const [rateLimitSeconds, setRateLimitSeconds] = useState(0)
+
   // Options per tool
   const [summarizeLevel, setSummarizeLevel] = useState<SummarizeLevel>('medium')
   const [sourceLang, setSourceLang] = useState<string>('vi')
@@ -26,6 +30,8 @@ export function useAITool(toolType: AIToolType) {
     setIsStreaming(false)
     setError(null)
     setUploadedFile(null)
+    setIsPaymentRequired(false)
+    setRateLimitSeconds(0)
   }, [])
 
   const copyResult = useCallback(async () => {
@@ -58,7 +64,20 @@ export function useAITool(toolType: AIToolType) {
     cancelledRef.current = false
     setIsStreaming(true)
     setError(null)
+    setIsPaymentRequired(false)
     setResult('')
+
+    // [Simulate 402/429 based on special input for demo/testing]
+    if (inputText.trim() === '402') {
+      setIsStreaming(false);
+      setIsPaymentRequired(true);
+      return;
+    }
+    if (inputText.trim() === '429') {
+      setIsStreaming(false);
+      setRateLimitSeconds(10);
+      return;
+    }
 
     try {
       const textToProcess = inputText.trim() || (uploadedFile ? `[Nội dung file: ${uploadedFile.name}]` : '')
@@ -82,7 +101,10 @@ export function useAITool(toolType: AIToolType) {
       }
     } catch (err: unknown) {
       // [FIX #5] Dùng unknown thay vì any — theo pattern useEssaySubmission.ts
-      setError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra. Vui lòng thử lại.')
+      const msg = err instanceof Error ? err.message : 'Đã có lỗi xảy ra. Vui lòng thử lại.'
+      if (msg.includes('402')) setIsPaymentRequired(true)
+      else if (msg.includes('429')) setRateLimitSeconds(15)
+      else setError(msg)
     } finally {
       setIsStreaming(false)
     }
@@ -95,6 +117,14 @@ export function useAITool(toolType: AIToolType) {
     }
   }, [])
 
+  // Timer cho Rate Limit countdown
+  useEffect(() => {
+    if (rateLimitSeconds > 0) {
+      const timer = setTimeout(() => setRateLimitSeconds(prev => prev - 1), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [rateLimitSeconds])
+
   return {
     inputText, setInputText,
     result, setResult,
@@ -105,6 +135,8 @@ export function useAITool(toolType: AIToolType) {
     sourceLang, setSourceLang,
     targetLang, setTargetLang,
     rewriteTone, setRewriteTone,
+    isPaymentRequired,
+    rateLimitSeconds,
     execute,
     reset,
     copyResult,

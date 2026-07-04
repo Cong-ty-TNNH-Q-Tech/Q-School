@@ -73,6 +73,7 @@ export function TextInputArea({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          aria-label={placeholder || 'Nhập văn bản'}
           disabled={disabled || !!uploadedFile}
           className={cn(
             "min-h-[200px] resize-y border-0 focus-visible:ring-0 p-4 pb-14 bg-transparent",
@@ -89,8 +90,9 @@ export function TextInputArea({
                 <button
                   onClick={clearFile}
                   disabled={disabled}
-                  className="hover:bg-primary/10 p-0.5 rounded-full transition-colors ml-1 flex-shrink-0"
+                  className="hover:bg-primary/10 p-0.5 rounded-full transition-colors ml-1 flex-shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                   title="Xóa tệp"
+                  aria-label="Xóa tệp đính kèm"
                   type="button"
                 >
                   <X className="w-3.5 h-3.5" />

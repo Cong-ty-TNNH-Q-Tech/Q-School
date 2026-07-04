@@ -1,8 +1,8 @@
-import { ArrowLeft, Sparkles, ArrowRightLeft } from 'lucide-react';
+import { ArrowLeft, Sparkles, ArrowRightLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TextInputArea, SSEResultDisplay } from '@/views/components/AITools';
+import { TextInputArea, SSEResultDisplay, PaymentRequiredBanner, RateLimitWarning } from '@/views/components/AITools';
 import { useAITool } from '@/viewmodels/useAITool';
 import { SUPPORTED_LANGUAGES } from '@/services/mockData';
 
@@ -16,24 +16,33 @@ export default function TranslatePage() {
     sourceLang, setSourceLang,
     targetLang, setTargetLang,
     swapLanguages,
+    isPaymentRequired, rateLimitSeconds,
     execute, copyResult
   } = useAITool('translate');
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" asChild className="rounded-full">
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="ghost" size="icon" asChild className="rounded-full shrink-0">
           <Link to="/ai/tools">
             <ArrowLeft className="w-5 h-5" />
           </Link>
         </Button>
         <div>
+          <div className="flex items-center text-sm font-medium text-gray-500 mb-1">
+            <Link to="/ai/tools" className="hover:text-primary transition-colors">AI Tools</Link>
+            <ChevronRight className="w-4 h-4 mx-1" />
+            <span className="text-gray-900">Dịch thuật</span>
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             Academic Translator
           </h1>
           <p className="text-gray-500 text-sm mt-1">Dịch thuật tài liệu học thuật với độ chính xác cao.</p>
         </div>
       </div>
+
+      {isPaymentRequired && <PaymentRequiredBanner />}
+      <RateLimitWarning secondsLeft={rateLimitSeconds} />
 
       {/* Language Selection Bar */}
       <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200 shadow-sm mb-6">
@@ -55,12 +64,12 @@ export default function TranslatePage() {
         <Button 
           variant="ghost" 
           size="icon" 
-          className="rounded-full mx-2 hover:bg-primary/10 hover:text-primary transition-colors flex-shrink-0"
+          className="rounded-full mx-2 hover:bg-primary/10 hover:text-primary transition-all active:rotate-180 flex-shrink-0 group"
           onClick={swapLanguages}
           disabled={isStreaming}
           title="Hoán đổi ngôn ngữ"
         >
-          <ArrowRightLeft className="w-4 h-4" />
+          <ArrowRightLeft className="w-4 h-4 transition-transform group-hover:scale-110" />
         </Button>
 
         <div className="flex-1">
@@ -81,7 +90,7 @@ export default function TranslatePage() {
         <Button 
           className="ml-4 flex-shrink-0" 
           onClick={execute}
-          disabled={isStreaming || (!inputText.trim() && !uploadedFile)}
+          disabled={isStreaming || (!inputText.trim() && !uploadedFile) || isPaymentRequired || rateLimitSeconds > 0}
         >
           <Sparkles className="w-4 h-4 mr-2" />
           {isStreaming ? 'Đang dịch...' : 'Dịch'}

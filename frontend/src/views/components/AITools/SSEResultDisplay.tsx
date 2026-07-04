@@ -81,6 +81,8 @@ export function SSEResultDisplay({ result, isStreaming, onCopy }: SSEResultDispl
       <div
         ref={scrollRef}
         className="flex-1 p-5 overflow-y-auto scroll-smooth"
+        aria-live="polite"
+        aria-atomic="false"
       >
         {showLoading ? (
           <div className="flex space-x-1.5 h-6 items-center px-1">

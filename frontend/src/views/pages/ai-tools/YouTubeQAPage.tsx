@@ -1,10 +1,11 @@
-import { ArrowLeft, Sparkles, Youtube, Clock, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Sparkles, PlayCircle, Clock, CheckCircle2, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { PaymentRequiredBanner, RateLimitWarning } from '@/views/components/AITools';
 import { useYouTubeQuestions } from '@/viewmodels/useYouTubeQuestions';
 import type { YouTubeQuestionType } from '@/models/ai';
 
@@ -17,6 +18,8 @@ export default function YouTubeQAPage() {
     videoInfo,
     isLoading,
     error,
+    isPaymentRequired,
+    rateLimitSeconds,
     generate,
     validateUrl
   } = useYouTubeQuestions();
@@ -28,19 +31,27 @@ export default function YouTubeQAPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <div className="flex items-center gap-4 mb-8">
-        <Button variant="ghost" size="icon" asChild className="rounded-full">
+      <div className="flex items-center gap-4 mb-6">
+        <Button variant="ghost" size="icon" asChild className="rounded-full shrink-0">
           <Link to="/ai/tools">
             <ArrowLeft className="w-5 h-5" />
           </Link>
         </Button>
         <div>
+          <div className="flex items-center text-sm font-medium text-gray-500 mb-1">
+            <Link to="/ai/tools" className="hover:text-primary transition-colors">AI Tools</Link>
+            <ChevronRight className="w-4 h-4 mx-1" />
+            <span className="text-gray-900">YouTube Q&A</span>
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             YouTube Q&A Generator
           </h1>
           <p className="text-gray-500 text-sm mt-1">Tự động trích xuất nội dung và sinh câu hỏi từ video YouTube.</p>
         </div>
       </div>
+
+      {isPaymentRequired && <PaymentRequiredBanner />}
+      <RateLimitWarning secondsLeft={rateLimitSeconds} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
@@ -51,7 +62,7 @@ export default function YouTubeQAPage() {
               <div className="space-y-2">
                 <Label>Link Video YouTube</Label>
                 <div className="relative">
-                  <Youtube className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                  <PlayCircle className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                   <Input
                     placeholder="https://youtube.com/watch?v=..."
                     value={youtubeUrl}
@@ -101,7 +112,7 @@ export default function YouTubeQAPage() {
             <Button
               className="w-full mt-6"
               onClick={generate}
-              disabled={isLoading || !hasUrl || !isUrlValid}
+              disabled={isLoading || !hasUrl || !isUrlValid || isPaymentRequired || rateLimitSeconds > 0}
             >
               <Sparkles className="w-4 h-4 mr-2" />
               {isLoading ? 'Đang xử lý...' : 'Tạo câu hỏi'}
