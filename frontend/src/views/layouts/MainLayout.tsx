@@ -25,6 +25,7 @@ import {
   ChevronLeft,
   Menu,
   PenLine,
+  Wand2,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -50,6 +51,7 @@ export default function MainLayout() {
     { label: 'Bài học', to: '/lessons', icon: <BookOpen className="h-4 w-4" /> },
     { label: 'Bài kiểm tra', to: '/quizzes', icon: <ClipboardCheck className="h-4 w-4" /> },
     { label: 'AI Chat', to: '/chat', icon: <MessageSquare className="h-4 w-4" /> },
+    { label: 'AI Tools', to: '/ai/tools', icon: <Wand2 className="h-4 w-4" /> },
     { label: 'Flashcards', to: '/flashcards', icon: <Layers className="h-4 w-4" /> },
     { label: 'Tài liệu', to: '/documents', icon: <FileText className="h-4 w-4" /> },
     { label: 'Bài tự luận', to: '/essays/submit', icon: <PenLine className="h-4 w-4" /> },
