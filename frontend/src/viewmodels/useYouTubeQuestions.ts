@@ -81,7 +81,7 @@ export function useYouTubeQuestions() {
     } finally {
       setIsLoading(false)
     }
-  }, [youtubeUrl, questionCount, questionType])
+  }, [youtubeUrl, questionCount, questionType, isPaymentRequired, rateLimitSeconds])
 
   const reset = useCallback(() => {
     setYoutubeUrl('')

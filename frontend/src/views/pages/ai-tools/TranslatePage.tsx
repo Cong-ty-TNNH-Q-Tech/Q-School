@@ -52,7 +52,7 @@ export default function TranslatePage() {
               <SelectValue placeholder="Ngôn ngữ nguồn" />
             </SelectTrigger>
             <SelectContent>
-              {SUPPORTED_LANGUAGES.map(lang => (
+              {SUPPORTED_LANGUAGES.filter(lang => lang.code !== targetLang).map(lang => (
                 <SelectItem key={`src-${lang.code}`} value={lang.code}>
                   {lang.native_name} ({lang.name})
                 </SelectItem>
@@ -78,7 +78,7 @@ export default function TranslatePage() {
               <SelectValue placeholder="Ngôn ngữ đích" />
             </SelectTrigger>
             <SelectContent>
-              {SUPPORTED_LANGUAGES.map(lang => (
+              {SUPPORTED_LANGUAGES.filter(lang => lang.code !== sourceLang).map(lang => (
                 <SelectItem key={`tgt-${lang.code}`} value={lang.code}>
                   {lang.native_name} ({lang.name})
                 </SelectItem>

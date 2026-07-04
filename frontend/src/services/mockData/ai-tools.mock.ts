@@ -119,7 +119,8 @@ export async function extractMockYouTubeInfo(url: string): Promise<YouTubeInfo> 
       videoId = url.split('youtu.be/')[1].split('?')[0]
     }
   } catch (e) {
-    // Ignore and use default
+    // Log để dễ debug khi swap sang real API (không silent swallow)
+    console.error('[extractMockYouTubeInfo] Failed to parse videoId from URL:', e)
   }
 
   return {

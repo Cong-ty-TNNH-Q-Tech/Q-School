@@ -116,7 +116,7 @@ export function useAITool(toolType: AIToolType) {
     } finally {
       setIsStreaming(false)
     }
-  }, [isStreaming, inputText, uploadedFile, toolType, summarizeLevel, sourceLang, targetLang, rewriteTone])
+  }, [isStreaming, inputText, uploadedFile, toolType, summarizeLevel, sourceLang, targetLang, rewriteTone, isPaymentRequired, rateLimitSeconds])
 
   // Cleanup khi unmount: cancel bất kỳ stream nào đang chạy
   useEffect(() => {
