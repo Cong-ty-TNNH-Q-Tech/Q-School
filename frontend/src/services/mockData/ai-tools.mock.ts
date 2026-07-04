@@ -44,10 +44,11 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 export async function* streamMockSummarize(_text: string, level: SummarizeLevel): AsyncGenerator<AIToolSSEChunk, void, unknown> {
   await delay(500)
   
-  let summary = ''
-  if (level === 'short') summary = 'Đây là bản tóm tắt ngắn gọn.\n- Ý chính 1\n- Ý chính 2'
-  else if (level === 'detailed') summary = 'Đây là bản tóm tắt chi tiết.\n- Luận điểm 1: Rất dài và chi tiết.\n- Luận điểm 2: Có nhiều số liệu cụ thể.\n- Kết luận quan trọng.'
-  else summary = 'Đây là bản tóm tắt trung bình.\n- Điểm nổi bật 1\n- Điểm nổi bật 2\n- Tổng kết'
+  const summary = level === 'short'
+    ? 'Đây là bản tóm tắt ngắn gọn.\n- Ý chính 1\n- Ý chính 2'
+    : level === 'detailed'
+      ? 'Đây là bản tóm tắt chi tiết.\n- Luận điểm 1: Rất dài và chi tiết.\n- Luận điểm 2: Có nhiều số liệu cụ thể.\n- Kết luận quan trọng.'
+      : 'Đây là bản tóm tắt trung bình.\n- Điểm nổi bật 1\n- Điểm nổi bật 2\n- Tổng kết'
 
   const tokens = summary.split(/(?<=\s)|(?=[.,;!?:])/)
   for (let i = 0; i < tokens.length; i++) {
