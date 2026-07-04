@@ -56,10 +56,18 @@ export function useAITool(toolType: AIToolType) {
     }
   }, [sourceLang, targetLang, result])
 
+  // [FIX Phase6-B1] Wrap setInputText để tự clear error khi user gõ lại
+  const handleInputChange = useCallback((val: string) => {
+    setInputText(val)
+    if (error) setError(null)
+  }, [error])
+
   const execute = useCallback(async () => {
     // [FIX #2] Guard: không cho double-submit khi đang stream
     if (isStreaming) return
     if (!inputText.trim() && !uploadedFile) return
+    // [FIX Phase6-B1] ViewModel-level guard — không phụ thuộc vào UI disable
+    if (isPaymentRequired || rateLimitSeconds > 0) return
 
     cancelledRef.current = false
     setIsStreaming(true)
@@ -140,6 +148,7 @@ export function useAITool(toolType: AIToolType) {
     execute,
     reset,
     copyResult,
-    swapLanguages
+    swapLanguages,
+    handleInputChange,
   }
 }

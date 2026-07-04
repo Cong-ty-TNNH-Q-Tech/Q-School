@@ -8,7 +8,7 @@ import { SUPPORTED_LANGUAGES } from '@/services/mockData';
 
 export default function TranslatePage() {
   const {
-    inputText, setInputText,
+    inputText,
     result,
     isStreaming,
     error,
@@ -17,7 +17,7 @@ export default function TranslatePage() {
     targetLang, setTargetLang,
     swapLanguages,
     isPaymentRequired, rateLimitSeconds,
-    execute, copyResult
+    execute, copyResult, handleInputChange
   } = useAITool('translate');
 
   return (
@@ -103,7 +103,7 @@ export default function TranslatePage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2">
           <TextInputArea
             value={inputText}
-            onChange={setInputText}
+            onChange={handleInputChange}
             placeholder="Nhập văn bản cần dịch..."
             onFileUpload={setUploadedFile}
             uploadedFile={uploadedFile}

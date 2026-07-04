@@ -81,8 +81,6 @@ export function SSEResultDisplay({ result, isStreaming, onCopy }: SSEResultDispl
       <div
         ref={scrollRef}
         className="flex-1 p-5 overflow-y-auto scroll-smooth"
-        aria-live="polite"
-        aria-atomic="false"
       >
         {showLoading ? (
           <div className="flex space-x-1.5 h-6 items-center px-1">
@@ -95,10 +93,16 @@ export function SSEResultDisplay({ result, isStreaming, onCopy }: SSEResultDispl
             Kết quả sẽ hiển thị tại đây...
           </div>
         ) : (
-          <div className="text-[15px] leading-relaxed text-gray-800 whitespace-pre-wrap">
+          // [FIX Phase6-B4] aria-live chỉ bao quanh text kết quả thực — không bao loading/placeholder
+          <div
+            className="text-[15px] leading-relaxed text-gray-800 whitespace-pre-wrap"
+            aria-live="polite"
+            aria-atomic="false"
+            aria-label="Kết quả xử lý"
+          >
             {formatMessage(result)}
             {isStreaming && (
-              <span className="inline-block w-1.5 h-4 ml-1 bg-primary/80 animate-pulse align-middle" />
+              <span className="inline-block w-1.5 h-4 ml-1 bg-primary/80 animate-pulse align-middle" aria-hidden="true" />
             )}
           </div>
         )}

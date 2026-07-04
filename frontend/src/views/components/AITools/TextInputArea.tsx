@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useId } from 'react';
 import { Upload, X, FileText } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,9 @@ export function TextInputArea({
   // [FIX #1] Dùng error state thay vì alert() để hiển thị lỗi inline
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  // [FIX Phase6-B3] Dùng useId() để generate unique ID — tránh duplicate ID khi nhiều trang mount cùng lúc
+  const fileInputId = useId();
+  const fileErrorId = useId();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -106,7 +109,8 @@ export function TextInputArea({
                   onChange={handleFileChange}
                   accept={acceptAttr}
                   className="hidden"
-                  id="ai-tool-file-upload"
+                  id={fileInputId}
+                  aria-label="Tải lên tài liệu"
                   disabled={disabled || value.length > 0}
                 />
                 <Button
@@ -135,7 +139,7 @@ export function TextInputArea({
 
       {/* [FIX #1] Inline error message — không dùng alert() */}
       {fileError && (
-        <p className="text-sm text-red-500 font-medium">{fileError}</p>
+        <p id={fileErrorId} role="alert" className="text-sm text-red-500 font-medium">{fileError}</p>
       )}
     </div>
   );

@@ -11,7 +11,8 @@ import type { YouTubeQuestionType } from '@/models/ai';
 
 export default function YouTubeQAPage() {
   const {
-    youtubeUrl, setYoutubeUrl,
+    youtubeUrl,
+    handleUrlChange,
     questionCount, setQuestionCount,
     questionType, setQuestionType,
     questions,
@@ -21,7 +22,7 @@ export default function YouTubeQAPage() {
     isPaymentRequired,
     rateLimitSeconds,
     generate,
-    validateUrl
+    validateUrl,
   } = useYouTubeQuestions();
 
   // [FIX #1] Bỏ React.ChangeEvent (React chưa được import trong file này) → dùng inline handler
@@ -66,9 +67,10 @@ export default function YouTubeQAPage() {
                   <Input
                     placeholder="https://youtube.com/watch?v=..."
                     value={youtubeUrl}
-                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    onChange={(e) => handleUrlChange(e.target.value)}
                     disabled={isLoading}
                     className="pl-9"
+                    aria-label="Đường dẫn YouTube"
                   />
                 </div>
                 {!isUrlValid && <p className="text-xs text-red-500">Đường dẫn không hợp lệ</p>}

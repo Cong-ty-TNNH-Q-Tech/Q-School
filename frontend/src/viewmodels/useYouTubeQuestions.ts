@@ -23,7 +23,16 @@ export function useYouTubeQuestions() {
     return YOUTUBE_URL_REGEX.test(url)
   }, [])
 
+  // [FIX Phase6-B2] Wrap setYoutubeUrl để tự clear error khi user thay đổi URL
+  const handleUrlChange = useCallback((url: string) => {
+    setYoutubeUrl(url)
+    if (error) setError(null)
+  }, [error])
+
   const generate = useCallback(async () => {
+    // [FIX Phase6-B2] ViewModel-level guard — không phụ thuộc vào UI disable
+    if (isPaymentRequired || rateLimitSeconds > 0) return
+
     if (!youtubeUrl.trim()) {
       setError('Vui lòng nhập đường dẫn YouTube')
       return
@@ -96,6 +105,7 @@ export function useYouTubeQuestions() {
 
   return {
     youtubeUrl, setYoutubeUrl,
+    handleUrlChange,
     questionCount, setQuestionCount,
     questionType, setQuestionType,
     questions,

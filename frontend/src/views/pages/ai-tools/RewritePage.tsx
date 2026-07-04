@@ -17,14 +17,14 @@ const TONE_OPTIONS = [
 
 export default function RewritePage() {
   const {
-    inputText, setInputText,
+    inputText,
     result,
     isStreaming,
     error,
     uploadedFile, setUploadedFile,
     rewriteTone, setRewriteTone,
     isPaymentRequired, rateLimitSeconds,
-    execute, copyResult
+    execute, copyResult, handleInputChange
   } = useAITool('rewrite');
 
   return (
@@ -65,8 +65,11 @@ export default function RewritePage() {
                   return (
                     <button
                       key={tone.value}
+                      type="button"
                       onClick={() => setRewriteTone(tone.value as RewriteTone)}
                       disabled={isStreaming}
+                      aria-pressed={isActive}
+                      aria-label={`Văn phong ${tone.label}`}
                       className={cn(
                         "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 border",
                         isActive 
@@ -99,7 +102,7 @@ export default function RewritePage() {
         <div className="lg:col-span-2 flex flex-col gap-6">
           <TextInputArea
             value={inputText}
-            onChange={setInputText}
+            onChange={handleInputChange}
             placeholder="Dán nội dung cần viết lại..."
             onFileUpload={setUploadedFile}
             uploadedFile={uploadedFile}

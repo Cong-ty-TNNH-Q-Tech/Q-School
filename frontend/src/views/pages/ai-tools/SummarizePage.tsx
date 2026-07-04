@@ -9,14 +9,14 @@ import type { SummarizeLevel } from '@/models/ai';
 
 export default function SummarizePage() {
   const {
-    inputText, setInputText,
+    inputText,
     result,
     isStreaming,
     error,
     uploadedFile, setUploadedFile,
     summarizeLevel, setSummarizeLevel,
     isPaymentRequired, rateLimitSeconds,
-    execute, copyResult
+    execute, copyResult, handleInputChange
   } = useAITool('summarize');
 
   return (
@@ -82,7 +82,7 @@ export default function SummarizePage() {
         <div className="lg:col-span-2 flex flex-col gap-6">
           <TextInputArea
             value={inputText}
-            onChange={setInputText}
+            onChange={handleInputChange}
             placeholder="Dán nội dung cần tóm tắt vào đây..."
             onFileUpload={setUploadedFile}
             uploadedFile={uploadedFile}
