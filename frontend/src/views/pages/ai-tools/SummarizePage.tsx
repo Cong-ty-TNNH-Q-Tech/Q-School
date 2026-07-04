@@ -71,21 +71,19 @@ export default function SummarizePage() {
         </div>
 
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-2">
-            <TextInputArea
-              value={inputText}
-              onChange={setInputText}
-              placeholder="Dán nội dung cần tóm tắt vào đây..."
-              onFileUpload={setUploadedFile}
-              uploadedFile={uploadedFile}
-              disabled={isStreaming}
-            />
-          </div>
-          
-          <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-2">
-            <SSEResultDisplay 
-              result={result} 
-              isStreaming={isStreaming} 
+          <TextInputArea
+            value={inputText}
+            onChange={setInputText}
+            placeholder="Dán nội dung cần tóm tắt vào đây..."
+            onFileUpload={setUploadedFile}
+            uploadedFile={uploadedFile}
+            disabled={isStreaming}
+          />
+
+          <div className="flex-1 min-h-[280px] bg-white rounded-xl shadow-sm border border-gray-200 p-2">
+            <SSEResultDisplay
+              result={result}
+              isStreaming={isStreaming}
               onCopy={copyResult}
             />
           </div>

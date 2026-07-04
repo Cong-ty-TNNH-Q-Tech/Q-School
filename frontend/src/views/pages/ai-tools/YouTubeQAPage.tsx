@@ -21,11 +21,10 @@ export default function YouTubeQAPage() {
     validateUrl
   } = useYouTubeQuestions();
 
-  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setYoutubeUrl(e.target.value);
-  };
-
-  const isUrlValid = youtubeUrl.trim() === '' || validateUrl(youtubeUrl);
+  // [FIX #1] Bỏ React.ChangeEvent (React chưa được import trong file này) → dùng inline handler
+  // [FIX #2] Tách rõ 2 biến logic để tránh duplicate call và inconsistency
+  const hasUrl = youtubeUrl.trim().length > 0;
+  const isUrlValid = !hasUrl || validateUrl(youtubeUrl); // empty = valid (chưa nhập thì không show lỗi)
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
@@ -53,10 +52,10 @@ export default function YouTubeQAPage() {
                 <Label>Link Video YouTube</Label>
                 <div className="relative">
                   <Youtube className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <Input 
-                    placeholder="https://youtube.com/watch?v=..." 
+                  <Input
+                    placeholder="https://youtube.com/watch?v=..."
                     value={youtubeUrl}
-                    onChange={handleUrlChange}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
                     disabled={isLoading}
                     className="pl-9"
                   />
@@ -65,13 +64,17 @@ export default function YouTubeQAPage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Số lượng câu hỏi</Label>
-                <Input 
-                  type="number" 
-                  min={5} 
-                  max={20} 
+                <Label>Số lượng câu hỏi (5–20)</Label>
+                <Input
+                  type="number"
+                  min={5}
+                  max={20}
                   value={questionCount}
-                  onChange={(e) => setQuestionCount(Number(e.target.value))}
+                  onChange={(e) => {
+                    // [FIX #3] Clamp giá trị trong state để đồng bộ với validation của hook
+                    const val = Number(e.target.value);
+                    if (!isNaN(val)) setQuestionCount(Math.min(20, Math.max(5, val)));
+                  }}
                   disabled={isLoading}
                 />
               </div>
@@ -95,10 +98,10 @@ export default function YouTubeQAPage() {
               </div>
             </div>
 
-            <Button 
-              className="w-full mt-6" 
+            <Button
+              className="w-full mt-6"
               onClick={generate}
-              disabled={isLoading || !youtubeUrl.trim() || !validateUrl(youtubeUrl)}
+              disabled={isLoading || !hasUrl || !isUrlValid}
             >
               <Sparkles className="w-4 h-4 mr-2" />
               {isLoading ? 'Đang xử lý...' : 'Tạo câu hỏi'}
