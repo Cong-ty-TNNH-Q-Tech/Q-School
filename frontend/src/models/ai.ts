@@ -89,3 +89,54 @@ export interface GeneratedAsset {
   output_content: Record<string, unknown> | null
   created_at: string
 }
+
+// ──────────────────────────────────────────────
+// AI Tools Hub
+// ──────────────────────────────────────────────
+export type AIToolType = 'summarize' | 'translate' | 'rewrite' | 'youtube-qa'
+export type SummarizeLevel = 'short' | 'medium' | 'detailed'
+export type RewriteTone = 'formal' | 'friendly' | 'concise' | 'academic' | 'creative'
+export type YouTubeQuestionType = 'mcq' | 'open' | 'mix'
+
+export interface SupportedLanguage {
+  code: string
+  name: string
+  native_name: string
+}
+
+export interface SummarizeRequest {
+  text: string
+  level: SummarizeLevel
+}
+
+export interface TranslateRequest {
+  text: string
+  source_lang: string
+  target_lang: string
+}
+
+export interface RewriteRequest {
+  text: string
+  tone: RewriteTone
+}
+
+export interface YouTubeQARequest {
+  url: string
+  question_count: number
+  question_type: YouTubeQuestionType
+}
+
+export interface YouTubeQuestion {
+  id: string
+  timestamp: string
+  timestamp_seconds: number
+  question_text: string
+  type: 'mcq' | 'open'
+  options?: string[]
+  correct_answer?: string
+}
+
+export interface AIToolSSEChunk {
+  chunk: string
+  is_final: boolean
+}
