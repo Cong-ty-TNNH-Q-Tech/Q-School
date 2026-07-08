@@ -26,6 +26,11 @@ from app.entrypoints.api_v1.schemas.lesson import (
     UpdateLessonRequest,
     LessonOut,
 )
+from app.entrypoints.api_v1.schemas.rubric import (
+    CreateRubricRequest,
+    UpdateRubricRequest,
+    RubricResponse,
+)
 
 __all__ = [
     # Base
@@ -50,4 +55,8 @@ __all__ = [
     "CreateLessonRequest",
     "UpdateLessonRequest",
     "LessonOut",
+    # Rubric
+    "CreateRubricRequest",
+    "UpdateRubricRequest",
+    "RubricResponse",
 ]

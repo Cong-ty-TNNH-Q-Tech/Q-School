@@ -393,6 +393,52 @@ components:
           type: string
           format: date-time
 
+    # ----------------------------------------
+    # RUBRIC SCHEMAS
+    # ----------------------------------------
+    CreateRubricRequest:
+      type: object
+      required:
+        - title
+        - criteria_matrix
+      properties:
+        title:
+          type: string
+          example: "IELTS Writing Task 2 Rubric"
+        criteria_matrix:
+          type: object
+          description: "JSONB flexible structure"
+          example: {"Task Achievement": {"max_score": 9}, "Coherence": {"max_score": 9}}
+          
+    UpdateRubricRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        criteria_matrix:
+          type: object
+          
+    RubricResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        teacher_id:
+          type: string
+          format: uuid
+        teacher_name:
+          type: string
+        title:
+          type: string
+        criteria_matrix:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
 
   # ----------------------------------------
   # COMMON PARAMETERS
@@ -1336,10 +1382,75 @@ paths:
 
   /quizzes/{quiz_id}/attempts:
     post:
+      summary: Bắt đầu làm bài thi Trắc nghiệm
+      tags: [Student Tracking]
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Bắt đầu làm bài thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      started_at:
+                        type: string
+                        format: date-time
+    get:
+      summary: Lấy lịch sử làm bài thi Trắc nghiệm
+      tags: [Student Tracking]
+      parameters:
+        - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/CursorParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Lịch sử làm bài
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      type: object
+
+  /quizzes/{quiz_id}/attempts/{attempt_id}/submit:
+    post:
       summary: Nộp bài thi Trắc nghiệm
       tags: [Student Tracking]
       parameters:
         - name: quiz_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: attempt_id
           in: path
           required: true
           schema:
@@ -1365,13 +1476,139 @@ paths:
                   data:
                     type: object
                     properties:
-                      attempt_id:
+                      id:
                         type: string
                         format: uuid
                       score:
                         type: number
 
-  /essays/submissions:
+  # ==========================================
+  # GROUP: RUBRICS
+  # ==========================================
+  /rubrics:
+    post:
+      summary: Tạo ma trận tiêu chí
+      tags: [Rubrics]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRubricRequest'
+      responses:
+        '201':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardError'
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      data:
+                        $ref: '#/components/schemas/RubricResponse'
+        '422':
+          description: Validation error
+    get:
+      summary: Danh sách ma trận tiêu chí của giáo viên
+      tags: [Rubrics]
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardError'
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RubricResponse'
+                          
+  /rubrics/{id}:
+    get:
+      summary: Chi tiết ma trận tiêu chí
+      tags: [Rubrics]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardError'
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      data:
+                        $ref: '#/components/schemas/RubricResponse'
+    patch:
+      summary: Cập nhật ma trận tiêu chí
+      tags: [Rubrics]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRubricRequest'
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/StandardError'
+                  - type: object
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      data:
+                        $ref: '#/components/schemas/RubricResponse'
+    delete:
+      summary: Xóa (soft delete) ma trận tiêu chí
+      tags: [Rubrics]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /essays:
     post:
       summary: Nộp bài Văn tự luận (AI Tự Động Chấm)
       tags: [Student Tracking]
@@ -1400,6 +1637,42 @@ paths:
                       submission_id:
                         type: string
                         format: uuid
+                      ai_task_id:
+                        type: string
+                        format: uuid
+
+  /essays/{id}:
+    get:
+      summary: Lấy kết quả bài nộp tự luận
+      tags: [Student Tracking]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      score:
+                        type: number
+                      ai_feedback:
+                        type: object
 
   /essays/{id}/status:
     get:
@@ -1768,14 +2041,20 @@ paths:
 
   /chat/sessions:
     post:
-      summary: Tạo phòng Chat AI mới (Optional Context Document)
+      summary: Tạo phòng Chat AI mới
       tags: [AI Workspace]
+      security:
+        - bearerAuth: []
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
+                title:
+                  type: string
+                ai_persona:
+                  type: string
                 document_id:
                   type: string
                   format: uuid
@@ -1796,14 +2075,44 @@ paths:
                       session_id:
                         type: string
                         format: uuid
+    get:
+      summary: Lấy danh sách Chat Session
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/CursorParam'
+      responses:
+        '200':
+          description: OK
 
   /chat/sessions/{session_id}/messages:
+    get:
+      summary: Lấy danh sách Messages trong Session
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/LimitParam'
+        - $ref: '#/components/parameters/CursorParam'
+      responses:
+        '200':
+          description: OK
     post:
       summary: Send a message to AI Tutor (Stream SSE)
       description: |
         Endpoint này nhận tin nhắn của User và trả về luồng dữ liệu (Stream) từng chữ của AI sử dụng chuẩn Server-Sent Events (SSE). 
         Frontend đọc luồng này bằng `fetch()` hoặc `EventSource` để hiển thị chữ kiểu gõ phím.
       tags: [AI Workspace]
+      security:
+        - bearerAuth: []
       parameters:
         - name: session_id
           in: path
@@ -1841,47 +2150,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PaymentRequiredError'
-    get:
-      summary: Lấy lịch sử tin nhắn của một phiên Chat AI
-      tags: [AI Workspace]
-      parameters:
-        - name: session_id
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
-        - $ref: '#/components/parameters/CursorParam'
-        - $ref: '#/components/parameters/LimitParam'
-      responses:
-        '200':
-          description: Lịch sử hội thoại
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: success
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          format: uuid
-                        sender_type:
-                          type: string
-                          enum: [user, ai]
-                        content:
-                          type: string
-                        created_at:
-                          type: string
-                          format: date-time
-                  meta:
-                    $ref: '#/components/schemas/PaginationMeta'
 
   # ==========================================
   # GROUP 5: BILLING & SUBSCRIPTIONS

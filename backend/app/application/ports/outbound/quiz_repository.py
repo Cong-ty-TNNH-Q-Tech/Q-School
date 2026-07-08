@@ -5,7 +5,7 @@ Outbound Port — Repository Interface cho Quiz, Question, Attempt.
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from app.domain.models.quiz import Quiz, QuizAttempt, EssaySubmission
+from app.domain.models.quiz import Quiz, QuizAttempt
 
 
 class IQuizRepository(ABC):
@@ -40,31 +40,10 @@ class IQuizAttemptRepository(ABC):
 
     @abstractmethod
     async def get_by_student_and_quiz(
-        self, student_id: UUID, quiz_id: UUID, *, limit: int = 10
+        self, student_id: UUID, quiz_id: UUID, *, cursor: UUID | None = None, limit: int = 10
     ) -> list[QuizAttempt]:
-        """Lấy lịch sử làm bài. limit để tránh load quá nhiều lượt làm lại."""
+        """Lấy lịch sử làm bài. Dùng cursor pagination để tránh load quá nhiều lượt làm lại."""
         ...
 
 
-class IEssaySubmissionRepository(ABC):
-    """Abstract Port: Contract cho Essay Submission data access."""
 
-    @abstractmethod
-    async def get_by_id(self, submission_id: UUID) -> EssaySubmission | None: ...
-
-    @abstractmethod
-    async def list_by_student(
-        self, student_id: UUID, *, limit: int = 20
-    ) -> list[EssaySubmission]:
-        """Lấy tất cả bài viết của student, giới hạn bởng limit."""
-        ...
-
-    @abstractmethod
-    async def create(
-        self, student_id: UUID, teacher_id: UUID, content: str, **kwargs
-    ) -> EssaySubmission: ...
-
-    @abstractmethod
-    async def update_feedback(
-        self, submission: EssaySubmission, ai_feedback: dict, score: float
-    ) -> EssaySubmission: ...

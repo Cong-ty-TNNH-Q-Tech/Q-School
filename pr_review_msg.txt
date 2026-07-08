@@ -1,0 +1,12 @@
+### Kết quả 10-Round Deep Scan cho PR #231
+
+Xin chào tác giả PR, code của bạn tổ chức rất tốt, tuân thủ chặt chẽ kiến trúc Hexagonal và các quy tắc chung của dự án. Đặc biệt là việc tái sử dụng `AIUserDep` để tự động kiểm tra billing cho API Essay, cũng như implement chính xác Cursor Pagination.
+
+Tuy nhiên, có một lỗi logic nghiêm trọng có thể gây lỗi trên Production liên quan đến Celery. Bạn vui lòng sửa lỗi này trước khi merge nhé:
+
+**❌ Lỗi Race Condition với Celery Task (Vòng 5 - Logical Correctness & Edge Cases)**
+- **File:** `backend/app/application/use_cases/essay_use_case.py` (hàm `submit_essay`)
+- **Vấn đề:** Hiện tại bạn gọi `process_essay_grading.apply_async(...)` ngay sau khi `self.db.flush()`. Do transaction của FastAPI (`DbDep`) chỉ thực sự `commit()` khi request kết thúc (trả về HTTP response), nên nếu Celery worker pick up task này quá nhanh, nó sẽ truy vấn DB và báo lỗi **không tìm thấy** `essay_submission_id` hoặc `ai_task_id` (do dữ liệu chưa được commit vào bảng).
+- **Giải pháp đề xuất:** Bạn cần truyền `db: AsyncSession` vào `submit_essay` để gọi `await db.commit()` **TRƯỚC KHI** gọi `apply_async(...)`. Hoặc sử dụng cơ chế `after_commit` hook của SQLAlchemy (nếu dự án có hỗ trợ).
+
+Vui lòng cập nhật lại phần này, sau đó ping lại tôi để approve nhé! Cảm ơn bạn.

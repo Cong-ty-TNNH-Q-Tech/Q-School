@@ -97,6 +97,15 @@ class QuizAttemptNotFoundError(DomainException):
     pass
 
 
+class QuizAttemptAlreadySubmittedError(DomainException):
+    """Lượt làm bài đã được nộp."""
+
+class RubricNotFoundError(DomainException):
+    """Không tìm thấy ma trận tiêu chí."""
+
+    pass
+
+
 # ──────────────────────────────────────────────
 # AI / Billing
 # ──────────────────────────────────────────────
@@ -114,6 +123,12 @@ class SubscriptionExpiredError(DomainException):
 
 class DocumentNotFoundError(DomainException):
     """Không tìm thấy tài liệu."""
+
+    pass
+
+
+class ChatSessionNotFoundError(DomainException):
+    """Không tìm thấy Chat Session."""
 
     pass
 
