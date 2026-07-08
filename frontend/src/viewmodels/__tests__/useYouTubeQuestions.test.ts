@@ -3,13 +3,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useYouTubeQuestions } from '../useYouTubeQuestions'
 import { extractMockYouTubeInfo, getMockYouTubeQuestions } from '../../services/mockData'
 import type { YouTubeQuestion } from '@/models/ai'
+import { PaymentRequiredError, TooManyRequestsError } from '@/utils/aiApiError'
 
 vi.mock('../../services/mockData', () => ({
   extractMockYouTubeInfo: vi.fn(),
   getMockYouTubeQuestions: vi.fn(),
 }))
 
-// YouTubeInfo type as used in the mock (has title, duration, thumbnail_url)
+const VALID_YT_URL = 'https://youtube.com/watch?v=dQw4w9WgXcQ'
+
 const mockVideoInfo = {
   title: 'Test Video',
   duration: '10:00',
@@ -30,6 +32,8 @@ describe('useYouTubeQuestions', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.clearAllMocks()
+    vi.mocked(extractMockYouTubeInfo).mockResolvedValue(mockVideoInfo)
+    vi.mocked(getMockYouTubeQuestions).mockResolvedValue({ status: 'success', data: [mockQuestion] })
   })
 
   afterEach(() => {
@@ -48,9 +52,7 @@ describe('useYouTubeQuestions', () => {
   it('T4: generate() với URL rỗng → set error', async () => {
     const { result } = renderHook(() => useYouTubeQuestions())
 
-    await act(async () => {
-      await result.current.generate()
-    })
+    await act(async () => { await result.current.generate() })
 
     expect(result.current.error).toBe('Vui lòng nhập đường dẫn YouTube')
   })
@@ -58,13 +60,8 @@ describe('useYouTubeQuestions', () => {
   it('T5: generate() với URL không hợp lệ → set error', async () => {
     const { result } = renderHook(() => useYouTubeQuestions())
 
-    act(() => {
-      result.current.setYoutubeUrl('https://google.com')
-    })
-
-    await act(async () => {
-      await result.current.generate()
-    })
+    act(() => { result.current.setYoutubeUrl('https://google.com') })
+    await act(async () => { await result.current.generate() })
 
     expect(result.current.error).toBe('Đường dẫn YouTube không hợp lệ')
   })
@@ -73,36 +70,22 @@ describe('useYouTubeQuestions', () => {
     const { result } = renderHook(() => useYouTubeQuestions())
 
     act(() => {
-      result.current.setYoutubeUrl('https://youtube.com/watch?v=12345678901')
+      result.current.setYoutubeUrl(VALID_YT_URL)
       result.current.setQuestionCount(3)
     })
-
-    await act(async () => {
-      await result.current.generate()
-    })
+    await act(async () => { await result.current.generate() })
 
     expect(result.current.error).toBe('Số lượng câu hỏi phải từ 5 đến 20')
   })
 
-  it('T7: Happy path - valid URL gọi mock services đúng', async () => {
-    vi.mocked(extractMockYouTubeInfo).mockResolvedValue(mockVideoInfo)
-    vi.mocked(getMockYouTubeQuestions).mockResolvedValue({
-      status: 'success',
-      data: [mockQuestion],
-    })
-
+  it('T7: Happy path - valid URL gọi mock services đúng args', async () => {
     const { result } = renderHook(() => useYouTubeQuestions())
 
-    act(() => {
-      result.current.setYoutubeUrl('https://youtube.com/watch?v=12345678901')
-    })
+    act(() => { result.current.setYoutubeUrl(VALID_YT_URL) })
+    await act(async () => { await result.current.generate() })
 
-    await act(async () => {
-      await result.current.generate()
-    })
-
-    expect(extractMockYouTubeInfo).toHaveBeenCalledWith('https://youtube.com/watch?v=12345678901')
-    expect(getMockYouTubeQuestions).toHaveBeenCalledWith('https://youtube.com/watch?v=12345678901', 10, 'mix')
+    expect(extractMockYouTubeInfo).toHaveBeenCalledWith(VALID_YT_URL)
+    expect(getMockYouTubeQuestions).toHaveBeenCalledWith(VALID_YT_URL, 10, 'mix')
     expect(result.current.videoInfo).toEqual(mockVideoInfo)
     expect(result.current.questions).toHaveLength(1)
     expect(result.current.questions[0].question_text).toBe('What is covered in this video?')
@@ -110,51 +93,62 @@ describe('useYouTubeQuestions', () => {
     expect(result.current.error).toBeNull()
   })
 
-  it('T8 & T9: URL chứa 402 → isPaymentRequired, 429 → rateLimitSeconds', async () => {
+  it('T8: getMockYouTubeQuestions throw PaymentRequiredError → isPaymentRequired = true', async () => {
+    vi.mocked(getMockYouTubeQuestions).mockRejectedValue(new PaymentRequiredError())
+
     const { result } = renderHook(() => useYouTubeQuestions())
 
-    act(() => {
-      result.current.setYoutubeUrl('https://youtube.com/watch?v=40240240240')
-    })
-
-    await act(async () => {
-      await result.current.generate()
-    })
+    act(() => { result.current.setYoutubeUrl(VALID_YT_URL) })
+    await act(async () => { await result.current.generate() })
 
     expect(result.current.isPaymentRequired).toBe(true)
-
-    act(() => {
-      result.current.reset()
-      result.current.setYoutubeUrl('https://youtube.com/watch?v=42942942942')
-    })
-
-    await act(async () => {
-      await result.current.generate()
-    })
-
-    expect(result.current.rateLimitSeconds).toBe(10)
+    expect(result.current.isLoading).toBe(false)
+    expect(result.current.error).toBeNull()
+    expect(result.current.rateLimitSeconds).toBe(0)
   })
 
-  it('T10: handleUrlChange clears error', () => {
+  it('T9: getMockYouTubeQuestions throw TooManyRequestsError(10) → rateLimitSeconds = 10', async () => {
+    vi.mocked(getMockYouTubeQuestions).mockRejectedValue(new TooManyRequestsError(10))
+
     const { result } = renderHook(() => useYouTubeQuestions())
 
-    act(() => {
-      result.current.setError('Some error')
-    })
+    act(() => { result.current.setYoutubeUrl(VALID_YT_URL) })
+    await act(async () => { await result.current.generate() })
 
-    act(() => {
-      result.current.handleUrlChange('new-url')
-    })
+    expect(result.current.rateLimitSeconds).toBe(10)
+    expect(result.current.isLoading).toBe(false)
+    expect(result.current.isPaymentRequired).toBe(false)
+    expect(result.current.error).toBeNull()
+  })
+
+  it('T10: extractMockYouTubeInfo throw generic Error → error message được set', async () => {
+    vi.mocked(extractMockYouTubeInfo).mockRejectedValue(new Error('Video không tìm thấy'))
+
+    const { result } = renderHook(() => useYouTubeQuestions())
+
+    act(() => { result.current.setYoutubeUrl(VALID_YT_URL) })
+    await act(async () => { await result.current.generate() })
+
+    expect(result.current.error).toBe('Video không tìm thấy')
+    expect(result.current.isPaymentRequired).toBe(false)
+    expect(result.current.rateLimitSeconds).toBe(0)
+  })
+
+  it('T11: handleUrlChange clears error', () => {
+    const { result } = renderHook(() => useYouTubeQuestions())
+
+    act(() => { result.current.setError('Some error') })
+    act(() => { result.current.handleUrlChange('new-url') })
 
     expect(result.current.error).toBeNull()
     expect(result.current.youtubeUrl).toBe('new-url')
   })
 
-  it('T11: reset() trả về state mặc định', () => {
+  it('T12: reset() trả về toàn bộ state về mặc định', () => {
     const { result } = renderHook(() => useYouTubeQuestions())
 
     act(() => {
-      result.current.setYoutubeUrl('https://youtube.com/watch?v=12345678901')
+      result.current.setYoutubeUrl(VALID_YT_URL)
       result.current.setQuestionCount(15)
       result.current.setError('Error')
       result.current.reset()

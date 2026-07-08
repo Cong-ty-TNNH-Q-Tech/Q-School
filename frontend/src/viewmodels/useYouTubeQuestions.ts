@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import type { YouTubeQuestion, YouTubeQuestionType } from '@/models/ai'
 import { getMockYouTubeQuestions, extractMockYouTubeInfo, type YouTubeInfo } from '@/services/mockData'
+import { parseAIError } from '@/utils/aiApiError'
 
 const YOUTUBE_URL_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/
 
@@ -30,7 +31,7 @@ export function useYouTubeQuestions() {
   }, [error])
 
   const generate = useCallback(async () => {
-    // [FIX Phase6-B2] ViewModel-level guard — không phụ thuộc vào UI disable
+    // ViewModel-level guard — không phụ thuộc vào UI disable
     if (isPaymentRequired || rateLimitSeconds > 0) return
 
     if (!youtubeUrl.trim()) {
@@ -53,18 +54,6 @@ export function useYouTubeQuestions() {
     setIsPaymentRequired(false)
     setQuestions([])
     setVideoInfo(null)
-    
-    // [Simulate 402/429 based on special URL input]
-    if (youtubeUrl.includes('402')) {
-      setIsLoading(false);
-      setIsPaymentRequired(true);
-      return;
-    }
-    if (youtubeUrl.includes('429')) {
-      setIsLoading(false);
-      setRateLimitSeconds(10);
-      return;
-    }
 
     try {
       const info = await extractMockYouTubeInfo(youtubeUrl)
@@ -73,11 +62,14 @@ export function useYouTubeQuestions() {
       const res = await getMockYouTubeQuestions(youtubeUrl, questionCount, questionType)
       setQuestions(res.data)
     } catch (err: unknown) {
-      // [FIX #5] Dùng unknown thay vì any — theo pattern useEssaySubmission.ts
-      const msg = err instanceof Error ? err.message : 'Có lỗi xảy ra khi tạo câu hỏi. Vui lòng thử lại.'
-      if (msg.includes('402')) setIsPaymentRequired(true)
-      else if (msg.includes('429')) setRateLimitSeconds(15)
-      else setError(msg)
+      const errState = parseAIError(err)
+      if (errState.type === 'payment_required') {
+        setIsPaymentRequired(true)
+      } else if (errState.type === 'rate_limit') {
+        setRateLimitSeconds(errState.seconds)
+      } else {
+        setError(errState.message)
+      }
     } finally {
       setIsLoading(false)
     }

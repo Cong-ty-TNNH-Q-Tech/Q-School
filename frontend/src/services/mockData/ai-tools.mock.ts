@@ -6,6 +6,7 @@ import type {
   RewriteTone,
   AIToolSSEChunk
 } from '@/models/ai'
+import { PaymentRequiredError, TooManyRequestsError } from '@/utils/aiApiError'
 
 const uuidv4 = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
@@ -41,9 +42,13 @@ export const SUPPORTED_LANGUAGES: SupportedLanguage[] = [
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 // 1. Summarizer Mock
-export async function* streamMockSummarize(_text: string, level: SummarizeLevel): AsyncGenerator<AIToolSSEChunk, void, unknown> {
+export async function* streamMockSummarize(text: string, level: SummarizeLevel): AsyncGenerator<AIToolSSEChunk, void, unknown> {
+  // Simulate billing/rate-limit errors from Service layer (không để trong ViewModel)
+  if (text === '402') throw new PaymentRequiredError()
+  if (text === '429') throw new TooManyRequestsError(10)
+
   await delay(500)
-  
+
   const summary = level === 'short'
     ? 'Đây là bản tóm tắt ngắn gọn.\n- Ý chính 1\n- Ý chính 2'
     : level === 'detailed'
@@ -62,6 +67,9 @@ export async function* streamMockSummarize(_text: string, level: SummarizeLevel)
 
 // 2. Translator Mock
 export async function* streamMockTranslate(text: string, _sourceLang: string, targetLang: string): AsyncGenerator<AIToolSSEChunk, void, unknown> {
+  if (text === '402') throw new PaymentRequiredError()
+  if (text === '429') throw new TooManyRequestsError(10)
+
   await delay(500)
   
   const targetName = SUPPORTED_LANGUAGES.find(l => l.code === targetLang)?.native_name || targetLang
@@ -79,6 +87,9 @@ export async function* streamMockTranslate(text: string, _sourceLang: string, ta
 
 // 3. Rewriter Mock
 export async function* streamMockRewrite(text: string, tone: RewriteTone): AsyncGenerator<AIToolSSEChunk, void, unknown> {
+  if (text === '402') throw new PaymentRequiredError()
+  if (text === '429') throw new TooManyRequestsError(10)
+
   await delay(500)
   
   let prefix = ''
@@ -131,7 +142,11 @@ export async function extractMockYouTubeInfo(url: string): Promise<YouTubeInfo> 
   }
 }
 
-export async function getMockYouTubeQuestions(_url: string, count: number, type: YouTubeQuestionType): Promise<{ status: string, data: YouTubeQuestion[] }> {
+export async function getMockYouTubeQuestions(url: string, count: number, type: YouTubeQuestionType): Promise<{ status: string, data: YouTubeQuestion[] }> {
+  // Simulate billing/rate-limit errors from Service layer
+  if (url.includes('402')) throw new PaymentRequiredError()
+  if (url.includes('429')) throw new TooManyRequestsError(10)
+
   await delay(2000)
   
   const questions: YouTubeQuestion[] = []

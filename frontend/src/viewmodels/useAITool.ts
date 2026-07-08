@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { AIToolSSEChunk } from '@/models/ai'
+import { parseAIError } from '@/utils/aiApiError'
 
 export type AIStreamFn = (text: string) => AsyncGenerator<AIToolSSEChunk, void, unknown>
 
@@ -55,21 +56,9 @@ export function useAITool(streamFn: AIStreamFn) {
     setIsPaymentRequired(false)
     setResult('')
 
-    // [Simulate 402/429 based on special input for demo/testing]
-    if (inputText.trim() === '402') {
-      setIsStreaming(false);
-      setIsPaymentRequired(true);
-      return;
-    }
-    if (inputText.trim() === '429') {
-      setIsStreaming(false);
-      setRateLimitSeconds(10);
-      return;
-    }
-
     try {
       const textToProcess = inputText.trim() || (uploadedFile ? `[Nội dung file: ${uploadedFile.name}]` : '')
-      
+
       const stream = streamFn(textToProcess)
 
       for await (const chunk of stream) {
@@ -77,10 +66,14 @@ export function useAITool(streamFn: AIStreamFn) {
         setResult(prev => prev + chunk.chunk)
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Đã có lỗi xảy ra. Vui lòng thử lại.'
-      if (msg.includes('402')) setIsPaymentRequired(true)
-      else if (msg.includes('429')) setRateLimitSeconds(15)
-      else setError(msg)
+      const errState = parseAIError(err)
+      if (errState.type === 'payment_required') {
+        setIsPaymentRequired(true)
+      } else if (errState.type === 'rate_limit') {
+        setRateLimitSeconds(errState.seconds)
+      } else {
+        setError(errState.message)
+      }
     } finally {
       setIsStreaming(false)
     }
