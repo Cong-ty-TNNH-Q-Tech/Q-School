@@ -468,6 +468,92 @@ components:
         format: date-time
         example: "2024-01-15T10:30:00.123456+00:00"
 
+    # ----------------------------------------
+    # AI TOOLS SCHEMAS
+    # ----------------------------------------
+    SummarizeRequest:
+      type: object
+      required: [text, level]
+      properties:
+        text:
+          type: string
+        level:
+          type: string
+          enum: [short, medium, detailed]
+
+    TranslateRequest:
+      type: object
+      required: [text, source_lang, target_lang]
+      properties:
+        text:
+          type: string
+        source_lang:
+          type: string
+        target_lang:
+          type: string
+
+    RewriteRequest:
+      type: object
+      required: [text, tone]
+      properties:
+        text:
+          type: string
+        tone:
+          type: string
+          enum: [formal, friendly, concise, academic, creative]
+
+    YouTubeQARequest:
+      type: object
+      required: [youtube_url, question_count, type]
+      properties:
+        youtube_url:
+          type: string
+        question_count:
+          type: integer
+        type:
+          type: string
+          enum: [mcq, open, mix]
+
+    YouTubeQuestion:
+      type: object
+      required: [id, type, question, timestamp]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [mcq, open]
+        question:
+          type: string
+        timestamp:
+          type: number
+        options:
+          type: array
+          items:
+            type: string
+        correct_answer:
+          type: string
+        answer_hint:
+          type: string
+
+    SupportedLanguage:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        native_name:
+          type: string
+
+    AIToolSSEChunk:
+      type: object
+      properties:
+        chunk:
+          type: string
+        is_final:
+          type: boolean
+
 security:
   - bearerAuth: []
 
@@ -2253,3 +2339,162 @@ paths:
                     type: string
                     example: success
 
+
+  # ==========================================
+  # GROUP 6: AI TOOLS
+  # ==========================================
+  /ai/tools/summarize:
+    post:
+      summary: Tóm tắt văn bản (SSE Streaming)
+      tags: [AI Tools]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SummarizeRequest'
+      responses:
+        '200':
+          description: Event stream of AIToolSSEChunk
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/AIToolSSEChunk'
+        '402':
+          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequiredError'
+        '429':
+          description: Quá tải hệ thống
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
+
+  /ai/tools/translate:
+    post:
+      summary: Dịch thuật (SSE Streaming)
+      tags: [AI Tools]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TranslateRequest'
+      responses:
+        '200':
+          description: Event stream of AIToolSSEChunk
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/AIToolSSEChunk'
+        '402':
+          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequiredError'
+        '429':
+          description: Quá tải hệ thống
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
+
+  /ai/tools/rewrite:
+    post:
+      summary: Viết lại văn bản (SSE Streaming)
+      tags: [AI Tools]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RewriteRequest'
+      responses:
+        '200':
+          description: Event stream of AIToolSSEChunk
+          content:
+            text/event-stream:
+              schema:
+                $ref: '#/components/schemas/AIToolSSEChunk'
+        '402':
+          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequiredError'
+        '429':
+          description: Quá tải hệ thống
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
+
+  /ai/tools/youtube-qa:
+    post:
+      summary: Sinh câu hỏi từ YouTube
+      tags: [AI Tools]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/YouTubeQARequest'
+      responses:
+        '200':
+          description: Danh sách câu hỏi
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/YouTubeQuestion'
+        '402':
+          description: Hết lượt sử dụng, yêu cầu nâng cấp gói
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentRequiredError'
+        '429':
+          description: Quá tải hệ thống
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TooManyRequestsError'
+
+  /ai/tools/languages:
+    get:
+      summary: Lấy danh sách ngôn ngữ hỗ trợ
+      tags: [AI Tools]
+      responses:
+        '200':
+          description: Danh sách ngôn ngữ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SupportedLanguage'

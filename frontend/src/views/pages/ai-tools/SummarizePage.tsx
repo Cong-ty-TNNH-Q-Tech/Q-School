@@ -4,20 +4,28 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TextInputArea, SSEResultDisplay, PaymentRequiredBanner, RateLimitWarning } from '@/views/components/AITools';
+import { useState, useCallback } from 'react';
 import { useAITool } from '@/viewmodels/useAITool';
+import { streamMockSummarize } from '@/services/mockData';
 import type { SummarizeLevel } from '@/models/ai';
 
 export default function SummarizePage() {
+  const [summarizeLevel, setSummarizeLevel] = useState<SummarizeLevel>('medium');
+
+  const streamFn = useCallback(
+    (text: string) => streamMockSummarize(text, summarizeLevel),
+    [summarizeLevel]
+  );
+
   const {
     inputText,
     result,
     isStreaming,
     error,
     uploadedFile, setUploadedFile,
-    summarizeLevel, setSummarizeLevel,
     isPaymentRequired, rateLimitSeconds,
     execute, copyResult, handleInputChange
-  } = useAITool('summarize');
+  } = useAITool(streamFn);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">

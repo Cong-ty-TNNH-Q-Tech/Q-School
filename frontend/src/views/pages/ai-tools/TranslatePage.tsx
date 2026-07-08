@@ -3,22 +3,38 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TextInputArea, SSEResultDisplay, PaymentRequiredBanner, RateLimitWarning } from '@/views/components/AITools';
+import { useState, useCallback } from 'react';
 import { useAITool } from '@/viewmodels/useAITool';
-import { SUPPORTED_LANGUAGES } from '@/services/mockData';
+import { SUPPORTED_LANGUAGES, streamMockTranslate } from '@/services/mockData';
 
 export default function TranslatePage() {
+  const [sourceLang, setSourceLang] = useState<string>('vi');
+  const [targetLang, setTargetLang] = useState<string>('en');
+
+  const streamFn = useCallback(
+    (text: string) => streamMockTranslate(text, sourceLang, targetLang),
+    [sourceLang, targetLang]
+  );
+
   const {
-    inputText,
-    result,
+    inputText, setInputText,
+    result, setResult,
     isStreaming,
     error,
     uploadedFile, setUploadedFile,
-    sourceLang, setSourceLang,
-    targetLang, setTargetLang,
-    swapLanguages,
     isPaymentRequired, rateLimitSeconds,
     execute, copyResult, handleInputChange
-  } = useAITool('translate');
+  } = useAITool(streamFn);
+
+  const swapLanguages = useCallback(() => {
+    const temp = sourceLang;
+    setSourceLang(targetLang);
+    setTargetLang(temp);
+    if (result) {
+      setInputText(result);
+      setResult('');
+    }
+  }, [sourceLang, targetLang, result, setInputText, setResult]);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">

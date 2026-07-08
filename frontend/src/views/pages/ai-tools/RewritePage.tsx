@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { TextInputArea, SSEResultDisplay, PaymentRequiredBanner, RateLimitWarning } from '@/views/components/AITools';
+import { useState, useCallback } from 'react';
 import { useAITool } from '@/viewmodels/useAITool';
+import { streamMockRewrite } from '@/services/mockData';
 import type { RewriteTone } from '@/models/ai';
 
 const TONE_OPTIONS = [
@@ -16,16 +18,22 @@ const TONE_OPTIONS = [
 ] as const;
 
 export default function RewritePage() {
+  const [rewriteTone, setRewriteTone] = useState<RewriteTone>('formal');
+
+  const streamFn = useCallback(
+    (text: string) => streamMockRewrite(text, rewriteTone),
+    [rewriteTone]
+  );
+
   const {
     inputText,
     result,
     isStreaming,
     error,
     uploadedFile, setUploadedFile,
-    rewriteTone, setRewriteTone,
     isPaymentRequired, rateLimitSeconds,
     execute, copyResult, handleInputChange
-  } = useAITool('rewrite');
+  } = useAITool(streamFn);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-5xl">
