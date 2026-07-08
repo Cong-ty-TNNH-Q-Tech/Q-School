@@ -25,6 +25,9 @@ import {
   ChevronLeft,
   Menu,
   PenLine,
+  Users,
+  DollarSign,
+  Activity,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -42,7 +45,11 @@ export default function MainLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const dashboardLink = user?.role === 'teacher' ? '/teacher/dashboard' : '/student/dashboard'
+  const dashboardLink = user?.role === 'admin'
+    ? '/admin/dashboard'
+    : user?.role === 'teacher'
+      ? '/teacher/dashboard'
+      : '/student/dashboard'
 
   const NAV_ITEMS: NavItem[] = [
     { label: 'Dashboard', to: dashboardLink, icon: <LayoutDashboard className="h-4 w-4" /> },
@@ -54,6 +61,15 @@ export default function MainLayout() {
     { label: 'Tài liệu', to: '/documents', icon: <FileText className="h-4 w-4" /> },
     { label: 'Bài tự luận', to: '/essays/submit', icon: <PenLine className="h-4 w-4" /> },
   ]
+
+  const ADMIN_NAV_ITEMS: NavItem[] = [
+    { label: 'Dashboard Admin', to: '/admin/dashboard', icon: <LayoutDashboard className="h-4 w-4" /> },
+    { label: 'Quản lý Người dùng', to: '/admin/users', icon: <Users className="h-4 w-4" /> },
+    { label: 'Gói cước SaaS', to: '/admin/billing', icon: <DollarSign className="h-4 w-4" /> },
+    { label: 'Tài nguyên hệ thống', to: '/admin/health', icon: <Activity className="h-4 w-4" /> },
+  ]
+
+  const visibleNavItems = user?.role === 'admin' ? ADMIN_NAV_ITEMS : NAV_ITEMS
 
   const displayName = user?.profile?.full_name || user?.username || 'Guest'
   const initials = displayName
@@ -140,7 +156,7 @@ export default function MainLayout() {
           `}
         >
           <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
-            {NAV_ITEMS.map((item) => (
+            {visibleNavItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}

@@ -1,0 +1,92 @@
+import type { AdminDashboardData } from '../../models/admin_dashboard';
+
+export const mockAdminDashboardResponse = {
+  status: 'success',
+  data: {
+    user_stats: {
+      total_users: 1248,
+      total_teachers: 98,
+      total_students: 1142,
+      total_admins: 8,
+      new_users_this_month: 124,
+      active_users_today: 432,
+    },
+    revenue_stats: {
+      total_revenue: 145000000, // 145M VND
+      monthly_revenue: 28400000,  // 28.4M VND
+      active_subscriptions: 154,
+      revenue_growth_percent: 18.5,
+    },
+    system_health: {
+      status: 'healthy',
+      uptime_percent: 99.98,
+      ai_service_status: 'online',
+      storage_used_percent: 42.5,
+      active_ai_tasks: 3,
+    },
+    recent_activities: [
+      {
+        id: 'act-1',
+        user_id: 'usr-1',
+        username: 'nguyenvana',
+        full_name: 'Nguyễn Văn A',
+        action: 'registered',
+        role: 'student',
+        detail: 'đã đăng ký tài khoản Học sinh mới.',
+        created_at: '2026-07-08T19:30:00Z',
+      },
+      {
+        id: 'act-2',
+        user_id: 'usr-2',
+        username: 'tranb',
+        full_name: 'Trần Thị B',
+        action: 'subscription_changed',
+        role: 'teacher',
+        detail: 'đã nâng cấp lên gói Pro (Yearly).',
+        created_at: '2026-07-08T18:15:00Z',
+      },
+      {
+        id: 'act-3',
+        user_id: 'usr-3',
+        username: 'le_teacher',
+        full_name: 'Lê Hoàng Cường',
+        action: 'content_created',
+        role: 'teacher',
+        detail: 'đã tạo giáo án mới: "Hình học không gian lớp 11".',
+        created_at: '2026-07-08T17:40:00Z',
+      },
+      {
+        id: 'act-4',
+        user_id: 'usr-4',
+        username: 'pham_student',
+        full_name: 'Phạm Minh Đức',
+        action: 'login',
+        role: 'student',
+        detail: 'đăng nhập vào hệ thống.',
+        created_at: '2026-07-08T17:05:00Z',
+      },
+      {
+        id: 'act-5',
+        user_id: 'usr-5',
+        username: 'hoang_admin',
+        full_name: 'Hoàng Quốc Việt',
+        action: 'content_created',
+        role: 'admin',
+        detail: 'đã cập nhật System Prompt cho trợ lý AI "Raina".',
+        created_at: '2026-07-08T15:20:00Z',
+      },
+      {
+        id: 'act-6',
+        user_id: 'usr-6',
+        username: 'vu_student',
+        full_name: 'Vũ Thuỳ Chi',
+        action: 'registered',
+        role: 'student',
+        detail: 'đã đăng ký tài khoản Học sinh mới.',
+        created_at: '2026-07-08T14:10:00Z',
+      },
+    ],
+  } as AdminDashboardData,
+  message: 'Fetched admin dashboard data successfully',
+  error_code: 0,
+};

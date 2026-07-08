@@ -21,6 +21,7 @@ import Register from '@/views/pages/auth/Register'
 import ForgotPassword from '@/views/pages/auth/ForgotPassword'
 import NotFound from '@/views/pages/errors/NotFound'
 import EssaySubmissionPage from '@/views/pages/essays/EssaySubmission'
+import AdminDashboard from '@/views/pages/admin/dashboard/AdminDashboard'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -28,6 +29,20 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
+  }
+  
+  return <>{children}</>
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((state) => state.user)
+  
+  if (user?.role !== 'admin') {
+    // Redirect user không phải admin về dashboard tương ứng
+    const fallback = user?.role === 'teacher' 
+      ? '/teacher/dashboard' 
+      : '/student/dashboard'
+    return <Navigate to={fallback} replace />
   }
   
   return <>{children}</>
@@ -51,6 +66,7 @@ export default function App() {
           </ProtectedRoute>
         }
       >
+        <Route path="admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="teacher/dashboard" element={<TeacherDashboard />} />
         <Route path="student/dashboard" element={<StudentDashboard />} />
         <Route path="classes" element={<ClassList />} />
