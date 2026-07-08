@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { useAdminDashboard } from '../useAdminDashboard'
 import { mockAdminDashboardResponse } from '../../services/mockData/admin_dashboard.mock'
 
@@ -44,7 +44,7 @@ describe('useAdminDashboard', () => {
     const originalMessage = mockAdminDashboardResponse.message
     
     // Thay đổi mock response thành lỗi
-    mockAdminDashboardResponse.status = 'error' as any
+    ;(mockAdminDashboardResponse as { status: string }).status = 'error'
     mockAdminDashboardResponse.message = 'Lỗi kết nối database'
 
     try {
@@ -57,7 +57,7 @@ describe('useAdminDashboard', () => {
       expect(state.error).toBe('Lỗi kết nối database')
     } finally {
       // Khôi phục lại mock response ban đầu
-      mockAdminDashboardResponse.status = originalStatus
+      ;(mockAdminDashboardResponse as { status: string }).status = originalStatus
       mockAdminDashboardResponse.message = originalMessage
     }
   })
