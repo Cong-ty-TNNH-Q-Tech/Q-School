@@ -11,7 +11,7 @@ class YouTubeQuestionResponse(BaseModel):
     answers: List[YouTubeQuestionAnswer]
 
 class YouTubeQuestionRequest(BaseModel):
-    url: str = Field(..., description="Link video YouTube")
+    url: str = Field(..., pattern=r"^(https?:\/\/)?(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})", description="Link video YouTube")
     question_count: int = Field(5, ge=1, le=20, description="Số lượng câu hỏi cần tạo")
 
 class YouTubeTaskResponse(BaseModel):

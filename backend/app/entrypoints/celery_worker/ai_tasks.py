@@ -310,7 +310,7 @@ def generate_youtube_questions_task(self, url: str, question_count: int) -> list
         use_case = GenerateVideoQuestionsUseCase(youtube_adapter=youtube_adapter, llm_service=llm)
         try:
             results = await use_case.execute(url=url, question_count=question_count)
-            return [q.model_dump() for q in results]
+            return results
         finally:
             await llm.close()
 

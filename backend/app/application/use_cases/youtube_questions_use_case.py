@@ -4,7 +4,6 @@ import logging
 from typing import List
 from app.application.ports.outbound.youtube_port import IYouTubeTranscriptAdapter
 from app.application.ports.outbound.llm_service import ILLMService
-from app.entrypoints.api_v1.schemas.youtube import YouTubeQuestionResponse
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ class GenerateVideoQuestionsUseCase:
             raise ValueError("URL YouTube không hợp lệ.")
         return match.group(1)
 
-    async def execute(self, url: str, question_count: int) -> List[YouTubeQuestionResponse]:
+    async def execute(self, url: str, question_count: int) -> List[dict]:
         video_id = self._extract_video_id(url)
         
         # 1. Tải transcript
@@ -75,7 +74,7 @@ Phụ đề:
                 json_str = ai_response
                 
             data = json.loads(json_str.strip())
-            return [YouTubeQuestionResponse(**item) for item in data]
+            return data
         except Exception as e:
             logger.error(f"Lỗi parse JSON từ AI: {ai_response}")
             raise ValueError("Không thể tạo câu hỏi từ video này do lỗi AI format.") from e
