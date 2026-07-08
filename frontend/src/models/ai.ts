@@ -126,6 +126,12 @@ export interface YouTubeQARequest {
   question_type: YouTubeQuestionType
 }
 
+export interface YouTubeInfo {
+  title: string
+  duration: string
+  thumbnail_url: string
+}
+
 export interface YouTubeQuestion {
   id: string
   timestamp: string

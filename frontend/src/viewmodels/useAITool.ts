@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { AIToolSSEChunk } from '@/models/ai'
 import { parseAIError } from '@/utils/aiApiError'
+import { useRateLimitCountdown } from './useRateLimitCountdown'
 
 export type AIStreamFn = (text: string) => AsyncGenerator<AIToolSSEChunk, void, unknown>
 
@@ -87,12 +88,7 @@ export function useAITool(streamFn: AIStreamFn) {
   }, [])
 
   // Timer cho Rate Limit countdown
-  useEffect(() => {
-    if (rateLimitSeconds > 0) {
-      const timer = setTimeout(() => setRateLimitSeconds(prev => prev - 1), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [rateLimitSeconds])
+  useRateLimitCountdown(rateLimitSeconds, setRateLimitSeconds)
 
   return {
     inputText, setInputText,

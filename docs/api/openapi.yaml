@@ -440,34 +440,6 @@ components:
           type: string
           format: date-time
 
-  # ----------------------------------------
-  # COMMON PARAMETERS
-  # ----------------------------------------
-  parameters:
-    LimitParam:
-      name: limit
-      in: query
-      description: So dong toi da tra ve moi request
-      required: false
-      schema:
-        type: integer
-        default: 20
-        maximum: 100
-    CursorParam:
-      name: cursor
-      in: query
-      description: |
-        ISO 8601 datetime string của `created_at` của record cuối cùng đã tải.
-        Ví dụ: `2024-01-15T10:30:00.123456+00:00`
-        
-        **KHÔNG dùng UUID làm cursor** — UUID v4 là random, không sortable theo thời gian.
-        BaseRepository.cursor_paginate() sử dụng `created_at` để phân trang ổn định.
-      required: false
-      schema:
-        type: string
-        format: date-time
-        example: "2024-01-15T10:30:00.123456+00:00"
-
     # ----------------------------------------
     # AI TOOLS SCHEMAS
     # ----------------------------------------
@@ -569,6 +541,35 @@ components:
           type: string
         is_final:
           type: boolean
+
+  # ----------------------------------------
+  # COMMON PARAMETERS
+  # ----------------------------------------
+  parameters:
+    LimitParam:
+      name: limit
+      in: query
+      description: So dong toi da tra ve moi request
+      required: false
+      schema:
+        type: integer
+        default: 20
+        maximum: 100
+    CursorParam:
+      name: cursor
+      in: query
+      description: |
+        ISO 8601 datetime string của `created_at` của record cuối cùng đã tải.
+        Ví dụ: `2024-01-15T10:30:00.123456+00:00`
+        
+        **KHÔNG dùng UUID làm cursor** — UUID v4 là random, không sortable theo thời gian.
+        BaseRepository.cursor_paginate() sử dụng `created_at` để phân trang ổn định.
+      required: false
+      schema:
+        type: string
+        format: date-time
+        example: "2024-01-15T10:30:00.123456+00:00"
+
 
 security:
   - bearerAuth: []

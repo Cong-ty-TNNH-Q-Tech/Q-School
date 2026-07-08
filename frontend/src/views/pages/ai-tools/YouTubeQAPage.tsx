@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PaymentRequiredBanner, RateLimitWarning } from '@/views/components/AITools';
 import { useYouTubeQuestions } from '@/viewmodels/useYouTubeQuestions';
+import { getMockYouTubeQuestions, extractMockYouTubeInfo } from '@/services/mockData';
 import type { YouTubeQuestionType } from '@/models/ai';
 
 export default function YouTubeQAPage() {
@@ -23,7 +24,7 @@ export default function YouTubeQAPage() {
     rateLimitSeconds,
     generate,
     validateUrl,
-  } = useYouTubeQuestions();
+  } = useYouTubeQuestions(getMockYouTubeQuestions, extractMockYouTubeInfo);
 
   // [FIX #1] Bỏ React.ChangeEvent (React chưa được import trong file này) → dùng inline handler
   // [FIX #2] Tách rõ 2 biến logic để tránh duplicate call và inconsistency

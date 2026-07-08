@@ -179,4 +179,39 @@ describe('useAITool', () => {
 
     expect(true).toBe(true) // Không có "setState on unmounted component" warning
   })
+
+  it('T11: Guard - isStreaming=true thì execute() bị block', async () => {
+    const streamSpy = vi.fn(createMockStreamFn(['hello']))
+    const { result } = renderHook(() => useAITool(streamSpy as AIStreamFn))
+    act(() => { result.current.setInputText('text') })
+    // Gọi execute() 2 lần liên tiếp
+    act(() => { result.current.execute() })
+    act(() => { result.current.execute() }) // phải bị block
+    await act(async () => {}) // flush
+    expect(streamSpy).toHaveBeenCalledTimes(1) // chỉ gọi 1 lần
+  })
+
+  it('T12: Rate limit countdown đếm ngược theo giây', async () => {
+    const throwStream = createMockStreamFn([], new TooManyRequestsError(3))
+    const { result } = renderHook(() => useAITool(throwStream))
+    act(() => { result.current.setInputText('text') })
+    await act(async () => { await result.current.execute() })
+    expect(result.current.rateLimitSeconds).toBe(3)
+    act(() => { vi.advanceTimersByTime(1000) })
+    expect(result.current.rateLimitSeconds).toBe(2)
+    act(() => { vi.advanceTimersByTime(1000) })
+    expect(result.current.rateLimitSeconds).toBe(1)
+    act(() => { vi.advanceTimersByTime(1000) })
+    expect(result.current.rateLimitSeconds).toBe(0)
+  })
+
+  it('T13: copyResult() khi có result', async () => {
+    Object.assign(navigator, { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } })
+    const mockStream = createMockStreamFn(['hello'])
+    const { result } = renderHook(() => useAITool(mockStream))
+    act(() => { result.current.setInputText('test') })
+    await act(async () => { await result.current.execute() })
+    const success = await act(async () => result.current.copyResult())
+    expect(success).toBe(true)
+  })
 })

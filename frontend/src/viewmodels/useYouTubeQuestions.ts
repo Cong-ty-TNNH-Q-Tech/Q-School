@@ -1,11 +1,22 @@
-import { useState, useCallback, useEffect } from 'react'
-import type { YouTubeQuestion, YouTubeQuestionType } from '@/models/ai'
-import { getMockYouTubeQuestions, extractMockYouTubeInfo, type YouTubeInfo } from '@/services/mockData'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import type { YouTubeQuestion, YouTubeQuestionType, YouTubeInfo } from '@/models/ai'
 import { parseAIError } from '@/utils/aiApiError'
+import { useRateLimitCountdown } from './useRateLimitCountdown'
 
 const YOUTUBE_URL_REGEX = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/
 
-export function useYouTubeQuestions() {
+export type FetchYouTubeFn = (
+  url: string,
+  count: number,
+  type: YouTubeQuestionType
+) => Promise<{ status: string; data: YouTubeQuestion[] }>
+
+export type ExtractInfoFn = (url: string) => Promise<YouTubeInfo>
+
+export function useYouTubeQuestions(
+  fetchFn: FetchYouTubeFn,
+  extractInfoFn: ExtractInfoFn
+) {
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [questionCount, setQuestionCount] = useState<number>(10)
   const [questionType, setQuestionType] = useState<YouTubeQuestionType>('mix')
@@ -17,6 +28,15 @@ export function useYouTubeQuestions() {
   // Error UX states
   const [isPaymentRequired, setIsPaymentRequired] = useState(false)
   const [rateLimitSeconds, setRateLimitSeconds] = useState(0)
+
+  const isMountedRef = useRef(true)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   // [FIX #4] useCallback để tránh recreate mỗi render khi pass làm prop/dependency
   const validateUrl = useCallback((url: string): boolean => {
@@ -56,12 +76,16 @@ export function useYouTubeQuestions() {
     setVideoInfo(null)
 
     try {
-      const info = await extractMockYouTubeInfo(youtubeUrl)
+      const info = await extractInfoFn(youtubeUrl)
+      if (!isMountedRef.current) return
       setVideoInfo(info)
 
-      const res = await getMockYouTubeQuestions(youtubeUrl, questionCount, questionType)
+      const res = await fetchFn(youtubeUrl, questionCount, questionType)
+      if (!isMountedRef.current) return
       setQuestions(res.data)
     } catch (err: unknown) {
+      if (!isMountedRef.current) return
+      setVideoInfo(null) // Reset videoInfo when getMockYouTubeQuestions/fetchFn fails (Minor #8)
       const errState = parseAIError(err)
       if (errState.type === 'payment_required') {
         setIsPaymentRequired(true)
@@ -71,11 +95,14 @@ export function useYouTubeQuestions() {
         setError(errState.message)
       }
     } finally {
-      setIsLoading(false)
+      if (isMountedRef.current) {
+        setIsLoading(false)
+      }
     }
-  }, [youtubeUrl, questionCount, questionType, isPaymentRequired, rateLimitSeconds, validateUrl])
+  }, [youtubeUrl, questionCount, questionType, isPaymentRequired, rateLimitSeconds, validateUrl, fetchFn, extractInfoFn])
 
   const reset = useCallback(() => {
+    isMountedRef.current = true
     setYoutubeUrl('')
     setQuestionCount(10)
     setQuestionType('mix')
@@ -88,12 +115,7 @@ export function useYouTubeQuestions() {
   }, [])
 
   // Timer cho Rate Limit countdown
-  useEffect(() => {
-    if (rateLimitSeconds > 0) {
-      const timer = setTimeout(() => setRateLimitSeconds(prev => prev - 1), 1000)
-      return () => clearTimeout(timer)
-    }
-  }, [rateLimitSeconds])
+  useRateLimitCountdown(rateLimitSeconds, setRateLimitSeconds)
 
   return {
     youtubeUrl, setYoutubeUrl,

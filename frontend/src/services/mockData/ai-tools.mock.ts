@@ -4,7 +4,8 @@ import type {
   YouTubeQuestionType, 
   SummarizeLevel, 
   RewriteTone,
-  AIToolSSEChunk
+  AIToolSSEChunk,
+  YouTubeInfo
 } from '@/models/ai'
 import { PaymentRequiredError, TooManyRequestsError } from '@/utils/aiApiError'
 
@@ -114,11 +115,6 @@ export async function* streamMockRewrite(text: string, tone: RewriteTone): Async
 }
 
 // 4. YouTube QA Mock
-export interface YouTubeInfo {
-  title: string
-  duration: string
-  thumbnail_url: string
-}
 
 export async function extractMockYouTubeInfo(url: string): Promise<YouTubeInfo> {
   await delay(1000)

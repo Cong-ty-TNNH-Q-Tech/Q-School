@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,8 @@ export function SSEResultDisplay({ result, isStreaming, onCopy }: SSEResultDispl
   const scrollRef = useRef<HTMLDivElement>(null);
   // [FIX #5] Lưu timeout ID để cleanup khi unmount tránh setState trên unmounted component
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const formattedContent = useMemo(() => formatMessage(result), [result]);
 
   // Auto-scroll to bottom while streaming
   useEffect(() => {
@@ -100,7 +102,7 @@ export function SSEResultDisplay({ result, isStreaming, onCopy }: SSEResultDispl
             aria-atomic="false"
             aria-label="Kết quả xử lý"
           >
-            {formatMessage(result)}
+            {formattedContent}
             {isStreaming && (
               <span className="inline-block w-1.5 h-4 ml-1 bg-primary/80 animate-pulse align-middle" aria-hidden="true" />
             )}
