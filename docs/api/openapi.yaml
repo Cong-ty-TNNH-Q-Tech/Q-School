@@ -504,47 +504,63 @@ components:
 
     YouTubeQARequest:
       type: object
-      required: [youtube_url, question_count, type]
+      required: [url, question_count, question_type]
       properties:
-        youtube_url:
+        url:
           type: string
+          description: "URL video YouTube hợp lệ"
+          example: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
         question_count:
           type: integer
-        type:
+          minimum: 5
+          maximum: 20
+        question_type:
           type: string
           enum: [mcq, open, mix]
 
     YouTubeQuestion:
       type: object
-      required: [id, type, question, timestamp]
+      required: [id, type, question_text, timestamp]
       properties:
         id:
           type: string
+          format: uuid
         type:
           type: string
           enum: [mcq, open]
-        question:
+        question_text:
           type: string
+          description: "Nội dung câu hỏi"
         timestamp:
+          type: string
+          description: "Timestamp dạng MM:SS (ví dụ: 05:30)"
+          example: "05:30"
+        timestamp_seconds:
           type: number
+          description: "Timestamp tính bằng giây"
+          example: 330
         options:
           type: array
           items:
             type: string
+          description: "Các lựa chọn (chỉ có khi type=mcq)"
         correct_answer:
           type: string
-        answer_hint:
-          type: string
+          description: "Đáp án đúng"
 
     SupportedLanguage:
       type: object
+      required: [code, name, native_name]
       properties:
         code:
           type: string
+          example: "vi"
         name:
           type: string
+          example: "Vietnamese"
         native_name:
           type: string
+          example: "Tiếng Việt"
 
     AIToolSSEChunk:
       type: object

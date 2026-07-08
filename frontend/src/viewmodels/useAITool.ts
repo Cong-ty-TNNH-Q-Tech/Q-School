@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import type { AIToolSSEChunk } from '@/models/ai'
 
-export type AIStreamFn = (text: string) => AsyncGenerator<{ chunk: string; is_final: boolean }, void, unknown>
+export type AIStreamFn = (text: string) => AsyncGenerator<AIToolSSEChunk, void, unknown>
 
 export function useAITool(streamFn: AIStreamFn) {
   const [inputText, setInputText] = useState('')
