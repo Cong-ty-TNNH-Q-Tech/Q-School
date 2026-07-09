@@ -2208,7 +2208,7 @@ paths:
                   format: uuid
                 provider:
                   type: string
-                  enum: [stripe, vnpay, momo]
+                  enum: [sepay]
       responses:
         '200':
           description: Link checkout thanh toán

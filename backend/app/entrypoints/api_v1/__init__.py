@@ -31,8 +31,7 @@ from app.entrypoints.api_v1.routers.generated_assets import (
 )  # Issue #113
 
 # ── Group 5: Billing ───────────────────────────
-# from app.entrypoints.api_v1.billing import router as billing_router
-# from app.entrypoints.api_v1.webhooks import router as webhooks_router
+from app.entrypoints.api_v1.billing import router as billing_router, webhook_router
 
 
 api_v1_router = APIRouter(prefix="/api/v1")
@@ -52,5 +51,5 @@ api_v1_router.include_router(ai_chat_router)
 api_v1_router.include_router(
     assets_router, prefix="/generated-assets", tags=["Generated Assets"]
 )  # Issue #113
-# api_v1_router.include_router(billing_router, prefix="/billing", tags=["Billing"])
-# api_v1_router.include_router(webhooks_router, prefix="/webhooks", tags=["Billing"])
+api_v1_router.include_router(billing_router)
+api_v1_router.include_router(webhook_router)
