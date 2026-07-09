@@ -286,3 +286,37 @@ def generate_asset_task(
             logger.error("[generate_asset] Error handling failed: %s", db_err)
         raise self.retry(exc=exc)
 
+
+@celery_app.task(
+    bind=True,
+    base=AIBaseTask,
+    name="ai_tasks.generate_youtube_questions",
+    max_retries=2,
+    default_retry_delay=60,
+)
+def generate_youtube_questions_task(self, url: str, question_count: int) -> list[dict]:
+    """
+    Background task: Tạo câu hỏi trắc nghiệm từ video YouTube.
+    """
+    logger.info("[generate_youtube_questions] START url=%s", url)
+    import asyncio
+    from app.adapters.llm_client.vllm_adapter import VLLMAdapter
+    from app.adapters.youtube_transcript_adapter import YouTubeTranscriptAdapter
+    from app.application.use_cases.youtube_questions_use_case import GenerateVideoQuestionsUseCase
+
+    async def _run():
+        youtube_adapter = YouTubeTranscriptAdapter()
+        llm = VLLMAdapter()
+        use_case = GenerateVideoQuestionsUseCase(youtube_adapter=youtube_adapter, llm_service=llm)
+        try:
+            results = await use_case.execute(url=url, question_count=question_count)
+            return results
+        finally:
+            await llm.close()
+
+    try:
+        return asyncio.run(_run())
+    except Exception as exc:
+        logger.error("[generate_youtube_questions] Task failed: %s", exc)
+        raise self.retry(exc=exc)
+

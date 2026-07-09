@@ -29,6 +29,7 @@ from app.entrypoints.api_v1.ai_chat import router as ai_chat_router
 from app.entrypoints.api_v1.routers.generated_assets import (
     router as assets_router,
 )  # Issue #113
+from app.entrypoints.api_v1.routers.ai import router as ai_router
 
 # ── Group 5: Billing ───────────────────────────
 # from app.entrypoints.api_v1.billing import router as billing_router
@@ -52,5 +53,6 @@ api_v1_router.include_router(ai_chat_router)
 api_v1_router.include_router(
     assets_router, prefix="/generated-assets", tags=["Generated Assets"]
 )  # Issue #113
+api_v1_router.include_router(ai_router, prefix="/ai", tags=["AI Workspace"])
 # api_v1_router.include_router(billing_router, prefix="/billing", tags=["Billing"])
 # api_v1_router.include_router(webhooks_router, prefix="/webhooks", tags=["Billing"])

@@ -2253,3 +2253,105 @@ paths:
                     type: string
                     example: success
 
+
+  /ai/youtube-questions:
+    post:
+      summary: Tạo câu hỏi từ video YouTube (UC-FT-014)
+      description: Đẩy task lấy transcript và dùng AI tạo câu hỏi trắc nghiệm vào Celery queue. Trả về task_id.
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  example: "https://www.youtube.com/watch?v=1234567890"
+                question_count:
+                  type: integer
+                  example: 5
+                  minimum: 1
+                  maximum: 20
+      responses:
+        '202':
+          description: Task đã được nhận
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: string
+        '400':
+          description: Lỗi đầu vào
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StandardError'
+
+  /ai/youtube-questions/{task_id}:
+    get:
+      summary: Lấy kết quả câu hỏi từ video YouTube
+      description: Polling API để lấy trạng thái của task sinh câu hỏi.
+      tags: [AI Workspace]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Trạng thái task
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  data:
+                    type: object
+                    properties:
+                      task_id:
+                        type: string
+                      status:
+                        type: string
+                        example: "COMPLETED"
+                      result:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            question_text:
+                              type: string
+                            timestamp:
+                              type: number
+                            answers:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  text:
+                                    type: string
+                                  is_correct:
+                                    type: boolean
+                      error:
+                        type: string
+                        nullable: true
