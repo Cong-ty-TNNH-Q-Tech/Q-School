@@ -14,7 +14,7 @@ WORKDIR /app
 
 # System deps (build tools for psycopg2, asyncpg)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
+    build-essential \
     libpq-dev \
     curl \
     && rm -rf /var/lib/apt/lists/*
