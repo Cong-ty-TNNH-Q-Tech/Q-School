@@ -440,6 +440,245 @@ components:
           type: string
           format: date-time
 
+<<<<<<< HEAD
+=======
+    # ----------------------------------------
+    # AI TOOLS SCHEMAS
+    # ----------------------------------------
+    SummarizeRequest:
+      type: object
+      required: [text, level]
+      properties:
+        text:
+          type: string
+        level:
+          type: string
+          enum: [short, medium, detailed]
+
+    TranslateRequest:
+      type: object
+      required: [text, source_lang, target_lang]
+      properties:
+        text:
+          type: string
+        source_lang:
+          type: string
+        target_lang:
+          type: string
+
+    RewriteRequest:
+      type: object
+      required: [text, tone]
+      properties:
+        text:
+          type: string
+        tone:
+          type: string
+          enum: [formal, friendly, concise, academic, creative]
+
+    YouTubeQARequest:
+      type: object
+      required: [url, question_count, question_type]
+      properties:
+        url:
+          type: string
+          description: "URL video YouTube hợp lệ"
+          example: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+        question_count:
+          type: integer
+          minimum: 5
+          maximum: 20
+        question_type:
+          type: string
+          enum: [mcq, open, mix]
+
+    YouTubeQuestion:
+      type: object
+      required: [id, type, question_text, timestamp]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [mcq, open]
+        question_text:
+          type: string
+          description: "Nội dung câu hỏi"
+        timestamp:
+          type: string
+          description: "Timestamp dạng MM:SS (ví dụ: 05:30)"
+          example: "05:30"
+        timestamp_seconds:
+          type: number
+          description: "Timestamp tính bằng giây"
+          example: 330
+        options:
+          type: array
+          items:
+            type: string
+          description: "Các lựa chọn (chỉ có khi type=mcq)"
+        correct_answer:
+          type: string
+          description: "Đáp án đúng"
+
+    SupportedLanguage:
+      type: object
+      required: [code, name, native_name]
+      properties:
+        code:
+          type: string
+          example: "vi"
+        name:
+          type: string
+          example: "Vietnamese"
+        native_name:
+          type: string
+          example: "Tiếng Việt"
+
+    AIToolSSEChunk:
+      type: object
+      properties:
+        chunk:
+          type: string
+        is_final:
+          type: boolean
+
+    AdminUserStats:
+      type: object
+      required: [total_users, total_teachers, total_students, total_admins, new_users_this_month, active_users_today]
+      properties:
+        total_users:
+          type: integer
+          example: 1248
+        total_teachers:
+          type: integer
+          example: 98
+        total_students:
+          type: integer
+          example: 1142
+        total_admins:
+          type: integer
+          example: 8
+        new_users_this_month:
+          type: integer
+          example: 124
+        active_users_today:
+          type: integer
+          example: 432
+
+    AdminRevenueStats:
+      type: object
+      required: [total_revenue, monthly_revenue, active_subscriptions, revenue_growth_percent]
+      properties:
+        total_revenue:
+          type: integer
+          description: "Tổng doanh thu tích lũy (VNĐ)"
+          example: 145000000
+        monthly_revenue:
+          type: integer
+          description: "Doanh thu trong tháng hiện tại (VNĐ)"
+          example: 28400000
+        active_subscriptions:
+          type: integer
+          description: "Số lượng tài khoản trả phí đang hoạt động"
+          example: 154
+        revenue_growth_percent:
+          type: number
+          format: float
+          description: "Tỷ lệ tăng trưởng doanh thu so với tháng trước (%)"
+          example: 18.5
+
+    SystemHealthStats:
+      type: object
+      required: [status, uptime_percent, ai_service_status, storage_used_percent, active_ai_tasks]
+      properties:
+        status:
+          type: string
+          enum: [healthy, warning, critical]
+          example: healthy
+        uptime_percent:
+          type: number
+          format: float
+          example: 99.98
+        ai_service_status:
+          type: string
+          enum: [online, degraded, offline]
+          example: online
+        storage_used_percent:
+          type: number
+          format: float
+          example: 42.5
+        active_ai_tasks:
+          type: integer
+          example: 3
+
+    RecentUserActivity:
+      type: object
+      required: [id, user_id, username, full_name, action, role, detail, created_at]
+      properties:
+        id:
+          type: string
+          example: "act-1"
+        user_id:
+          type: string
+          format: uuid
+          example: "usr-1"
+        username:
+          type: string
+          example: "nguyenvana"
+        full_name:
+          type: string
+          nullable: true
+          example: "Nguyễn Văn A"
+        action:
+          type: string
+          enum: [registered, login, subscription_changed, content_created]
+          example: "registered"
+        role:
+          type: string
+          enum: [student, teacher, admin]
+          example: "student"
+        detail:
+          type: string
+          example: "đã đăng ký tài khoản Học sinh mới."
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-07-08T19:30:00Z"
+
+    AdminDashboardData:
+      type: object
+      required: [user_stats, revenue_stats, system_health, recent_activities]
+      properties:
+        user_stats:
+          $ref: '#/components/schemas/AdminUserStats'
+        revenue_stats:
+          $ref: '#/components/schemas/AdminRevenueStats'
+        system_health:
+          $ref: '#/components/schemas/SystemHealthStats'
+        recent_activities:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecentUserActivity'
+
+    AdminDashboardResponse:
+      type: object
+      required: [status, data, message, error_code]
+      properties:
+        status:
+          type: string
+          example: success
+        data:
+          $ref: '#/components/schemas/AdminDashboardData'
+        message:
+          type: string
+          example: "Fetched admin dashboard data successfully"
+        error_code:
+          type: integer
+          example: 0
+
+>>>>>>> c3f1be1 (docs(admin-dashboard): add openapi paths and response schemas for admin dashboard)
   # ----------------------------------------
   # COMMON PARAMETERS
   # ----------------------------------------
@@ -2253,3 +2492,20 @@ paths:
                     type: string
                     example: success
 
+  /admin/dashboard:
+    get:
+      summary: Lấy thông tin thống kê tổng quan (Admin Dashboard)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Thống kê tổng quan hệ thống thành công
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDashboardResponse'
+        '401':
+          description: Chưa xác thực (chưa login)
+        '403':
+          description: Không đủ quyền truy cập (yêu cầu role = admin)
