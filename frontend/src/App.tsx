@@ -21,6 +21,11 @@ import Register from '@/views/pages/auth/Register'
 import ForgotPassword from '@/views/pages/auth/ForgotPassword'
 import NotFound from '@/views/pages/errors/NotFound'
 import EssaySubmissionPage from '@/views/pages/essays/EssaySubmission'
+import AIToolsHubPage from '@/views/pages/ai-tools/AIToolsHubPage'
+import SummarizePage from '@/views/pages/ai-tools/SummarizePage'
+import TranslatePage from '@/views/pages/ai-tools/TranslatePage'
+import RewritePage from '@/views/pages/ai-tools/RewritePage'
+import YouTubeQAPage from '@/views/pages/ai-tools/YouTubeQAPage'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -67,6 +72,12 @@ export default function App() {
         <Route path="flashcards/:setId" element={<FlashcardStudy />} />
         <Route path="documents" element={<DocumentPage />} />
         <Route path="essays/submit" element={<EssaySubmissionPage />} />
+        {/* AI Tools Hub + Tool pages */}
+        <Route path="ai/tools" element={<AIToolsHubPage />} />
+        <Route path="ai/tools/summarize" element={<SummarizePage />} />
+        <Route path="ai/tools/translate" element={<TranslatePage />} />
+        <Route path="ai/tools/rewrite" element={<RewritePage />} />
+        <Route path="ai/tools/youtube-qa" element={<YouTubeQAPage />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 

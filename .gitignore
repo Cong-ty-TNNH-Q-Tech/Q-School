@@ -90,3 +90,8 @@ desktop.ini
 *.log
 logs/
 celery*.log
+
+# ──────────────────────────────────────────────
+# Imported Repositories
+# ──────────────────────────────────────────────
+.codegraph/
