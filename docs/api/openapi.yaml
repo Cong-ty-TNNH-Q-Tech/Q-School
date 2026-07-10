@@ -492,7 +492,7 @@ components:
 
     YouTubeQuestion:
       type: object
-      required: [id, type, question_text, timestamp]
+      required: [id, type, question_text, timestamp, timestamp_seconds]
       properties:
         id:
           type: string
@@ -508,7 +508,7 @@ components:
           description: "Timestamp dạng MM:SS (ví dụ: 05:30)"
           example: "05:30"
         timestamp_seconds:
-          type: number
+          type: integer
           description: "Timestamp tính bằng giây"
           example: 330
         options:
