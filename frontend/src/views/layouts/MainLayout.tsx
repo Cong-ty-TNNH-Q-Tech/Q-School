@@ -69,8 +69,6 @@ export default function MainLayout() {
     { label: 'Tài nguyên hệ thống', to: '/admin/health', icon: <Activity className="h-4 w-4" /> },
   ]
 
-  const visibleNavItems = user?.role === 'admin' ? ADMIN_NAV_ITEMS : NAV_ITEMS
-
   const displayName = user?.profile?.full_name || user?.username || 'Guest'
   const initials = displayName
     .split(' ')
@@ -156,23 +154,78 @@ export default function MainLayout() {
           `}
         >
           <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
-            {visibleNavItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setMobileOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-                  } ${sidebarCollapsed ? 'justify-center px-2' : ''}`
-                }
-              >
-                {item.icon}
-                {!sidebarCollapsed && <span>{item.label}</span>}
-              </NavLink>
-            ))}
+            {user?.role === 'admin' ? (
+              <>
+                {/* Admin Management Section */}
+                {!sidebarCollapsed && (
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground tracking-wider uppercase">
+                    Quản trị
+                  </div>
+                )}
+                {ADMIN_NAV_ITEMS.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                      } ${sidebarCollapsed ? 'justify-center px-2' : ''}`
+                    }
+                  >
+                    {item.icon}
+                    {!sidebarCollapsed && <span>{item.label}</span>}
+                  </NavLink>
+                ))}
+
+                <Separator className="my-2" />
+
+                {/* Application Section for Admin */}
+                {!sidebarCollapsed && (
+                  <div className="px-3 py-1.5 text-[10px] font-bold text-muted-foreground tracking-wider uppercase">
+                    Ứng dụng
+                  </div>
+                )}
+                {NAV_ITEMS.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setMobileOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-primary/10 text-primary'
+                          : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                      } ${sidebarCollapsed ? 'justify-center px-2' : ''}`
+                    }
+                  >
+                    {item.icon}
+                    {!sidebarCollapsed && <span>{item.label}</span>}
+                  </NavLink>
+                ))}
+              </>
+            ) : (
+              // Standard User List
+              NAV_ITEMS.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                    } ${sidebarCollapsed ? 'justify-center px-2' : ''}`
+                  }
+                >
+                  {item.icon}
+                  {!sidebarCollapsed && <span>{item.label}</span>}
+                </NavLink>
+              ))
+            )}
           </nav>
 
           <Separator />
